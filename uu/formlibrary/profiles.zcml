@@ -1,0 +1,15 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+  i18n_domain="uu.formlibrary">
+     
+    <!-- register extension profiles for add-on --> 
+    <genericsetup:registerProfile
+        name="default"
+        title="uu.formlibrary: add-on for form instances and definition library."
+        directory="profiles/default"
+        description="Enabled form library of definitions for re-usable forms."
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+</configure>

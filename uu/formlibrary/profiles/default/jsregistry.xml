@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<object name="portal_javascripts">
+  <!-- jquery tools dateinput, from plone.app.jquerytools, which does not
+       enable this resource by default, so we do it here -->
+
+  <javascript
+    cacheable="True"
+    compression="none"
+    cookable="True"
+    enabled="True"
+    id="++resource++plone.app.jquerytools.validator.js"
+    inline="False"
+    expression=""
+    insert-after="++resource++plone.app.jquerytools.js"
+    />
+
+</object>

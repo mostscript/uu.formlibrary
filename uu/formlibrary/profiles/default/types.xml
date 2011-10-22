@@ -1,0 +1,6 @@
+<object name="portal_types">
+  <object name="uu.formlibrary.library" meta_type="Dexterity FTI" />
+  <object name="uu.formlibrary.definition" meta_type="Dexterity FTI" />
+  <object name="uu.formlibrary.multiform" meta_type="Dexterity FTI" />
+  <object name="uu.formlibrary.simpleform" meta_type="Dexterity FTI" />
+</object>

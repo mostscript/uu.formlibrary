@@ -1,0 +1,15 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  i18n_domain="uu.qiforms">
+
+
+  <!-- static resources -->
+  
+  <browser:resourceDirectory
+    name="uu.formlibrary.icons"
+    directory="resources/icons"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+
+</configure>

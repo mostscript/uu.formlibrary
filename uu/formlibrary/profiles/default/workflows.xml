@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<object name="portal_workflow" meta_type="Plone Workflow Tool">
+  <!--  bind content types from this package to the
+        form_submission_workflow defined in uu.workflows and
+        modified by this package -->
+  <bindings>
+    <type type_id="uu.formlibrary.simpleform">
+      <bound-workflow workflow_id="form_submission_workflow"/>
+    </type>
+    <type type_id="uu.formlibrary.multiform">
+      <bound-workflow workflow_id="form_submission_workflow"/>
+    </type>
+  </bindings>
+</object>

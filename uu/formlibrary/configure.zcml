@@ -1,0 +1,39 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:cmf="http://namespaces.zope.org/cmf"
+  xmlns:grok="http://namespaces.zope.org/grok"
+  xmlns:five="http://namespaces.zope.org/five">
+ 
+  <!-- Include configuration for dependencies listed in setup.py -->
+  <includeDependencies package="." />
+
+  <!-- Grok package: initialise schema interfaces, content classes -->
+  <grok:grok package="." />
+
+  <five:registerPackage package="." initialize=".zope2.initialize" />
+
+  <include package=".browser" />
+
+  <!-- include Generic Setup extension profiles -->
+  <include file="profiles.zcml" />
+
+  <!-- event subscribers -->
+  <subscriber
+    for=".interfaces.IBaseForm
+         zope.lifecycleevent.IObjectCopiedEvent"
+    handler=".handlers.handle_copypaste_local_roles"
+    />
+
+  <subscriber
+    for=".interfaces.IFormDefinition
+         zope.lifecycleevent.IObjedefinitionctModifiedEvent"
+    handler=".handlers.definition_schema_handler"
+    />
+
+  <subscriber
+    for="plone.schemaeditor.interfaces.ISchemaContext
+         plone.schemaeditor.interfaces.ISchemaModifiedEvent"
+    handler=".handlers.serialize_context_schema_changed"
+    />
+
+</configure>

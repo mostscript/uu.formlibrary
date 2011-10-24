@@ -1,9 +1,11 @@
 from plone.directives import form
-from plone.formwidget.contenttree import UUIDSourceBinder
+from plone.formwidget.contenttree import UUIDSourceBinder, CustomFilter
 from plone.formwidget.contenttree import ContentTreeFieldWidget
-from plone.uuid.interfaces import IAttributeUUID
+from plone.formwidget.contenttree import MultiContentTreeFieldWidget
+from plone.uuid.interfaces import IUUID, IAttributeUUID
 from zope.app.container.interfaces import IOrderedContainer
 from zope.interface imnport Interface
+from zope.location.interfaces import ILocation
 from zope import schema
 
 from uu.dynamicschema.interfaces import ISchemaSignedEntity
@@ -15,6 +17,36 @@ DEFINITION_TYPE = 'uu.formlibrary.definition' #form definition portal_type
 LIBRARY_TYPE = 'uu.formlibrary.library'
 SIMPLE_FORM_TYPE = 'uu.formlibrary.simpleform'
 MULTI_FORM_TYPE = 'uu.formlibrary.multiform'
+FORM_TYPES = (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE)
+
+
+class BoundFormSourceBinder(UUIDSourceBinder):
+    """
+    A UUID source binder for use by a IFormQuery object searching for
+    forms related to a definition.  The assumption behind this binder
+    is that the form must have a definition (uuid) matching 
+    IUUID(context.__parent__) -- such a search is carried out in the 
+    catalog (pass UUIDSourceBinder constructor a kwarg with query) via
+    a 'definition' index added by this package.
+    """
+    
+    def __init__(self, navigation_tree_query=None, **kw):
+        super(BoundFormSourceBinder, self).__init__(
+            navigation_tree_query,
+            portal_type=FORM_TYPES,
+            **kw)
+    
+    def __call__(self, context):
+        definition_uid = IUUID(context.__parent__)
+        if definition_uid is None:
+            return super(BoundFormSourceBinder, self).__call__(context)
+        filter = self.selectable_filter.criteria.copy()
+        filter.update({'definition': definition_uid})
+        filter = CustomFilter(**filter)
+        return self.path_source(
+            self._find_page_context(context),
+            selectable_filter=filter,
+            navigation_tree_query=self.navigation_tree_query)
 
 
 class IFormLibraryProductLayer(Interface):
@@ -60,6 +92,228 @@ class IFormEntry(ISchemaSignedEntity):
     for a single record, bound to a schema via md5 signature of
     the schema's serialization (provided via uu.dynamicschema).
     """
+
+
+class IFormQuery(form.Schema, ILocation):
+    """Query specification for filtering a set of forms"""
+     
+    form.fieldset(
+        'formsearch',
+        label=u"Form search",
+        fields=[
+            'query_title',
+            'query_subject',
+            'query_state',
+            'query_start',
+            'query_end',
+            ]
+        )
+    
+    form.fieldset(
+        'formselect',
+        label=u"Form selection",
+        fields=[
+            'query_selected',
+            ]
+        )
+    
+    query_title = schema.TextLine(
+        title=u'Title',
+        description=u'Full text search of title of forms.',
+        required=False,
+        )
+    
+    query_subject = schema.List(
+        title=u'Tags',
+        description=u'Query for any forms matching tags or subject.',
+        value_type=schema.TextLine(),
+        required=False,
+        defaultFactory=list, #req zope.schema >= 3.8.0
+        )
+    
+    query_state = schema.List(
+        title=u'Workflow state(s)',
+        description=u'List of workflow states.',
+        value_type=schema.Choice(
+            vocabulary=u'plone.app.vocabularies.WorkflowStates', #named vocab
+            ),
+        defaultFactory=list, #req zope.schema >= 3.8.0
+        )
+    
+    query_start = schema.Date(
+        title=u'Date range start',
+        description=u'Date range inclusion query (start).',
+        required=False,
+        )
+    
+    query_end = schema.Date(
+        title=u'Date range end',
+        description=u'Date range inclusion query (end).',
+        required=False,
+        )
+    
+    form.widget(query_selected=MultiContentTreeFieldWidget)
+    query_selected = schema.List(
+        title=u'Select form instances',
+        description=u'Select form instances',
+        value_type=schema.Choice(
+            source=BoundFormSourceBinder(),
+            ),
+        defaultFactory=list, #req zope.schema >= 3.8.0
+        )
+    
+    def __iter__(self):
+        """
+        Return iterator over item (key/value) tuples such that
+        an object providing IFormQuery can be cast to a dict or
+        other mapping type.  The purpose of casing a query to
+        a mapping is for use in a search engine / catalog / indexing
+        system expecting such.
+        """
+
+
+class IFormSet(Interface):
+    """
+    An immutable set of UUIDs and an immutable iterable mapping of 
+    UUID keys to form objects.
+    
+    This component type is usually transient, adapting some context
+    (usually an object providing IFormDefinition).  The exact
+    membership of the contained/wrapped set (self.contents) is
+    usually the result of a query relative to the adapted context.
+
+    This component provides a limited subset of Python set
+    type/interface functionality (documented immutable set operations).
+    
+    For set arithmetic operations, if 'other' passed is a base Python
+    set, not an object providing IFormSet, the result of any operation
+    returning a set should be to return an item of the same type as
+    self.
+    
+    For set comparison operations, if the 'other' passed is a base
+    Python set, not providing IFormSet, comparisons should be based
+    upon ONLY membership of UUID contents, not the type of the other.
+    
+    Though the underlying self.contents should be a mutable set, this
+    exterior wrapper interface is non-mutable, acting more like a 
+    frozenset (implementing the common operations of set/frozenset).
+    To modify the underlying set, use operations on self.contents.
+    Modification of self.contents immediately affects all aspects
+    of this set wrapper (state and behavior as immutable set and as
+    an immutable iterable mapping).
+    """
+    
+    name = schema.TextLine(
+        title=u'Set name',
+        description=u'Name of set (if named) or None.',
+        required=False,
+        default=None,
+        )
+    
+    contents = schema.Set(
+        title=u'Set elements',
+        description=u'Underlying set elements as a Python set object ' \
+                    u'containing string UUID representations.',
+    proxies these set operations.
+        defaultFactory=set, # req zope.schema >= 3.8.0
+        )
+    
+    def __len__():
+        """Return number of elements (form UUIDs in set)."""
+    
+    def __iter__():
+        """Return iterable over self.contents (UUID values)"""
+    
+    def __contains__(value):
+        """
+        Passed a value of either UUID or IBaseForm instance, is the UUID
+        of the form in self.contents.
+        """
+    
+    def __and__(other):
+        """
+        Return set intersection of self and other as object providing
+        IFormSet.
+        """
+    
+    def intersection(other):
+        """Alternate spelling for __and__(other)"""
+
+    def __or__(other):
+        """
+        Return set union of self and other as object providing IFormSet.
+        """
+   
+    def union(other):
+        """Alternate spelling for __or__(other)"""
+
+    def __xor__(other):
+        """
+        Return the symetric difference of self and other (items in
+        one or the other, but not both).
+        """
+
+    def symetric_difference(other):
+        """Alternate spelling for __xor__(other)"""
+
+    def __sub__(other):
+        """Relative complement or difference self - other"""
+    
+    def difference(other):
+        """Alternate spelling for __sub__(other)"""
+    
+    def __eq__(other):
+        """
+        Is self, other equivalent set by element membership.
+        """
+    
+    def __ne__(other):
+        """
+        Is self, other non-equivalent by element membership.
+        """
+    
+    def __gt__(other):
+        """
+        Is self a "true" superset of other such that self != other.
+        """
+    
+    def __ge__(other):
+        """
+        Is self a superset of other or has identical set membership.
+        """
+    
+    def __lt__(other):
+        """
+        Is self a "true" subset of other such that self != other.
+        """
+    
+    def __le__(other):
+        """
+        Is self a subset of other or has identical set membership.
+        """
+    
+    def issuperset(other):
+        """Alternate spelling for self.__ge__(other)"""
+    
+    def issubset(other):
+        """Alternate spelling for self.__le__(other)"""
+    
+    def isdisjoint(other):
+        """
+        Return False if self and other contain any element UUIDs
+        that are identical, otherwise return True that self and others
+        are disjoint sets respective to each other.
+        """
+
+    def copy():
+        """Create a copy of this set wrapper and contained set"""
+    
+    # domain-specific iteration: given 
+    def forms(context):
+        """
+        Return iterable of forms for the given site context.
+        Gets forms lazily on iteration of UUIDs via iter(self).
+        """
 
 
 class IPeriodicFormInstance(form.Schema):

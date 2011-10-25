@@ -1,0 +1,4 @@
+include *.txt docs/*.txt
+recursive-include uu/formlibrary *
+global-exclude *.pyc .bzr
+

@@ -1,0 +1,11 @@
+Changelog
+=========
+
+0.1 (unreleased)
+----------------
+
+- Initial package, in development: uu.formlibrary implements general
+  purpose form library for single-record and multi-record forms tied
+  to a form definition maintained inside a form library.
+
+

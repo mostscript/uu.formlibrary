@@ -113,7 +113,7 @@ class IFormQuery(form.Schema, ILocation):
         'formselect',
         label=u"Form selection",
         fields=[
-            'query_selected',
+            'target_uids',
             ]
         )
     
@@ -152,8 +152,8 @@ class IFormQuery(form.Schema, ILocation):
         required=False,
         )
     
-    form.widget(query_selected=MultiContentTreeFieldWidget)
-    query_selected = schema.List(
+    form.widget(target_uids=MultiContentTreeFieldWidget)
+    target_uids = schema.List(
         title=u'Select form instances',
         description=u'Select form instances',
         value_type=schema.Choice(

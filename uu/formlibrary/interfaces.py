@@ -1,16 +1,19 @@
-from plone.directives import form
-from plone.formwidget.contenttree import UUIDSourceBinder, CustomFilter
+from plone.directives import form, dexterity
+from plone.formwidget.contenttree import UUIDSourceBinder
+from plone.formwidget.contenttree.source import CustomFilter
 from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IUUID, IAttributeUUID
 from zope.app.container.interfaces import IOrderedContainer
-from zope.interface imnport Interface
+from zope.interface import Interface, invariant
+from zope.interface.interfaces import IInterface
 from zope.location.interfaces import ILocation
 from zope import schema
 
 from uu.dynamicschema.interfaces import ISchemaSignedEntity
 from uu.record.interfaces import IRecordContainer
 
+from uu.formlibrary import _
 
 # portal type constants:
 DEFINITION_TYPE = 'uu.formlibrary.definition' #form definition portal_type
@@ -214,7 +217,6 @@ class IFormSet(Interface):
         title=u'Set elements',
         description=u'Underlying set elements as a Python set object ' \
                     u'containing string UUID representations.',
-    proxies these set operations.
         defaultFactory=set, # req zope.schema >= 3.8.0
         )
     

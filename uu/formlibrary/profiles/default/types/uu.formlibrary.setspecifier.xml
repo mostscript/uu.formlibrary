@@ -1,25 +1,24 @@
 <?xml version="1.0"?>
-<object name="uu.formlibrary.definition"
+<object name="uu.formlibrary.setspecifier"
         meta_type="Dexterity FTI"
         i18n:domain="uu.formlibrary"
         xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
   <!-- Basic metadata -->
-  <property name="title" i18n:translate="">Form definition</property>
-  <property name="description" i18n:translate="">A re-usable form definition.</property>
-  <property name="content_icon">++resource++uu.formlibrary.icons/formdef.png</property>
+  <property name="title" i18n:translate="">Form Set</property>
+  <property name="description" i18n:translate="">A form set specifier (collection/query of matching forms).</property>
+  <property name="content_icon">++resource++uu.formlibrary.icons/formset.png</property>
   <property name="allow_discussion">False</property>
   <property name="global_allow">False</property>
   <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
-    <element value="uu.formlibrary.setspecifier" /> 
   </property>
   
   <!-- schema interface -->
-  <property name="schema">uu.formlibrary.interfaces.IFormDefinition</property> 
+  <property name="schema">uu.formlibrary.interfaces.IFormQuery</property> 
   
   <!-- class used for content items -->
-  <property name="klass">uu.formlibrary.definition.FormDefinition</property>
+  <property name="klass">uu.formlibrary.formsets.FormSetSpecifier</property>
   
   <!-- add permission -->
   <property name="add_permission">cmf.AddPortalContent</property>

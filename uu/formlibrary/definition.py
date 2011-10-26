@@ -5,7 +5,7 @@ from plone.schemaeditor.browser.schema.traversal import SchemaContext
 from uu.dynamicschema.schema import SignatureSchemaContext
 
 from uu.formlibrary.interfaces import IFormDefinition
-from uu.qiforms.library.interfaces import DEFINITION_TYPE
+from uu.formlibrary.interfaces import DEFINITION_TYPE
 
 
 class FormDefinition(Container, SignatureSchemaContext):

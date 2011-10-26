@@ -98,7 +98,11 @@ class IFormEntry(ISchemaSignedEntity):
 
 
 class IFormQuery(form.Schema, ILocation):
-    """Query specification for filtering a set of forms"""
+    """
+    Query specification for filtering a set of forms.  self.__parent__
+    (from ILocation interface) is always expected to be an object
+    providing IFormDefinition.
+    """
      
     form.fieldset(
         'formsearch',
@@ -118,6 +122,19 @@ class IFormQuery(form.Schema, ILocation):
         fields=[
             'target_uids',
             ]
+        )
+    
+    title = schema.TextLine(
+        title=u'Title',
+        description=u'Name of form set.',
+        required=True,
+        )
+    
+    description = schema.Text(
+        title=u'Description',
+        description=u'Description of the form set resulting from '\
+                    u'selection or query.',
+        required=False,
         )
     
     query_title = schema.TextLine(
@@ -232,6 +249,39 @@ class IFormSet(Interface):
         of the form in self.contents.
         """
     
+    # read-only / immutable iterable mapping interface methods:
+
+    def __getitem__(key):
+        """
+        Given a UID key, get form object value; raise KeyError on a key
+        not in self.keys() or a value that cannot be located.
+        """
+    
+    def get(key, default=None):
+        """
+        Given a UID key, get and return form object, or return default.
+        """
+    
+    def keys():
+        """Return list of UUID keys"""
+    
+    def values():
+        """Return list of form object values"""
+    
+    def items():
+        """Return list of (UUID, form) tuples"""
+    
+    def iterkeys():
+        """Return iterator over keys"""
+    
+    def itervalues():
+        """Return iterator over values"""
+    
+    def iteritems():
+        """Return iterator over items"""
+    
+    # set interface methods:
+    
     def __and__(other):
         """
         Return set intersection of self and other as object providing
@@ -309,13 +359,6 @@ class IFormSet(Interface):
 
     def copy():
         """Create a copy of this set wrapper and contained set"""
-    
-    # domain-specific iteration: given 
-    def forms(context):
-        """
-        Return iterable of forms for the given site context.
-        Gets forms lazily on iteration of UUIDs via iter(self).
-        """
 
 
 class IPeriodicFormInstance(form.Schema):

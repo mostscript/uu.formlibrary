@@ -18,6 +18,9 @@
   <include file="profiles.zcml" />
 
   <!-- event subscribers -->
+
+  <!--
+
   <subscriber
     for=".interfaces.IBaseForm
          zope.lifecycleevent.IObjectCopiedEvent"
@@ -35,5 +38,7 @@
          plone.schemaeditor.interfaces.ISchemaModifiedEvent"
     handler=".handlers.serialize_context_schema_changed"
     />
+
+  -->
 
 </configure>

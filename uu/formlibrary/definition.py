@@ -3,6 +3,7 @@ from plone.dexterity.content import Container
 from plone.schemaeditor.browser.schema.traversal import SchemaContext
 
 from uu.dynamicschema.schema import SignatureSchemaContext
+from uu.dynamicschema.schema import copy_schema
 
 from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.interfaces import DEFINITION_TYPE
@@ -21,7 +22,7 @@ class FormDefinition(Container, SignatureSchemaContext):
     
     implements(IFormDefinition)
     
-    def __init__(self, id, *args, **kwargs):
+    def __init__(self, id=None, *args, **kwargs):
         SignatureSchemaContext.__init__(self) #sets self.signature=None
         Container.__init__(self, id, *args, **kwargs)
     

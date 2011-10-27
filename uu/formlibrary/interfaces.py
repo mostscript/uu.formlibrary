@@ -9,11 +9,13 @@ from zope.interface import Interface, invariant
 from zope.interface.interfaces import IInterface
 from zope.location.interfaces import ILocation
 from zope import schema
+from Acquisition import aq_inner
 
 from uu.dynamicschema.interfaces import ISchemaSignedEntity
 from uu.record.interfaces import IRecordContainer
 
 from uu.formlibrary import _
+
 
 # portal type constants:
 DEFINITION_TYPE = 'uu.formlibrary.definition' #form definition portal_type
@@ -41,7 +43,7 @@ class BoundFormSourceBinder(UUIDSourceBinder):
             **kw)
     
     def __call__(self, context):
-        definition_uid = IUUID(context.__parent__)
+        definition_uid = IUUID(aq_inner(context).__parent__)
         if definition_uid is None:
             return super(BoundFormSourceBinder, self).__call__(context)
         filter = self.selectable_filter.criteria.copy()
@@ -82,6 +84,18 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
     plone.schemaeditor, and may contain as a folder other types of
     configuration items. 
     """
+    
+    title = schema.TextLine(
+        title=u'Title',
+        description=u'Name of form definition; used to create an identifier.',
+        required=True,
+        )
+    
+    description = schema.Text(
+        title=u'Description',
+        description=u'Optional description of this form definition.',
+        required=False,
+        )
 
 
 class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
@@ -89,6 +103,19 @@ class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
     Container/folder interface for library of form definitions.
     Keys are ids, values provided IFormDefinition.
     """
+    
+    title = schema.TextLine(
+        title=u'Title',
+        description=u'Name of form library; used to create its identifier.',
+        required=True,
+        )
+    
+    description = schema.Text(
+        title=u'Description',
+        description=u'Optional description of this form library.',
+        required=False,
+        )
+    
     
 
 class IFormEntry(ISchemaSignedEntity):
@@ -105,7 +132,9 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
     (from ILocation interface) is always expected to be an object
     providing IFormDefinition.
     """
-     
+    
+    form.omitted('__name__') # not for editing
+
     form.fieldset(
         'formsearch',
         label=u"Form search",

@@ -18,6 +18,8 @@ class ProductLayer(PloneSandboxLayer):
         import z3c.form
         self.loadZCML(name='meta.zcml', package=z3c.form)
         self.loadZCML(package=z3c.form) # needed for testing product views
+        import plone.uuid
+        self.loadZCML(package=plone.uuid)
         import uu.formlibrary
         self.loadZCML(package=uu.formlibrary)
 

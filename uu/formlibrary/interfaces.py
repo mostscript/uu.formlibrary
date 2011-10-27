@@ -20,6 +20,7 @@ DEFINITION_TYPE = 'uu.formlibrary.definition' #form definition portal_type
 LIBRARY_TYPE = 'uu.formlibrary.library'
 SIMPLE_FORM_TYPE = 'uu.formlibrary.simpleform'
 MULTI_FORM_TYPE = 'uu.formlibrary.multiform'
+FORM_SET_TYPE = 'uu.formlibrary.setspecifier'
 FORM_TYPES = (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE)
 
 
@@ -72,7 +73,8 @@ class ISchemaProvider(Interface):
         )
 
 
-class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer):
+class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
+                      IAttributeUUID):
     """
     Item within a form library that defines a specific form for
     use across multiple form instances in a site.  The form 
@@ -82,7 +84,7 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer):
     """
 
 
-class IFormLibrary(form.Schema, IOrderedContainer):
+class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
     """
     Container/folder interface for library of form definitions.
     Keys are ids, values provided IFormDefinition.
@@ -97,7 +99,7 @@ class IFormEntry(ISchemaSignedEntity):
     """
 
 
-class IFormQuery(form.Schema, ILocation):
+class IFormQuery(form.Schema, ILocation, IAttributeUUID):
     """
     Query specification for filtering a set of forms.  self.__parent__
     (from ILocation interface) is always expected to be an object
@@ -361,7 +363,7 @@ class IFormSet(Interface):
         """Create a copy of this set wrapper and contained set"""
 
 
-class IPeriodicFormInstance(form.Schema):
+class IPeriodicFormInstance(form.Schema, IAttributeUUID):
     """Base form instance interface"""
     
     form.fieldset(

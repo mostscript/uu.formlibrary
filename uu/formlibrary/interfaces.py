@@ -4,6 +4,7 @@ from plone.formwidget.contenttree.source import CustomFilter
 from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IUUID, IAttributeUUID
+from z3c.form.browser.textarea import TextAreaFieldWidget
 from zope.app.container.interfaces import IOrderedContainer
 from zope.interface import Interface, invariant
 from zope.interface.interfaces import IInterface
@@ -12,6 +13,8 @@ from zope import schema
 from Acquisition import aq_inner
 
 from uu.dynamicschema.interfaces import ISchemaSignedEntity
+from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
+from uu.dynamicschema.interfaces import valid_xml_schema
 from uu.record.interfaces import IRecordContainer
 
 from uu.formlibrary import _
@@ -85,6 +88,23 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
     configuration items. 
     """
     
+    form.fieldset(
+        'Configuration',
+        label=u"Form configuration",
+        fields=[
+            'form_css',
+            'entry_schema',
+            ]
+        )
+    
+    form.omitted('signature') # instance attribute, but not editable form field
+    signature = schema.BytesLine(
+        title=_(u'Schema signature'),
+        description=_(u'MD5 hexidecimal digetst hash of entry_schema XML.'),
+        default=DEFAULT_SIGNATURE,
+        required=False,
+        )
+    
     title = schema.TextLine(
         title=u'Title',
         description=u'Name of form definition; used to create an identifier.',
@@ -97,6 +117,34 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
         required=False,
         )
 
+    form.widget(entry_schema=TextAreaFieldWidget)
+    entry_schema = schema.Bytes(
+        title=_(u'Form schema XML'),
+        description=_(u'Serialized form schema XML.'),
+        constraint=valid_xml_schema,
+        default=DEFAULT_MODEL_XML,
+        required=False,
+        )
+    
+    form.widget(form_css=TextAreaFieldWidget)
+    form_css = schema.Bytes(
+        title=_(u'Form styles'),
+        description=_(u'CSS stylesheet rules for form (optional).'),
+        required=False,
+        )
+    
+    # NOTE: this field must be last in interface code: identifier collision
+    form.omitted('schema') # instance attribute, but not editable form field
+    schema = schema.Object(
+        title=_(u'Form schema'),
+        description=_(u'Form schema based upon entry_schema XML, usually '\
+                      u'a reference to a transient interface object '\
+                      u'looked up from persistent attribute self.signature.'),
+        schema=IInterface,
+        required=True, #implementations should provide empty default
+        readonly=True, #read-only property, though object returned is mutable
+        ) 
+    
 
 class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
     """

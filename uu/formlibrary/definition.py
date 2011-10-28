@@ -25,7 +25,14 @@ class FormDefinition(Container, SignatureSchemaContext):
     def __init__(self, id=None, *args, **kwargs):
         SignatureSchemaContext.__init__(self) #sets self.signature=None
         Container.__init__(self, id, *args, **kwargs)
+        self.signature_history = PersistentList()
     
+    def schema_version(self, signature):
+        signature = str(signature.strip())
+        if signature not in self.signature_history:
+            return -1
+        return self.signature_history.index(signature) + 1 #one-indexed
+     
     def __getattr__(self, name):
         """Hack to get acquisition and Python property self.schema to work"""
         if name == 'schema':

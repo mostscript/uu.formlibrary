@@ -100,9 +100,18 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
     form.omitted('signature') # instance attribute, but not editable form field
     signature = schema.BytesLine(
         title=_(u'Schema signature'),
-        description=_(u'MD5 hexidecimal digetst hash of entry_schema XML.'),
+        description=_(u'MD5 hexidecimal digest hash of entry_schema XML.'),
         default=DEFAULT_SIGNATURE,
         required=False,
+        )
+
+    form.omitted('signature_history') # attribute, but not editable form field
+    signature_history = schema.List(
+        title=_(u'Signature history stack'),
+        description=_(u'Chronologically-ordered list of MD5 hexidecimal '\
+                      u'digest hashes of entry_schema XML.'),
+        value_type=schema.BytesLine(),
+        defaultFactory=list,
         )
     
     title = schema.TextLine(
@@ -145,6 +154,13 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
         readonly=True, #read-only property, though object returned is mutable
         ) 
     
+    def schema_version(signature):   
+        """
+        Return the integer index of the signature in self.signature_history
+        plus one (version numbers are one-indexed, not zero-indexed).  If
+        signature passed is not found in history, return -1.
+        """
+
 
 class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
     """

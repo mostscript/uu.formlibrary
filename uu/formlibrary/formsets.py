@@ -52,7 +52,7 @@ class BaseFormSet(object):
         if getattr(self, 'contents', None) is None:
             self.contents = set()
         self.site = getSite()
-        self.catalog = getToolByName(site, 'portal_catalog')
+        self.catalog = getToolByName(self.site, 'portal_catalog')
         self.context = context
 
     def get(self, key, default=None):

@@ -1,6 +1,7 @@
 from zope.component import queryUtility
 from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
+from Products.CMFCore.utils import getToolByName
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE

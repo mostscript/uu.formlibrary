@@ -52,10 +52,5 @@
           url_expr="string:${object_url}/edit" visible="True">
     <permission value="Modify portal content"/>
   </action>
-  <action title="Form schema" action_id="edit_schema" category="object"
-         condition_expr="" url_expr="string:${object_url}/edit_schema"
-         visible="True">
-    <permission value="Modify portal content"/>
-  </action>
 
 </object>

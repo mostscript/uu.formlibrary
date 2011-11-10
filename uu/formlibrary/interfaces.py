@@ -9,6 +9,7 @@ from zope.app.container.interfaces import IOrderedContainer
 from zope.interface import Interface, invariant
 from zope.interface.interfaces import IInterface
 from zope.location.interfaces import ILocation
+from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope import schema
 from Acquisition import aq_inner
 
@@ -26,6 +27,7 @@ LIBRARY_TYPE = 'uu.formlibrary.library'
 SIMPLE_FORM_TYPE = 'uu.formlibrary.simpleform'
 MULTI_FORM_TYPE = 'uu.formlibrary.multiform'
 FORM_SET_TYPE = 'uu.formlibrary.setspecifier'
+FIELD_GROUP_TYPE = 'uu.formlibrary.fieldgroup'
 FORM_TYPES = (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE)
 
 
@@ -78,24 +80,8 @@ class ISchemaProvider(Interface):
         )
 
 
-class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
-                      IAttributeUUID):
-    """
-    Item within a form library that defines a specific form for
-    use across multiple form instances in a site.  The form 
-    definition manages itself as a schema context for use by 
-    plone.schemaeditor, and may contain as a folder other types of
-    configuration items. 
-    """
-    
-    form.fieldset(
-        'Configuration',
-        label=u"Form configuration",
-        fields=[
-            'form_css',
-            'entry_schema',
-            ]
-        )
+class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
+    """Base for form, form-group definitions"""
     
     form.omitted('signature') # instance attribute, but not editable form field
     signature = schema.BytesLine(
@@ -135,13 +121,6 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
         required=False,
         )
     
-    form.widget(form_css=TextAreaFieldWidget)
-    form_css = schema.Bytes(
-        title=_(u'Form styles'),
-        description=_(u'CSS stylesheet rules for form (optional).'),
-        required=False,
-        )
-    
     # NOTE: this field must be last in interface code: identifier collision
     form.omitted('schema') # instance attribute, but not editable form field
     schema = schema.Object(
@@ -160,6 +139,66 @@ class IFormDefinition(form.Schema, ISchemaProvider, IOrderedContainer,
         plus one (version numbers are one-indexed, not zero-indexed).  If
         signature passed is not found in history, return -1.
         """
+
+
+class IFormDefinition(IDefinitionBase, IOrderedContainer):
+    """
+    Item within a form library that defines a specific form for
+    use across multiple form instances in a site.  The form 
+    definition manages itself as a schema context for use by 
+    plone.schemaeditor, and may contain as a folder other types of
+    configuration items. 
+    """
+    
+    form.fieldset(
+        'Configuration',
+        label=u"Form configuration",
+        fields=[
+            'form_css',
+            'entry_schema',
+            ]
+        )
+    
+    form.widget(form_css=TextAreaFieldWidget)
+    form_css = schema.Bytes(
+        title=_(u'Form styles'),
+        description=_(u'CSS stylesheet rules for form (optional).'),
+        required=False,
+        )
+
+
+class IFieldGroup(IDefinitionBase):
+    """
+    Group of fields within a form, provides its own schema distinct
+    from the schema of the containing form definition.
+    
+    Depending upon group_usage, intended use of this group may be
+    either in a fieldset-like capacity, or as a schema provider for
+    a grid field (nested in a fieldset-like setup).
+    """
+    
+    form.fieldset(
+        'Configuration',
+        label=u"Form configuration",
+        fields=[
+            'entry_schema',
+            ]
+        )
+    
+    form.omitted('id') # generated from title, not edited generally
+    id = schema.BytesLine()
+    
+    group_usage = schema.Choice(
+        title=u'Field group usage',
+        description=u'What type of use is expected for this field group?',
+        vocabulary=SimpleVocabulary(
+            [
+                SimpleTerm(value=u'group', title=u'Single-record group'),
+                SimpleTerm(value=u'grid', title=u'Multi-record grid'),
+            ],
+            ),
+        default=u'group',
+        )
 
 
 class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):

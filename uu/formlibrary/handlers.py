@@ -5,8 +5,8 @@ from Products.CMFCore.utils import getToolByName
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
-from uu.formlibrary.interfaces import IFormDefinition, IFormSet
-
+from uu.formlibrary.interfaces import IFormDefinition, IFormSet, ISimpleForm
+from uu.formlibrary.forms import form_definition
 
 def copyroles(source, dest):
     """ 
@@ -30,6 +30,18 @@ def handle_copypaste_local_roles(context, event):
     dest = event.object
     source = event.original
     copyroles(source, dest)
+
+
+def simple_form_configuration_modified(context, event):
+    if not ISimpleForm.providedBy(context):
+        raise ValueError('context must be ISimpleForm provider')
+    ## re-sign context and data-record with current definition/schema:
+    try:
+        definition = form_definition(context)
+    except ValueError:
+        return # no definition means no schema to sync
+    context.signature = definition.signature
+    context.data.sign(context.schema)
 
 
 def update_form_entries(context):

@@ -33,6 +33,12 @@
   <!-- event subscribers -->
 
   <subscriber
+    for=".interfaces.ISimpleForm
+         zope.lifecycleevent.interfaces.IObjectModifiedEvent"
+    handler=".handlers.simple_form_configuration_modified"
+    />
+
+  <subscriber
     for=".interfaces.IBaseForm
          zope.lifecycleevent.IObjectCopiedEvent"
     handler=".handlers.handle_copypaste_local_roles"

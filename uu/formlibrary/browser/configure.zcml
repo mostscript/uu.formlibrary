@@ -3,6 +3,13 @@
   xmlns:browser="http://namespaces.zope.org/browser"
   i18n_domain="uu.qiforms">
 
+  <browser:page
+    name="form_entry"
+    for="uu.formlibrary.interfaces.ISimpleForm"
+    class=".simpleform.SimpleFormEntry"
+    template="simple_entry.pt"
+    permission="uu.workflows.EnterData"
+    />
 
   <!-- static resources -->
   

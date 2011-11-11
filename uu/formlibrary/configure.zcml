@@ -45,7 +45,7 @@
     />
 
   <subscriber
-    for=".interfaces.IFormDefinition
+    for=".interfaces.IDefinitionBase
          zope.lifecycleevent.interfaces.IObjectModifiedEvent"
     handler=".handlers.definition_schema_handler"
     />

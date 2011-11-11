@@ -5,7 +5,8 @@ from Products.CMFCore.utils import getToolByName
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
-from uu.formlibrary.interfaces import IFormDefinition, IFormSet, ISimpleForm
+from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
+from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.forms import form_definition
 
 def copyroles(source, dest):
@@ -53,6 +54,7 @@ def update_form_entries(context):
             # modify the schema of records within it.
             for entry in form.values():
                 entry.sign(context.schema)
+    # TODO: deal with nested groups and associated data objects contained
 
 
 def definition_schema_handler(context, event):
@@ -86,7 +88,7 @@ def definition_schema_handler(context, event):
 
 
 def reserialize(context, schema):
-    if not IFormDefinition.providedBy(context.__parent__):
+    if not IDefinitionBase.providedBy(context.__parent__):
         return #not an event we care about
     definition = context.__parent__
     saver = queryUtility(ISchemaSaver)
@@ -94,7 +96,9 @@ def reserialize(context, schema):
     new_xml = saver.get(new_signature)
     definition.entry_schema = new_xml
     definition.signature = new_signature
-    update_form_entries(definition)
+    if IFormDefinition.providedBy(definition):
+        update_form_entries(definition)
+    # TODO: deal with nested groups and associated data objects contained
     if hasattr(aq_base(definition), '_v_schema'):
         delattr(aq_base(definition), '_v_schema') #invalidate previous schema
     definition.reindexObject()

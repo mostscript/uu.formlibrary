@@ -1,4 +1,4 @@
-
+from plone.autoform.interfaces import WIDGETS_KEY
 from collective.z3cform.datagridfield import DictRow, DataGridFieldFactory
 from zope.schema import List
 
@@ -21,11 +21,6 @@ def grid_wrapper_schema(schema, title=u'', description=u''):
         value_type=DictRow(schema=schema),
         )
     # specify plone.autoform widget config for field:
-    tv = wrapper._Element__tagged_values
-    tv['__form_directive_values__'] = {
-        'plone.autoform.widgets' : {
-            'data' : WIDGET,
-            },
-        }
+    wrapper.setTaggedValue(WIDGETS_KEY, {'data' : WIDGET})
     return wrapper
 

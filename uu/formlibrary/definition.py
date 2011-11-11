@@ -58,6 +58,11 @@ class FormDefinition(Container, DefinitionBase):
     def __init__(self, id=None, *args, **kwargs):
         Container.__init__(self, id, *args, **kwargs)
         DefinitionBase.__init__(self, content_base=Container)
+    
+    def __getitem__(self, name):
+        if name in self.objectIds():
+            return Container.__getitem__(self, name)
+        return DefinitionBase.__getitem__(self, name) #traversal hook
 
 
 class FieldGroup(Item, DefinitionBase):

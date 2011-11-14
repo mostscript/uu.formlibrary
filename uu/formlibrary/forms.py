@@ -48,6 +48,15 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     
     ignoreContext = True    # form operates 
     
+    # schema must be property, not attribute for AutoExtensibleForm sublcass
+    @property
+    def schema(self):
+        return self._schema
+    
+    @property
+    def additionalSchemata(self):
+        return self._additionalSchemata
+
     def __init__(self, context, request):
         """
         Construct composed form given (default) schema an a tuple
@@ -55,18 +64,20 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         component name keys to schema values.
         """
         self.context = context
+        self.request = request
         # form definition will either be context, or adaptation of context.
         # see uu.formlibrary.forms.form_definition for adapter example.
         self.definition = IFormDefinition(self.context)
-        self.schema = self.definition.schema
+        self._schema = self.definition.schema
         group_schemas = self._field_group_schemas()
         # mapping: names to schema:
-        self.components = dict( (('default', schema),) + group_schemas )
+        self.components = dict( [('default', self._schema),] + group_schemas )
         # mapping: schema to names:
         self.schema_names = dict(invert(self.components.items()))
         # ordered list of additional schema for AutoExtensibleForm:
-        self.additionalSchemata = tuple([t[1] for t in group_schemas])
-        super(ComposedForm, self).__init__(self, context, request)
+        self._additionalSchemata = tuple([t[1] for t in group_schemas])
+        #super(ComposedForm, self).__init__(self, context, request)
+        form.Form.__init__(self, context, request)
     
     def _field_group_schemas(self):
         """Get list of field group schemas from form definition context"""
@@ -82,7 +93,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         return result
     
     def getPrefix(self, schema):
-        if schema in self.self.schema_names:
+        if schema in self.schema_names:
             return self.schema_names[schema]
         # fall-back will not work for anoymous schema without names, but
         # it is the best we can assume to do here:

@@ -1,4 +1,6 @@
 from plone.dexterity.content import Item
+from plone.autoform.form import AutoExtensibleForm
+from z3c.form import form
 from zope.app.component.hooks import getSite
 from zope.component import adapter
 from zope.interface import implements, implementer
@@ -9,10 +11,19 @@ from uu.dynamicschema.interfaces import DEFAULT_SIGNATURE
 from uu.record.base import RecordContainer
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IBaseForm, IFormDefinition
-from uu.formlibrary.interfaces import DEFINITION_TYPE
+from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.record import FormEntry
+from uu.formlibrary.utils import grid_wrapper_schema
 
+
+flip = lambda a,b: (b,a)
+invert = lambda s: reduce(flip, s)
+
+is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
+
+
+## form-related adapters:
 
 @implementer(IFormDefinition)
 @adapter(IBaseForm)
@@ -27,6 +38,58 @@ def form_definition(form):
         raise ValueError('could not locate form definition')
     return r[0]._unrestrictedGetObject()
 
+
+class ComposedForm(AutoExtensibleForm, form.Form):
+    """
+    A form composed from multiple schema adapting a form definition.
+    This composition uses (base class from) plone.autoform to compose
+    a merged form.
+    """
+    
+    ignoreContext = True    # form operates 
+    
+    def __init__(self, context, request):
+        """
+        Construct composed form given (default) schema an a tuple
+        of ordered additional schema key/value pairs of (string)
+        component name keys to schema values.
+        """
+        self.context = context
+        # form definition will either be context, or adaptation of context.
+        # see uu.formlibrary.forms.form_definition for adapter example.
+        self.definition = IFormDefinition(self.context)
+        self.schema = self.definition.schema
+        group_schemas = self._field_group_schemas()
+        # mapping: names to schema:
+        self.components = dict( (('default', schema),) + group_schemas )
+        # mapping: schema to names:
+        self.schema_names = dict(invert(self.components.items()))
+        # ordered list of additional schema for AutoExtensibleForm:
+        self.additionalSchemata = tuple([t[1] for t in group_schemas])
+        super(ComposedForm, self).__init__(self, context, request)
+    
+    def _field_group_schemas(self):
+        """Get list of field group schemas from form definition context"""
+        result = []
+        groups = filter(is_field_group, self.definition.objectValues())
+        for group in groups:
+            if group.group_usage == 'grid':
+                result.append(
+                    (group.getId(), grid_wrapper_schema(group.schema),)
+                    )
+            else:
+                result.append( (group.getId(), group.schema,) )
+        return result
+    
+    def getPrefix(self, schema):
+        if schema in self.self.schema_names:
+            return self.schema_names[schema]
+        # fall-back will not work for anoymous schema without names, but
+        # it is the best we can assume to do here:
+        return super(ComposedForm, self).getPrefix(schema)
+
+
+## content-type implementations for form instances:
 
 class SimpleForm(Item):
     """

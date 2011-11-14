@@ -15,11 +15,13 @@ def grid_wrapper_schema(schema, title=u'', description=u''):
     # create empty new dynamic schema
     wrapper = new_schema()
     # inject a field into that schema interface
-    wrapper._InterfaceClass__attrs['data'] = List(
+    grid = List(
         title=unicode(title),
         description=unicode(description),
         value_type=DictRow(schema=schema),
         )
+    grid.__name__ = 'data'
+    wrapper._InterfaceClass__attrs['data'] = grid
     # specify plone.autoform widget config for field:
     wrapper.setTaggedValue(WIDGETS_KEY, {'data' : WIDGET})
     return wrapper

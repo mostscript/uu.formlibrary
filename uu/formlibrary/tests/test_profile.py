@@ -24,6 +24,7 @@ class DefaultProfileTest(unittest.TestCase):
             interfaces.LIBRARY_TYPE, 
             interfaces.SIMPLE_FORM_TYPE,
             interfaces.MULTI_FORM_TYPE,
+            interfaces.FIELD_GROUP_TYPE,
             interfaces.FORM_SET_TYPE,
             )
 
@@ -71,12 +72,20 @@ class DefaultProfileTest(unittest.TestCase):
             cls=library.FormLibrary,
             parent=self.portal,
             )
-        definition = self._add_check(
+        defn = self._add_check(
             typename=interfaces.DEFINITION_TYPE,
             id='def',
             iface=interfaces.IFormDefinition,
             cls=definition.FormDefinition,
             parent=library,
+            )
+        field_group = self._add_check(
+            typename=interfaces.FIELD_GROUP_TYPE,
+            id='field_group_a',
+            iface=interfaces.IFieldGroup,
+            cls=definition.FieldGroup,
+            title=u'Field group A',
+            parent=defn,
             )
         setspec = self._add_check(
             typename=interfaces.FORM_SET_TYPE,
@@ -84,7 +93,7 @@ class DefaultProfileTest(unittest.TestCase):
             iface=interfaces.IFormQuery,
             cls=formsets.FormSetSpecifier,
             title=u'Form Set Query',
-            parent=definition,
+            parent=defn,
             )
         simple_form = self._add_check(
             typename=interfaces.SIMPLE_FORM_TYPE,

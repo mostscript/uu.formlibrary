@@ -15,7 +15,6 @@ class DefaultProfileTest(unittest.TestCase):
     def setUp(self):
         self.portal = self.layer['portal']
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
-        self.type_fixtures_created = False
     
     def _product_fti_names(self):
         from uu.formlibrary import interfaces
@@ -56,64 +55,11 @@ class DefaultProfileTest(unittest.TestCase):
         return o # return constructed content for use in additional testing
     
     def test_creation(self):
-        if self.type_fixtures_created:
-            return # already run
-        from uu.formlibrary import (
-            interfaces,
-            library,
-            definition,
-            forms,
-            formsets,
-            )
-        library = self._add_check(
-            typename=interfaces.LIBRARY_TYPE,
-            id='formlib',
-            iface=interfaces.IFormLibrary,
-            cls=library.FormLibrary,
-            parent=self.portal,
-            )
-        defn = self._add_check(
-            typename=interfaces.DEFINITION_TYPE,
-            id='def',
-            iface=interfaces.IFormDefinition,
-            cls=definition.FormDefinition,
-            parent=library,
-            )
-        field_group = self._add_check(
-            typename=interfaces.FIELD_GROUP_TYPE,
-            id='field_group_a',
-            iface=interfaces.IFieldGroup,
-            cls=definition.FieldGroup,
-            title=u'Field group A',
-            parent=defn,
-            )
-        setspec = self._add_check(
-            typename=interfaces.FORM_SET_TYPE,
-            id='form_set_query',
-            iface=interfaces.IFormQuery,
-            cls=formsets.FormSetSpecifier,
-            title=u'Form Set Query',
-            parent=defn,
-            )
-        simple_form = self._add_check(
-            typename=interfaces.SIMPLE_FORM_TYPE,
-            id='simple',
-            iface=interfaces.ISimpleForm,
-            cls=forms.SimpleForm,
-            parent=self.portal,
-            )
-        multi_form = self._add_check(
-            typename=interfaces.MULTI_FORM_TYPE,
-            id='multi',
-            iface=interfaces.IMultiForm,
-            cls=forms.MultiForm,
-            parent=self.portal,
-            )
-        self.type_fixtures_created = True
+        from uu.formlibrary.tests.fixtures import CreateContentFixtures
+        CreateContentFixtures(self, self.layer).create()
     
     def _fixtures(self):
-        if not self.type_fixtures_created:
-            self.test_creation() # set
+        self.test_creation() # set
         assert 'formlib' in self.portal.contentIds()
     
     def test_uuids(self):

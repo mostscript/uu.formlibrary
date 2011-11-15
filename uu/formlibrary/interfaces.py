@@ -1,3 +1,4 @@
+from persistent.dict import PersistentDict
 from plone.directives import form, dexterity
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree.source import CustomFilter
@@ -565,10 +566,12 @@ class ISimpleForm(IBaseForm):
     """
     
     form.omitted('data')
-    data = schema.Object(
-        title=u'Form record data',
-        schema=IFormEntry,
-        required=False,
+    data = schema.Dict(
+        title=u'Data mapping',
+        description=u'Map data from fieldset name to record.',
+        key_type=schema.BytesLine(title=u'Fieldset name'),
+        value_type=schema.Object(schema=IFormEntry),
+        defaultFactory=PersistentDict, # requires zope.schema >= 3.8.0
         )
 
 

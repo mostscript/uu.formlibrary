@@ -20,9 +20,11 @@ class ProductLayer(PloneSandboxLayer):
         self.loadZCML(package=z3c.form) # needed for testing product views
         import plone.uuid
         self.loadZCML(package=plone.uuid)
+        import collective.z3cform.datagridfield
+        self.loadZCML(package=collective.z3cform.datagridfield)
         import uu.formlibrary
         self.loadZCML(package=uu.formlibrary)
-
+    
     def setUpPloneSite(self, portal):
         """Install named setup profile for class to portal"""
         self.applyProfile(portal, self.PROFILE)

@@ -121,7 +121,7 @@ class ComposedFormTest(unittest.TestCase):
         composed = ComposedForm(definition, request)
         composed.updateFields()
         assert composed.getPrefix(group_b.schema) == group_b.getId() 
-        assert composed.getPrefix(definition.schema) == 'default'
+        assert composed.getPrefix(definition.schema) == ''
         # group_a is a special case, it is a grid, so its schema is wrapped
         # in another schema -- indirectly part of form composition:
         assert composed.getPrefix(group_a.schema) != group_a.getId()

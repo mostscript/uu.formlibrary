@@ -22,6 +22,7 @@ def grid_wrapper_schema(schema, title=u'', description=u''):
         )
     grid.__name__ = 'data'
     grid.interface = wrapper
+    grid.required = False # ugly in form UI, widget will render regardless
     wrapper._InterfaceClass__attrs['data'] = grid
     # specify plone.autoform widget config for field:
     wrapper.setTaggedValue(WIDGETS_KEY, {'data' : WIDGET})

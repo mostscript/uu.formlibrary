@@ -206,6 +206,7 @@ class ComposedFormTest(unittest.TestCase):
             schema = group.schema
             if group.group_usage == 'grid':
                 schema = wrapper # shortcut, we only have one grid in tests...
+                assert schema['data'].required == False
             formgroup = [g for g in composed.groups
                 if g.__name__ == group.getId()][0]
             assert schema in [

@@ -66,12 +66,20 @@ class CreateContentFixtures(object):
             cls=definition.FormDefinition,
             parent=library,
             )
-        field_group = self._add_check(
+        field_group_a = self._add_check(
             typename=interfaces.FIELD_GROUP_TYPE,
             id='field_group_a',
             iface=interfaces.IFieldGroup,
             cls=definition.FieldGroup,
             title=u'Field group A',
+            parent=defn,
+            )
+        field_group_b = self._add_check(
+            typename=interfaces.FIELD_GROUP_TYPE,
+            id='field_group_b',
+            iface=interfaces.IFieldGroup,
+            cls=definition.FieldGroup,
+            title=u'Field group B',
             parent=defn,
             )
         setspec = self._add_check(

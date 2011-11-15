@@ -84,18 +84,19 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         self._schema = self.definition.schema
         self.group_titles = {}
         self.groups = [] # modified by updateFieldsFromSchemata()
-        group_schemas = self._field_group_schemas()
+        self.group_schemas = self._field_group_schemas()
         # mapping: names to schema:
-        self.components = dict( [('default', self._schema),] + group_schemas )
+        self.components = dict( [('', self._schema),] + self.group_schemas )
         # mapping: schema to names:
         self.schema_names = dict(invert(self.components.items()))
         # ordered list of additional schema for AutoExtensibleForm:
-        self._additionalSchemata = tuple([t[1] for t in group_schemas])
+        self._additionalSchemata = tuple([t[1] for t in self.group_schemas])
         #super(ComposedForm, self).__init__(self, context, request)
         form.Form.__init__(self, context, request)
     
     def updateFieldsFromSchemata(self):
-        for name, schema in self.components.items():
+        self.groups = []
+        for name, schema in self.group_schemas:
             title = self.group_titles.get(name, name)
             fieldset_group = GroupFactory(name, field.Fields(), title)
             self.groups.append(fieldset_group)

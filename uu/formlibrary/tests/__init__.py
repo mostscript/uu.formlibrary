@@ -27,6 +27,7 @@ def test_request():
                        'SERVER_PORT'    : '80',
                        'REQUEST_METHOD' : 'GET', },
                       response)
+    request['ACTUAL_URL'] = 'http://nohost/plone/myform'
     setDefaultSkin(request)
     alsoProvides(request, IFormLayer) #suitable for testing z3c.form views
     return request

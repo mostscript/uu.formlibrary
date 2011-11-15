@@ -1,4 +1,6 @@
+from datetime import datetime
 from persistent.dict import PersistentDict
+from persistent.list import PersistentList
 from plone.directives import form, dexterity
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree.source import CustomFilter
@@ -30,6 +32,10 @@ MULTI_FORM_TYPE = 'uu.formlibrary.multiform'
 FORM_SET_TYPE = 'uu.formlibrary.setspecifier'
 FIELD_GROUP_TYPE = 'uu.formlibrary.fieldgroup'
 FORM_TYPES = (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE)
+
+
+mkterm = lambda token, title: SimpleTerm(token, title=title)
+mkvocab = lambda s: SimpleVocabulary([mkterm(t,title) for (t,title) in s])
 
 
 class BoundFormSourceBinder(UUIDSourceBinder):
@@ -142,6 +148,56 @@ class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
         """
 
 
+
+class IDefinitionHistory(Interface):
+    """
+    Metadata about any changes to a form definition or its contents.
+    Effectively a singular log entry; if multiple edits happen in 
+    one transaction, they should have distinct IDefinitionHistory
+    objects in a log or list of history.
+    """
+    
+    namespace = schema.BytesLine(
+        title=u'Namespace',
+        description=u'ID or path of modified object relative to definition.',
+        default='', #empty string is path to definition itself.
+        )
+    
+    signature = schema.BytesLine(
+        title=u'Schema signature',
+        description=u'Schema signature at modification time, if applicable.',
+        required=False,
+        )
+    
+    modified = schema.Datetime(
+        title=u'Modification time',
+        description=u'Date/time stamp (datetime object) of modification.',
+        defaultFactory=datetime.now, #requires zope.schema >= 3.8.0
+        )
+    
+    modification = schema.Choice(
+        title=u'Modification type',
+        vocabulary=mkvocab((
+            ('modified', u'Definition modified'),
+            ('schema', u'Definition (primary) schema modified'),
+            ('group-added', u'Field group added'),
+            ('group-modified', u'Field group definition modified'),
+            ('group-deleted', u'Field group deleted'),
+            ('group-schema', u'Field group schema modified'),
+            ('formset-added', u'Form set added'),
+            ('formset-modified', u'Form set modified'),
+            ('formset-deleted', u'Form set deleted'),
+            )),
+        default='modified',
+        )
+
+    note = schema.Text(
+        title=u'Note',
+        description=u'Note or log message about modification.',
+        required=False,
+        )
+
+
 class IFormDefinition(IDefinitionBase, IOrderedContainer):
     """
     Item within a form library that defines a specific form for
@@ -166,6 +222,24 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         description=_(u'CSS stylesheet rules for form (optional).'),
         required=False,
         )
+    
+    form.omitted('definition_history')
+    definition_history = schema.List(
+        title=u'Definition history',
+        description=u'Modificaton history metadata log: chronological '\
+                    u'log of objects providing IDefinitionHistory '\
+                    u'metadata for form definition.',
+        value_type=schema.Object(schema=IDefinitionHistory),
+        defaultFactory=PersistentList, #req. zope.schema >= 3.8.0
+        )
+    
+    def log(*args, **kwargs):
+        """
+        Given either a single argument of an IDefintionHistory object
+        or keyword arguments related to its attributes, use/construct
+        a history entry providing IDefinitionHistory, and store it
+        in self.definition_history by append.
+        """
 
 
 class IFieldGroup(IDefinitionBase):

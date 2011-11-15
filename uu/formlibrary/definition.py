@@ -1,13 +1,31 @@
+from persistent import Persistent
+from persistent.list import PersistentList
 from zope.interface import implements
 from plone.dexterity.content import Container, Item
 from plone.schemaeditor.browser.schema.traversal import SchemaContext
-from persistent.list import PersistentList
 
 from uu.dynamicschema.schema import SignatureSchemaContext
 from uu.dynamicschema.schema import copy_schema
 
 from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
 from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
+from uu.formlibrary.interfaces import IDefinitionHistory
+
+
+class DefinitionHistory(Persistent):
+    """Definition history metadata (log entry) provides IDefinitionHistory"""
+    
+    implements(IDefinitionHistory)
+    
+    def __init__(self, context, *args, **kwargs):
+        if not IFormDefinition.providedBy(context):
+            raise ValueError('context must provide IFormDefinition')
+        self.context = context # form definition
+        self.namespace = kwargs.get('namespace', '')
+        self.signature = kwargs.get('signature', None)
+        self.modified = kwargs.get('modified', datetime.now())
+        self.modification = kwargs.get('modification', 'modified')
+        self.note = kwargs.get('note', None)
 
 
 class DefinitionBase(SignatureSchemaContext):
@@ -58,11 +76,21 @@ class FormDefinition(Container, DefinitionBase):
     def __init__(self, id=None, *args, **kwargs):
         Container.__init__(self, id, *args, **kwargs)
         DefinitionBase.__init__(self, content_base=Container)
+        self.definition_history = PersistentList()
     
     def __getitem__(self, name):
         if name in self.objectIds():
             return Container.__getitem__(self, name)
         return DefinitionBase.__getitem__(self, name) #traversal hook
+    
+    def log(self, *args, **kwargs):
+        if not hasattr(self, 'definition_history'):
+            self.definition_history = PersistentList()
+        if len(args) == 1 and IDefinitionHistory.providedBy(args[0]):
+            self.definition_history.append(args[0])
+            return
+        entry = DefinitionHistory(context, **kwargs)
+        self.definition_history.append(entry)
 
 
 class FieldGroup(Item, DefinitionBase):

@@ -59,6 +59,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     
     autoGroups = True       # autoGroups requires modification to plone.autoform
                             # to support anonymouse schema without __name__
+                            # See commit on GitHub: http://goo.gl/3W233
     
     # schema must be property, not attribute for AutoExtensibleForm sublcass
     @property

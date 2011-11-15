@@ -155,7 +155,8 @@ class ComposedFormTest(unittest.TestCase):
         # accordingly.
         composed = ComposedForm(definition, request)
         assert len(composed.additionalSchemata) == 2
-        composed.updateFields()
+        #composed.updateFields()
+        composed.update()
         
         # group_a is a grid, which has its schema wrapped by ComposedForm
         # construction -- the wrapper is referenced, we want to get it:
@@ -205,12 +206,14 @@ class ComposedFormTest(unittest.TestCase):
             schema = group.schema
             if group.group_usage == 'grid':
                 schema = wrapper # shortcut, we only have one grid in tests...
+            formgroup = [g for g in composed.groups
+                if g.__name__ == group.getId()][0]
             assert schema in [
-                field.interface for field in composed_schema_fields]
+                field.field.interface for field in formgroup.fields.values()]
             for name, field in getFieldsInOrder(schema):
                 fullname = '.'.join((composed.getPrefix(schema), name))
-                assert fullname in composed.fields # prefixed name in keys
-                assert field in composed_schema_fields
+                assert fullname in formgroup.fields # prefixed name in keys
+                assert field in [f.field for f in formgroup.fields.values()]
         
         #import pdb; pdb.set_trace() #exploratory TODO TODO TODO REMOVE TODO
 

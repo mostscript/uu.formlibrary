@@ -1,7 +1,8 @@
 from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
 from plone.autoform.interfaces import WIDGETS_KEY
-from z3c.form import form
+from plone.z3cform.fieldsets.group import GroupFactory
+from z3c.form import form, field
 from zope.app.component.hooks import getSite
 from zope.component import adapter
 from zope.interface import implements, implementer
@@ -54,7 +55,10 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     a merged form.
     """
     
-    ignoreContext = True    # form operates 
+    ignoreContext = True    # form operates without edit context.
+    
+    autoGroups = True       # autoGroups requires modification to plone.autoform
+                            # to support anonymouse schema without __name__
     
     # schema must be property, not attribute for AutoExtensibleForm sublcass
     @property
@@ -64,7 +68,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     @property
     def additionalSchemata(self):
         return self._additionalSchemata
-
+    
     def __init__(self, context, request):
         """
         Construct composed form given (default) schema an a tuple
@@ -77,6 +81,8 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         # see uu.formlibrary.forms.form_definition for adapter example.
         self.definition = IFormDefinition(self.context)
         self._schema = self.definition.schema
+        self.group_titles = {}
+        self.groups = [] # modified by updateFieldsFromSchemata()
         group_schemas = self._field_group_schemas()
         # mapping: names to schema:
         self.components = dict( [('default', self._schema),] + group_schemas )
@@ -86,6 +92,13 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         self._additionalSchemata = tuple([t[1] for t in group_schemas])
         #super(ComposedForm, self).__init__(self, context, request)
         form.Form.__init__(self, context, request)
+    
+    def updateFieldsFromSchemata(self):
+        for name, schema in self.components.items():
+            title = self.group_titles.get(name, name)
+            fieldset_group = GroupFactory(name, field.Fields(), title)
+            self.groups.append(fieldset_group)
+        super(ComposedForm, self).updateFieldsFromSchemata()
     
     def _field_group_schemas(self):
         """Get list of field group schemas from form definition context"""
@@ -99,6 +112,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                     )
             else:
                 result.append( (group.getId(), group.schema,) )
+            self.group_titles[group.getId()] = group.Title()
         return result
     
     def getPrefix(self, schema):

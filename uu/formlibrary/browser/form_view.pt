@@ -1,0 +1,38 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<style>
+  .configuration-summary { border:1px solid #ccc; background-color:#eee; padding-left:3em; }
+  .configuration-summary h5 { padding-left:1em; }  
+</style>
+  
+  </metal:block>
+</head>
+<body>
+  <div metal:fill-slot="main">
+  <h1 tal:content="structure string:${context/Title} <em>(Form preview)</em>">TITLE</h1>
+  <div tal:content="context/Description">Description</div>
+  <div class="configuration-summary">
+    <tal:block define="fieldgroups python:[o for o in context.objectValues() if o.portal_type=='uu.formlibrary.fieldgroup']">
+    <div tal:condition="fieldgroups">
+     <h5>Contained field groups</h5>
+     <ul>
+       <li tal:repeat="group fieldgroups"><a href="" tal:attributes="href group/getId"><span tal:content="group/Title">FIELD GROUP</span></a></li>
+     </ul>     
+    </div>
+    </tal:block>
+  </div>
+  <hr />
+  <form>
+    <form tal:replace="structure view/render_form">DATA FORM HERE</form>
+  </form>
+  </div>
+</body>
+</html>

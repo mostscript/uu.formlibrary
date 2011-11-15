@@ -1,5 +1,6 @@
 from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
+from plone.autoform.interfaces import WIDGETS_KEY
 from z3c.form import form
 from zope.app.component.hooks import getSite
 from zope.component import adapter
@@ -15,13 +16,20 @@ from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.record import FormEntry
 from uu.formlibrary.utils import grid_wrapper_schema
+from uu.formlibrary.utils import WIDGET as GRID_WIDGET
 
 
-flip = lambda a,b: (b,a)
-invert = lambda s: reduce(flip, s)
+flip = lambda s: (s[1], s[0])
+invert = lambda s: map(flip, s)
 
 is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
 
+def is_grid_wrapper_schema(schema):
+    if 'data' in schema and WIDGETS_KEY in schema.getTaggedValueTags():
+        widgets = schema.getTaggedValue(WIDGETS_KEY)
+        if 'data' in widgets and widgets['data'] == GRID_WIDGET:
+            return True
+    return False
 
 ## form-related adapters:
 
@@ -84,9 +92,10 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         result = []
         groups = filter(is_field_group, self.definition.objectValues())
         for group in groups:
-            if group.group_usage == 'grid':
+            if group.group_usage == u'grid':
+                wrapper = grid_wrapper_schema(group.schema)
                 result.append(
-                    (group.getId(), grid_wrapper_schema(group.schema),)
+                    (group.getId(), wrapper,)
                     )
             else:
                 result.append( (group.getId(), group.schema,) )

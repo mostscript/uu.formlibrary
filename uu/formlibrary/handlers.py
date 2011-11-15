@@ -6,7 +6,7 @@ from Products.CMFCore.utils import getToolByName
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
-from uu.formlibrary.interfaces import IFormDefinition
+from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
 from uu.formlibrary.forms import form_definition
 
 def copyroles(source, dest):
@@ -46,15 +46,18 @@ def simple_form_configuration_modified(context, event):
 
 
 def update_form_entries(context):
-    bound_forms = IFormSet(context)
-    wftool = getToolByName(context, 'portal_workflow')
+    definition = context
+    if IFieldGroup.providedBy(context):
+        definition = context.__parent__
+    bound_forms = IFormSet(definition)
+    wftool = getToolByName(definition, 'portal_workflow')
     for form in bound_forms.values():
         if wftool.getInfoFor(form, 'review_state') == 'visible':
             # only if form is in visible state is it considered okay to
             # modify the schema of records within it.
             for entry in form.values():
-                entry.sign(context.schema)
-    # TODO: deal with nested groups and associated data objects contained
+                entry.sign(definition.schema)
+            # TODO: deal with nested groups and associated data objects contained
 
 
 def definition_schema_handler(context, event):

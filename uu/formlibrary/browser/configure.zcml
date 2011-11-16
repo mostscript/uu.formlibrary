@@ -19,6 +19,14 @@
     permission="zope2.View"
     />
 
+  <browser:page
+    name="library_view"
+    for="uu.formlibrary.interfaces.IFormLibrary"
+    class=".library.LibraryView"
+    template="library.pt"
+    permission="zope2.View"
+    />
+
   <!-- static resources -->
   
   <browser:resourceDirectory

@@ -1,7 +1,7 @@
 from persistent import Persistent
 from persistent.list import PersistentList
 from zope.interface import implements
-from plone.dexterity.content import Container, Item
+from plone.dexterity.content import Container, Item, DexterityContent
 from plone.schemaeditor.browser.schema.traversal import SchemaContext
 
 from uu.dynamicschema.schema import SignatureSchemaContext
@@ -91,6 +91,12 @@ class FormDefinition(Container, DefinitionBase):
             return
         entry = DefinitionHistory(context, **kwargs)
         self.definition_history.append(entry)
+    
+    # work-around until plone.dexterity 1.0.2 released ( http://goo.gl/w40bc )
+    Title = DexterityContent.Title
+    setTitle = DexterityContent.setTitle
+    Description = DexterityContent.Description
+    setDescription = DexterityContent.setDescription
 
 
 class FieldGroup(Item, DefinitionBase):
@@ -107,4 +113,11 @@ class FieldGroup(Item, DefinitionBase):
     def __init__(self, id=None, *args, **kwargs):
         Item.__init__(self, id, *args, **kwargs)
         DefinitionBase.__init__(self, content_base=Item)
+    
+    # work-around until plone.dexterity 1.0.2 released ( http://goo.gl/w40bc )
+    Title = DexterityContent.Title
+    setTitle = DexterityContent.setTitle
+    Description = DexterityContent.Description
+    setDescription = DexterityContent.setDescription
+
 

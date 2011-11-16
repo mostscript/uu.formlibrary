@@ -24,7 +24,18 @@
     <div tal:condition="fieldgroups">
      <h5>Contained field groups</h5>
      <ul>
-       <li tal:repeat="group fieldgroups"><a href="" tal:attributes="href group/getId"><span tal:content="group/Title">FIELD GROUP</span></a></li>
+       <li tal:repeat="group fieldgroups">
+        <a href="" tal:attributes="href group/getId">
+          <img src="" 
+             tal:condition="python:group.group_usage==u'grid'"
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/multiform.png" />
+          <img src="" 
+             tal:condition="python:group.group_usage==u'group'"
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/form_icon.png" />
+          <span tal:content="group/Title">FIELD GROUP</span>
+        </a>
+        <em tal:condition="python:group.group_usage==u'grid'">(grid)</em>
+       </li>
      </ul>     
     </div>
     </tal:block>

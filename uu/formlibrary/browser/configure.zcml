@@ -20,6 +20,14 @@
     />
 
   <browser:page
+    name="definition_forms"
+    for="uu.formlibrary.interfaces.IFormDefinition"
+    class=".definition_forms.DefinitionFormset"
+    template="definition_forms.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
     name="library_view"
     for="uu.formlibrary.interfaces.IFormLibrary"
     class=".library.LibraryView"

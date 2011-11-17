@@ -12,7 +12,9 @@
   .configuration-summary { border:1px solid #ccc; background-color:#eee; padding-left:3em; }
   .configuration-summary h5 { padding-left:1em; }  
 </style>
-  
+<style tal:condition="python:view.definition.form_css and view.definition.form_css.strip()"
+       tal:content="structure view/definition/form_css">
+</style>  
   </metal:block>
 </head>
 <body>

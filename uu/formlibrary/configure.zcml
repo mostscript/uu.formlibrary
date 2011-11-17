@@ -24,12 +24,21 @@
     for=".interfaces.IFormDefinition"
     />
   
+  <adapter 
+    factory=".definition.FormComponents"
+    provides=".interfaces.IFormComponents"
+    for=".interfaces.IFormDefinition"
+    />
+  
   <adapter
     factory=".formsets.QueryFormSet"
     provides=".interfaces.IFormSet"
     for=".interfaces.IFormQuery"
     />
-  
+ 
+
+
+ 
   <!-- event subscribers -->
 
   <subscriber
@@ -51,9 +60,16 @@
     />
 
   <subscriber
+    for=".interfaces.IFormDefinition
+         zope.lifecycleevent.interfaces.IObjectRemovedEvent"
+    handler=".handlers.definition_delete_integrity"
+    />
+
+  <subscriber
     for="plone.schemaeditor.interfaces.ISchemaContext
          plone.schemaeditor.interfaces.ISchemaModifiedEvent"
     handler=".handlers.serialize_context_schema_changed"
     />
+
 
 </configure>

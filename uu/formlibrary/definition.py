@@ -1,5 +1,6 @@
 from persistent import Persistent
 from persistent.list import PersistentList
+from zope.component import adapts
 from zope.interface import implements
 from plone.dexterity.content import Container, Item, DexterityContent
 from plone.schemaeditor.browser.schema.traversal import SchemaContext
@@ -9,7 +10,11 @@ from uu.dynamicschema.schema import copy_schema
 
 from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
 from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
-from uu.formlibrary.interfaces import IDefinitionHistory
+from uu.formlibrary.interfaces import IDefinitionHistory, IFormComponents
+
+
+itemkeys = lambda seq: zip(*seq)[0] if seq else [] #unzip items tuple
+is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
 
 
 class DefinitionHistory(Persistent):
@@ -26,6 +31,29 @@ class DefinitionHistory(Persistent):
         self.modified = kwargs.get('modified', datetime.now())
         self.modification = kwargs.get('modification', 'modified')
         self.note = kwargs.get('note', None)
+
+
+class FormComponents(object):
+    """Adapter implementation for IFormComponents"""
+    
+    implements(IFormComponents)
+    adapts(IFormDefinition)
+    
+    def __init__(self, context):
+        self.context = context
+        self._load_items()
+    
+    def _load_items(self):
+        self._items = [(name, o) for name, o in self.context.objectItems()
+            if is_field_group(o)]
+    
+    @property
+    def names(self):
+        return tuple(itemkeys(self._items))
+    
+    @property
+    def groups(self):
+        return dict(self._items)
 
 
 class DefinitionBase(SignatureSchemaContext):

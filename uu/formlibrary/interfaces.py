@@ -11,6 +11,7 @@ from z3c.form.browser.textarea import TextAreaFieldWidget
 from zope.app.container.interfaces import IOrderedContainer
 from zope.interface import Interface, invariant
 from zope.interface.interfaces import IInterface
+from zope.interface.common.mapping import IMapping
 from zope.location.interfaces import ILocation
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope import schema
@@ -273,6 +274,40 @@ class IFieldGroup(IDefinitionBase):
             ],
             ),
         default=u'group',
+        )
+
+
+class IFormComponents(Interface):
+    """
+    Adapter interface for an object providing access to the respective
+    components making up the form definition:
+    
+      * An ordered tuple of names of fieldsets made up from the 
+        definition itself and field groups contained.
+     
+      * An (unordered) mapping / dict of name to group (IFieldGroup
+        or IFieldDefinition -- anything providing either) values.
+    
+    Titles and schema for the groups should be obtained by calling
+    code using this adapter, and are not provided by the adapter
+    interface itself.  This also means the responsibility to wrap
+    field group schema declared as a grid aslo is ommitted from the
+    scope of this adapter.
+    """
+    
+    names = schema.Tuple(
+        title=u'Fieldset names',
+        value_type=schema.BytesLine(),
+        defaultFactory=list, # req zope.schema > 3.8.0
+        readonly=True, #read-only property
+        )
+    
+    groups = schema.Dict(
+        title=u'Fieldset groups',
+        key_type=schema.BytesLine(),
+        value_type=schema.Object(schema=IDefinitionBase),
+        defaultFactory=dict, # req zope.schema > 3.8.0
+        readonly=True, #read-only dict, though groups are mutable
         )
 
 

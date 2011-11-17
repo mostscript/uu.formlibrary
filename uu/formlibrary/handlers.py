@@ -1,13 +1,20 @@
 from zope.component import queryUtility
+from zope.globalrequest import getRequest
 from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
 from Products.CMFCore.utils import getToolByName
+from plone.app.linkintegrity.exceptions import (
+    LinkIntegrityNotificationException)
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
 from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
+from uu.formlibrary.interfaces import IFormComponents
 from uu.formlibrary.forms import form_definition
+from uu.formlibrary.record import FormEntry
+from uu.formlibrary.utils import grid_wrapper_schema
+
 
 def copyroles(source, dest):
     """ 
@@ -22,6 +29,16 @@ def copyroles(source, dest):
                 copyroles(contained, dest[name])
 
 
+def definition_delete_integrity(context, event):
+    request = getRequest()
+    if request is not None:
+        formset = IFormSet(context)
+        if len(formset) > 0:
+            msg = 'Item in use, cannot be removed while form instances '\
+                  'are using this definition.'
+            raise LinkIntegrityNotificationException(msg)
+
+
 def handle_copypaste_local_roles(context, event):
     """ 
     Event handler for subscriber to object, IObjectCopiedEvent that
@@ -33,6 +50,21 @@ def handle_copypaste_local_roles(context, event):
     copyroles(source, dest)
 
 
+def sync_simple_form(form, components):
+    """
+    Sync form data storage objects with schema of form definition
+    components.
+    """
+    for name in components.names:
+        group = components.groups[name]
+        schema = group.schema
+        if group.group_usage == u'grid':
+            schema = grid_wrapper_schema(group.schema)
+        if name not in form.data:
+            form.data[name] = FormEntry() # add new
+        form.data[name].sign(schema)
+
+
 def simple_form_configuration_modified(context, event):
     if not ISimpleForm.providedBy(context):
         raise ValueError('context must be ISimpleForm provider')
@@ -41,8 +73,8 @@ def simple_form_configuration_modified(context, event):
         definition = form_definition(context)
     except ValueError:
         return # no definition means no schema to sync
-    context.signature = definition.signature
-    context.data.sign(context.schema)
+    components = IFormComponents(definition)
+    sync_simple_form(context, components)
 
 
 def update_form_entries(context):
@@ -50,14 +82,22 @@ def update_form_entries(context):
     if IFieldGroup.providedBy(context):
         definition = context.__parent__
     bound_forms = IFormSet(definition)
+    simple_forms = [f for f in bound_forms.values()
+        if ISimpleForm.providedBy(f)] #TODO: named IFormSet adapter instead???
     wftool = getToolByName(definition, 'portal_workflow')
-    for form in bound_forms.values():
+    components = IFormComponents(definition)
+    for form in simple_forms:
         if wftool.getInfoFor(form, 'review_state') == 'visible':
             # only if form is in visible state is it considered okay to
             # modify the schema of records within it.
-            for entry in form.values():
-                entry.sign(definition.schema)
-            # TODO: deal with nested groups and associated data objects contained
+            for name in components.names:
+                group = components.groups[name]
+                schema = group.schema
+                if group.group_usage == u'grid':
+                    schema = grid_wrapper_schema(group.schema)
+                if name not in form.data:
+                    form.data[name] = FormEntry() # add new
+                form.data[name].sign(schema)
 
 
 def definition_schema_handler(context, event):

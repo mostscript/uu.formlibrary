@@ -1,6 +1,7 @@
 import itertools
 
 from plone.dexterity.content import Item
+from plone.uuid.interfaces import IUUID
 from zope.component import adapts
 from zope.interface import implements
 from zope.app.component.hooks import getSite
@@ -197,6 +198,8 @@ class DefinitionFormSet(BaseFormSet):
             raise ValueError(   
                 'context %s does not provide IFormDefinition' % context)
         BaseFormSet.__init__(self, context, name=u'definition')
+        r = self.catalog.search({'definition' : IUUID(self.context)})
+        self.contents = set([b.UID for b in r])
 
 
 class QueryFormSet(BaseFormSet):

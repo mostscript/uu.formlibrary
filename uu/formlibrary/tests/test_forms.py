@@ -127,7 +127,7 @@ class ComposedFormTest(unittest.TestCase):
         assert composed.getPrefix(group_a.schema) != group_a.getId()
         # however:
         from uu.formlibrary.forms import is_grid_wrapper_schema
-        schemas = composed.components.values()
+        schemas = [t[1] for t in composed.group_schemas]
         wrapper = [s for s in schemas if is_grid_wrapper_schema(s)][0]
         assert composed.getPrefix(wrapper) == group_a.getId()
     
@@ -161,7 +161,7 @@ class ComposedFormTest(unittest.TestCase):
         # group_a is a grid, which has its schema wrapped by ComposedForm
         # construction -- the wrapper is referenced, we want to get it:
         from uu.formlibrary.forms import is_grid_wrapper_schema
-        schemas = composed.components.values()
+        schemas = [t[1] for t in composed.group_schemas]
         wrapper = [s for s in schemas if is_grid_wrapper_schema(s)][0]
         # 'data' is field name for wrapped datagrid as list of DictRow objects
         assert 'data' in wrapper

@@ -1,3 +1,4 @@
+from persistent.dict import PersistentDict
 from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
 from plone.autoform.interfaces import WIDGETS_KEY
@@ -13,6 +14,7 @@ from uu.dynamicschema.interfaces import DEFAULT_SIGNATURE
 from uu.record.base import RecordContainer
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IBaseForm, IFormDefinition
+from uu.formlibrary.interfaces import IFormComponents
 from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.record import FormEntry
@@ -23,7 +25,6 @@ from uu.formlibrary.utils import WIDGET as GRID_WIDGET
 flip = lambda s: (s[1], s[0])
 invert = lambda s: map(flip, s)
 
-is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
 
 def is_grid_wrapper_schema(schema):
     if 'data' in schema and WIDGETS_KEY in schema.getTaggedValueTags():
@@ -82,21 +83,48 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         # see uu.formlibrary.forms.form_definition for adapter example.
         self.definition = IFormDefinition(self.context)
         self._schema = self.definition.schema
-        self.group_titles = {}
         self.groups = [] # modified by updateFieldsFromSchemata()
-        self.group_schemas = self._field_group_schemas()
+        
+        self.components = IFormComponents(self.definition)
+        self.group_schemas = self._group_schemas()
+        self.group_titles = self._group_titles()
+
+        #self.group_schemas = self._field_group_schemas()
         # mapping: names to schema:
-        self.components = dict( [('', self._schema),] + self.group_schemas )
+        #self.components = dict( [('', self._schema),] + self.group_schemas )
         # mapping: schema to names:
-        self.schema_names = dict(invert(self.components.items()))
+        #self.schema_names = dict(invert(self.components.items()))
+        
+        self.schema_names = dict(invert(self.group_schemas))
+
         # ordered list of additional schema for AutoExtensibleForm:
-        self._additionalSchemata = tuple([t[1] for t in self.group_schemas])
+        self._additionalSchemata = tuple(
+            [t[1] for t in self.group_schemas if t[0]]
+            )
         #super(ComposedForm, self).__init__(self, context, request)
         form.Form.__init__(self, context, request)
-    
+   
+    def _group_schemas(self):
+        result = []
+        for name in self.components.names:
+            group = self.components.groups[name]
+            schema = group.schema
+            if group.group_usage == u'grid':
+                schema = grid_wrapper_schema(schema)
+            result.append( (name, schema) )
+        return result
+
+    def _group_titles(self):
+        result = {}
+        for name, group in self.components.groups.items():
+            result[name] = group.Title()
+        return result
+
     def updateFieldsFromSchemata(self):
         self.groups = []
         for name, schema in self.group_schemas:
+            if name == '':
+                continue # default, we don't need another group
             title = self.group_titles.get(name, name)
             fieldset_group = GroupFactory(name, field.Fields(), title)
             self.groups.append(fieldset_group)
@@ -139,31 +167,8 @@ class SimpleForm(Item):
     
     def __init__(self, id=None, *args, **kwargs):
         super(SimpleForm, self).__init__(id, *args, **kwargs)
-        self.data = FormEntry()
-
-    #TODO: DRY
-    def _schema(self):
-        try:
-            definition = form_definition(self) #TODO: indirect interface-adaptation
-        except ValueError:
-            return new_schema()
-        return definition.schema
-   
-    def _signature(self):
-        try:
-            definition = form_definition(self) #TODO: indirect interface-adaptation
-        except ValueError:
-            return DEFAULT_SIGNATURE
-        return definition.signature
-    
-    def __getattr__(self, name):
-        """Hack in lieu of Python property self.schema"""
-        if name == 'schema':
-            return self._schema()
-        if name == 'signature':
-            return self._signature()
-        # fall back to base class(es) __getattr__ from DexterityContent
-        return super(SimpleForm, self).__getattr__(name)
+        self.data = PersistentDict() # of FormEntry()
+        self.data[''] = FormEntry()  # always has default/unnamed fieldset
 
 
 class MultiForm(Item, RecordContainer):
@@ -175,28 +180,4 @@ class MultiForm(Item, RecordContainer):
     portal_type = MULTI_FORM_TYPE
 
     implements(IMultiForm)
-    
-    #TODO: DRY
-    def _schema(self):
-        try:
-            definition = form_definition(self) #TODO: indirect interface-adaptation
-        except ValueError:
-            return new_schema()
-        return definition.schema
-   
-    def _signature(self):
-        try:
-            definition = form_definition(self) #TODO: indirect interface-adaptation
-        except ValueError:
-            return DEFAULT_SIGNATURE
-        return definition.signature
-    
-    def __getattr__(self, name):
-        """Hack in lieu of Python property self.schema"""
-        if name == 'schema':
-            return self._schema()
-        if name == 'signature':
-            return self._signature()
-        # fall back to base class(es) __getattr__ from DexterityContent
-        return super(MultiForm, self).__getattr__(name)
 

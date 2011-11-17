@@ -36,9 +36,12 @@
     for=".interfaces.IFormQuery"
     />
  
-
-
- 
+  <adapter 
+    factory=".forms.form_definition"
+    provides=".interfaces.IFormDefinition"
+    for=".interfaces.IBaseForm"
+    />
+  
   <!-- event subscribers -->
 
   <subscriber

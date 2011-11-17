@@ -17,7 +17,8 @@
 </head>
 <body>
   <div metal:fill-slot="main">
-  <h1 tal:content="structure string:${context/Title} <em>(Form preview)</em>">TITLE</h1>
+  <h1 tal:condition="python:context.portal_type=='uu.formlibrary.definition'" tal:content="structure string:${context/Title} <em>(Form preview)</em>">TITLE</h1>
+  <h2 tal:condition="python: not context.portal_type=='uu.formlibrary.definition'" tal:content="context/Title">TITLE</h2>
   <div tal:content="context/Description">Description</div>
   <div class="configuration-summary">
     <tal:block define="fieldgroups python:[o for o in context.objectValues() if o.portal_type=='uu.formlibrary.fieldgroup']">

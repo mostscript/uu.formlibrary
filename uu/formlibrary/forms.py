@@ -7,11 +7,13 @@ from z3c.form import form, field
 from zope.app.component.hooks import getSite
 from zope.component import adapter
 from zope.interface import implements, implementer
+from zope.schema.interfaces import IDate
 from Products.CMFPlone.utils import getToolByName
 
 from uu.dynamicschema.schema import new_schema
 from uu.dynamicschema.interfaces import DEFAULT_SIGNATURE
 from uu.record.base import RecordContainer
+from uu.smartdate.browser.widget import SmartdateFieldWidget
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IBaseForm, IFormDefinition
 from uu.formlibrary.interfaces import IFormComponents
@@ -103,7 +105,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             )
         #super(ComposedForm, self).__init__(self, context, request)
         form.Form.__init__(self, context, request)
-   
+    
     def _group_schemas(self):
         result = []
         for name in self.components.names:
@@ -129,6 +131,28 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             fieldset_group = GroupFactory(name, field.Fields(), title)
             self.groups.append(fieldset_group)
         super(ComposedForm, self).updateFieldsFromSchemata()
+   
+    def updateWidgets(self):
+        date_fields = [f for f in self.fields.values()
+                        if IDate.providedBy(f.field)]
+        for field in date_fields:
+            field.widgetFactory = SmartdateFieldWidget
+        for group in self.groups:
+            date_fields = [f for f in group.fields.values()
+                            if IDate.providedBy(f.field)]
+            for field in date_fields:
+                field.widgetFactory = SmartdateFieldWidget
+        super(ComposedForm, self).updateWidgets()
+    
+    def datagridInitialise(self, subform, widget):
+        if not hasattr(self, '_widgets_initialized'):
+            self._widgets_initialized = [] # don't duplicate effort!
+        if subform not in self._widgets_initialized:
+            date_fields = [f for f in subform.fields.values()
+                            if IDate.providedBy(f.field)]
+            for formfield in date_fields:
+                formfield.widgetFactory = SmartdateFieldWidget
+        self._widgets_initialized.append(subform)
     
     def _field_group_schemas(self):
         """Get list of field group schemas from form definition context"""

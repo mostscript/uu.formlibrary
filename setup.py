@@ -27,7 +27,7 @@ setup(name='uu.formlibrary',
       install_requires=[
           'setuptools',
           'zope.schema>=3.8.0',
-          'collective.z3cform.datagridfield',
+          'collective.z3cform.datagridfield>=0.9',
           'plone.app.dexterity',
           'plone.uuid',
           'plone.alterego',

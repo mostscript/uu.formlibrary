@@ -3,7 +3,7 @@ from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
 from plone.autoform.interfaces import WIDGETS_KEY
 from plone.z3cform.fieldsets.group import GroupFactory
-from z3c.form import form, field
+from z3c.form import form, field, button
 from zope.app.component.hooks import getSite
 from zope.component import adapter
 from zope.interface import implements, implementer
@@ -91,12 +91,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         self.group_schemas = self._group_schemas()
         self.group_titles = self._group_titles()
 
-        #self.group_schemas = self._field_group_schemas()
-        # mapping: names to schema:
-        #self.components = dict( [('', self._schema),] + self.group_schemas )
         # mapping: schema to names:
-        #self.schema_names = dict(invert(self.components.items()))
-        
         self.schema_names = dict(invert(self.group_schemas))
 
         # ordered list of additional schema for AutoExtensibleForm:
@@ -153,21 +148,6 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             for formfield in date_fields:
                 formfield.widgetFactory = SmartdateFieldWidget
         self._widgets_initialized.append(subform)
-    
-    def _field_group_schemas(self):
-        """Get list of field group schemas from form definition context"""
-        result = []
-        groups = filter(is_field_group, self.definition.objectValues())
-        for group in groups:
-            if group.group_usage == u'grid':
-                wrapper = grid_wrapper_schema(group.schema)
-                result.append(
-                    (group.getId(), wrapper,)
-                    )
-            else:
-                result.append( (group.getId(), group.schema,) )
-            self.group_titles[group.getId()] = group.Title()
-        return result
     
     def getPrefix(self, schema):
         if schema in self.schema_names:

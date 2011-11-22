@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<object name="portal_kss" meta_type="KSS Registry">
+  <!-- disable z3cform KSS inline validation: broken in too many ways! -->
+  <kineticstylesheet
+    id="++resource++plone.app.z3cform"
+    enabled="False"
+    cacheable="True"
+    compression="safe"
+    cookable="True"
+    expression=""
+     />
+</object>

@@ -1,3 +1,4 @@
+import transaction
 from persistent.dict import PersistentDict
 from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
@@ -64,6 +65,8 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                             # to support anonymouse schema without __name__
                             # See commit on GitHub: http://goo.gl/3W233
     
+    enable_form_tabbing = False; # do not display fieldsets in tabs.
+    
     # schema must be property, not attribute for AutoExtensibleForm sublcass
     @property
     def schema(self):
@@ -100,6 +103,8 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             )
         #super(ComposedForm, self).__init__(self, context, request)
         form.Form.__init__(self, context, request)
+        self.saved = False #initial value: no duplication of save...
+        self.save_attempt = False # flag for save attempt, success or not
     
     def _group_schemas(self):
         result = []
@@ -155,6 +160,45 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         # fall-back will not work for anoymous schema without names, but
         # it is the best we can assume to do here:
         return super(ComposedForm, self).getPrefix(schema)
+    
+    def _saveResult(self, result):
+        schemas = dict(self.group_schemas)
+        data = self.context.data
+        for name, values in result.items():
+            name = str(name)
+            schema = schemas.get(name, self._schema) #schema or default group
+            if schema:
+                group_record = self.context.data.get(name, None)
+                if group_record is None:
+                    group_record = self.context.data[name] = FormEntry()
+                group_record.sign(schema)
+                for fieldname, value in values.items():
+                    setattr(group_record, fieldname, value)
+    
+    @button.buttonAndHandler(u'Save')
+    def handleSave(self, action):
+        self.save_attempt = True
+        data, errors = self.extractData()
+        if errors or IFormDefinition.providedBy(self.context) or self.saved:
+            return #just validate if errors, or if context if defn
+        if not self.saved:
+            result = {} # submitted data. k: group name; v: dict of name/value
+            group_keys = []
+            for group in self.groups:
+                groupdata = {}
+                form_group_data = group.extractData()[0]
+                for name, field in group.fields.items():
+                    group_keys.append(name)
+                    fieldname = field.field.__name__
+                    default = getattr(field.field, 'default', None)
+                    groupdata[fieldname] = form_group_data.get(name, default)
+                result[group.__name__] = groupdata
+            # filter default fieldset values, ignoring group values from data dict:
+            result[''] = dict([(k,v) for k,v in data.items()
+                                if k not in group_keys])
+            self._saveResult(result)
+            self.saved = True
+            transaction.get().note('Saved form data')
 
 
 ## content-type implementations for form instances:

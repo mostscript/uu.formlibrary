@@ -6,6 +6,19 @@
       i18n:domain="uu.formlibrary">
 <head>
   <metal:block fill-slot="javascript_head_slot">
+  <meta name="form-type" content="" tal:attributes="content context/portal_type" />
+  <script type="text/javascript">
+  //<![CDATA[
+  jq = jQuery;
+  jq(document).ready(function(){
+    var formtype = jq('meta[name="form-type"]').attr('content');
+    if (formtype == 'uu.formlibrary.definition') {
+        //change label, we don't save
+        jq('input.submit-widget#form-buttons-save').val('Test form input');
+    }
+  });
+  //]]>
+  </script>
   </metal:block>
   <metal:block fill-slot="style_slot">
 <style>
@@ -50,9 +63,7 @@
     </tal:block>
   </div>
   <hr />
-  <form>
     <form tal:replace="structure view/render_form">DATA FORM HERE</form>
-  </form>
   </div>
 </body>
 </html>

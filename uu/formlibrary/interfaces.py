@@ -1,6 +1,7 @@
 from datetime import datetime
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
+from plone.app.textfield import RichText
 from plone.directives import form, dexterity
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree.source import CustomFilter
@@ -16,6 +17,12 @@ from zope.location.interfaces import ILocation
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope import schema
 from Acquisition import aq_inner
+
+try:
+    import z3c.blobfile
+    from plone.namedfile.field import NamedBlobImage as NamedImage
+except:
+    from plone.namedfile.field import NamedImage # no z3c.blobfile support
 
 from uu.dynamicschema.interfaces import ISchemaSignedEntity
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
@@ -214,7 +221,14 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         fields=[
             'form_css',
             'entry_schema',
+            'sync_states',
             ]
+        )
+     
+    form.fieldset(
+        'Display',
+        label=u"Form display metadata",
+        fields=['instructions', 'logo']
         )
     
     form.widget(form_css=TextAreaFieldWidget)
@@ -233,7 +247,19 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             vocabulary='plone.app.vocabularies.WorkflowStates'),
         defaultFactory=lambda: list(('visible',)),
         )
+     
+    instructions = RichText(
+        title=_(u'Instructions'),
+        description=_(u'Instructions for data entry'),
+        required=False,
+        ) 
     
+    logo = NamedImage(
+        title=_(u'Logo'),
+        description=_(u'Please upload a logo image for display on the form.'),
+        required=False,
+        )
+     
     form.omitted('definition_history')
     definition_history = schema.List(
         title=u'Definition history',
@@ -243,7 +269,10 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         value_type=schema.Object(schema=IDefinitionHistory),
         defaultFactory=PersistentList, #req. zope.schema >= 3.8.0
         )
-    
+
+
+
+
     def log(*args, **kwargs):
         """
         Given either a single argument of an IDefintionHistory object

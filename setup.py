@@ -36,6 +36,7 @@ setup(name='uu.formlibrary',
           'plone.schemaeditor>=1.0',
           'plone.app.linkintegrity',
           'zope.globalrequest',
+          'z3c.blobfile',
           'zope.app.testing', #for z3c.form.testing requirement
           'Products.CMFPlone',
           'uu.workflows',

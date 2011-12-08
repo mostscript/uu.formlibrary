@@ -224,6 +224,16 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         required=False,
         )
     
+    sync_states = schema.List(
+        title=u'Auto-sync workflow states',
+        description=u'Workflow states for form instances to automatically '\
+                    u'sync changes to; instances in other states will '\
+                    u'retain schema of previous definition revisions',
+        value_type=schema.Choice(
+            vocabulary='plone.app.vocabularies.WorkflowStates'),
+        defaultFactory=lambda: list(('visible',)),
+        )
+    
     form.omitted('definition_history')
     definition_history = schema.List(
         title=u'Definition history',

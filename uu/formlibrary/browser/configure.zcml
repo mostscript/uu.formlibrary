@@ -3,18 +3,22 @@
   xmlns:browser="http://namespaces.zope.org/browser"
   i18n_domain="uu.qiforms">
 
-  <browser:page
-    name="form_entry"
-    for="uu.formlibrary.interfaces.ISimpleForm"
-    class=".simpleform.SimpleFormEntry"
-    template="simple_entry.pt"
-    permission="uu.workflows.EnterData"
-    />
-
+  <!-- FormInputView can adapt either ISimpleForm or
+       IFormDefinition, so it is defined as a view
+       for both contexts. -->
+  
   <browser:page
     name="form_view"
     for="uu.formlibrary.interfaces.IFormDefinition"
-    class=".definition.FormView"
+    class=".definition.FormInputView"
+    template="form_view.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="form_entry"
+    for="uu.formlibrary.interfaces.ISimpleForm"
+    class=".definition.FormInputView"
     template="form_view.pt"
     permission="zope2.View"
     />
@@ -22,7 +26,7 @@
   <browser:page
     name="form_view"
     for="uu.formlibrary.interfaces.ISimpleForm"
-    class=".definition.FormView"
+    class=".definition.FormDisplayView"
     template="form_view.pt"
     permission="zope2.View"
     />

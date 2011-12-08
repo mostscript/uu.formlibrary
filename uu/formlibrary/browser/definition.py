@@ -9,7 +9,7 @@ from uu.formlibrary.interfaces import IFormDefinition, ISimpleForm
 from uu.formlibrary.forms import ComposedForm
 
 
-class FormView(object):
+class FormInputView(object):
     
     def __init__(self, context, request):
         self.context = context
@@ -77,4 +77,18 @@ class FormView(object):
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
+
+
+class FormDisplayView(FormInputView):
+    """ Display form: Form view in display mode without buttons """
+    
+    def __init__(self, context, request):
+        super(FormDisplayView, self).__init__(context, request)
+        self._form.mode = 'display'
+        self._remove_form_buttons()
+    
+    def _remove_form_buttons(self):
+        names = self._form.buttons.keys()
+        for name in names:
+            del(self._form.buttons[name])
 

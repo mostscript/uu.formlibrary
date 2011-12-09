@@ -43,7 +43,7 @@
   <alias from="(Default)" to="@@form_view"/>
   <alias from="edit" to="@@edit"/>
   <alias from="sharing" to="@@sharing"/>
-  <alias from="view" to="(selected layout)"/>
+  <alias from="view" to="@@form_view"/>
  
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""

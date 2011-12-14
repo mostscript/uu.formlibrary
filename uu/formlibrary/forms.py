@@ -175,7 +175,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                 for fieldname, value in values.items():
                     setattr(group_record, fieldname, value)
     
-    @button.buttonAndHandler(u'Save')
+    @button.buttonAndHandler(u'Save', condition=lambda form: form.mode=='input')
     def handleSave(self, action):
         self.save_attempt = True
         data, errors = self.extractData()

@@ -85,10 +85,4 @@ class FormDisplayView(FormInputView):
     def __init__(self, context, request):
         super(FormDisplayView, self).__init__(context, request)
         self._form.mode = 'display'
-        self._remove_form_buttons()
-    
-    def _remove_form_buttons(self):
-        names = self._form.buttons.keys()
-        for name in names:
-            del(self._form.buttons[name])
 

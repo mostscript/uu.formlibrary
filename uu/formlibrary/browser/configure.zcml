@@ -20,7 +20,7 @@
     for="uu.formlibrary.interfaces.ISimpleForm"
     class=".definition.FormInputView"
     template="form_view.pt"
-    permission="zope2.View"
+    permission="uu.workflows.EnterData"
     />
 
   <browser:page

@@ -39,21 +39,6 @@ class DefaultProfileTest(unittest.TestCase):
         for name in self._product_fti_names():
             self.assertTrue(name in typenames)
    
-    def _add_check(self, typename, id, iface, cls, title=None, parent=None):
-        if parent is None:
-            parent = self.portal
-        if title is None:
-            title = id
-        if isinstance(title, str):
-            title = title.decode('utf-8')
-        parent.invokeFactory(typename, id, title=title)
-        self.assertTrue(id in parent.contentIds())
-        o = parent[id]
-        self.assertTrue(isinstance(o, cls))
-        self.assertTrue(iface.providedBy(o))
-        o.reindexObject()
-        return o # return constructed content for use in additional testing
-    
     def test_creation(self):
         from uu.formlibrary.tests.fixtures import CreateContentFixtures
         CreateContentFixtures(self, self.layer).create()

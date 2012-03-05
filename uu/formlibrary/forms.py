@@ -9,6 +9,7 @@ from zope.app.component.hooks import getSite
 from zope.component import adapter
 from zope.interface import implements, implementer
 from zope.schema.interfaces import IDate
+from DateTime import DateTime
 from Products.CMFPlone.utils import getToolByName
 
 from uu.dynamicschema.schema import new_schema
@@ -197,6 +198,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             result[''] = dict([(k,v) for k,v in data.items()
                                 if k not in group_keys])
             self._saveResult(result)
+            self.context.setModificationDate(DateTime())  # modified==now
             self.saved = True
             transaction.get().note('Saved form data')
 

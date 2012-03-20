@@ -12,6 +12,18 @@ class DefaultProfileTest(unittest.TestCase):
 
     layer = DEFAULT_PROFILE_TESTING
     
+    FOLDERISH_TYPES = [
+        'uu.formlibrary.library',
+        'uu.formlibrary.definition'
+        ]
+    
+    LINKABLE_TYPES = FOLDERISH_TYPES + [
+        'uu.formlibrary.fieldgroup',
+        'uu.formlibrary.setspecifier',
+        'uu.formlibrary.multiform',
+        'uu.formlibrary.simpleform',
+        ]
+    
     def setUp(self):
         self.portal = self.layer['portal']
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
@@ -52,5 +64,36 @@ class DefaultProfileTest(unittest.TestCase):
         library = self.portal['formlib']
         from plone.uuid.interfaces import IUUID
         self.assertTrue(IUUID(library) is not None)
+    
+    def test_tinymce_settings(self):
+        tool = self.portal.portal_tinymce
+        folderish = tool.containsobjects.strip().split('\n')
+        linkable = tool.linkable.strip().split('\n')
+        ## test for regressions from base profile, defaults still set:
+        self.assertTrue(tool.styles)  # non-empty === product does not touch
+        base_plone_folders = (
+            'Folder', 
+            'Large Plone Folder',
+            'Plone Site',
+            )
+        for portal_type in base_plone_folders:
+            self.assertIn(portal_type, folderish)
+        base_plone_linkable = (
+            'Topic',
+            'Event',
+            'File',
+            'Folder', 
+            'Large Plone Folder',
+            'Image',
+            'News Item',
+            'Document',
+            )
+        for portal_type in base_plone_linkable:
+            self.assertIn(portal_type, linkable)
+        ## now test for resources added by this profile:
+        for portal_type in self.FOLDERISH_TYPES:
+            self.assertIn(portal_type, folderish)
+        for portal_type in self.LINKABLE_TYPES:
+            self.assertIn(portal_type, linkable)
 
 

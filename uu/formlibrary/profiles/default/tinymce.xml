@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<object>
+ <resourcetypes purge="False">
+  <linkable purge="False">
+   <element value="uu.formlibrary.library" />
+   <element value="uu.formlibrary.definition" />
+   <element value="uu.formlibrary.fieldgroup" />
+   <element value="uu.formlibrary.setspecifier" />
+   <element value="uu.formlibrary.multiform" />
+   <element value="uu.formlibrary.simpleform" />
+  </linkable>
+  <containsobjects purge="False">
+   <element value="uu.formlibrary.library" />
+   <element value="uu.formlibrary.definition" />
+  </containsobjects>
+  <containsanchors purge="False">
+   <!-- <element value="Event"/> -->
+  </containsanchors>
+  <imageobjects purge="False">
+   <!-- addditional here, like: <element value="Image"/> -->
+  </imageobjects>
+ </resourcetypes>
+ <layout purge="False">
+  <styles purge="False">
+   <!-- add here, e.g. <element value="Clear floats|div|visualClear"/> -->
+  </styles>
+  <content_css value=""/> <!-- point to any CSS file for content editable area -->
+  <tablestyles purge="False">
+   <!-- add here, e.g. <element value="Subdued grid|plain"/> -->
+  </tablestyles>
+ </layout>
+ <toolbar purge="False">
+  <customtoolbarbuttons purge="False">
+  </customtoolbarbuttons>
+ </toolbar>
+</object>

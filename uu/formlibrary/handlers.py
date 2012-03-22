@@ -1,3 +1,4 @@
+from plone.supermodel import serializeSchema
 from zope.component import queryUtility
 from zope.globalrequest import getRequest
 from Acquisition import aq_base
@@ -8,6 +9,7 @@ from plone.app.linkintegrity.exceptions import (
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
+from uu.dynamicschema.schema import parse_schema
 from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
 from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
 from uu.formlibrary.interfaces import IFormComponents
@@ -124,6 +126,10 @@ def definition_schema_handler(context, event):
         if (schema == DEFAULT_MODEL_XML and
                 context.signature == DEFAULT_SIGNATURE):
             return # initial schema, not modification of schema; done.
+        # normalize xml: reserialize as a check on manual edits:
+        schema = serializeSchema(parse_schema(schema))
+        if context.entry_schema != schema:
+            context.entry_schema = schema           # save normalized xml
         saver = queryUtility(ISchemaSaver)          # get local utility
         sig = context.signature = saver.add(schema) # persist xml/sig in saver
         context._v_schema = (sig, saver.load(saver.get(sig))) # cache schema

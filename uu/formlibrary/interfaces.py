@@ -723,10 +723,16 @@ class ISimpleForm(IBaseForm):
         )
 
 
-class IMultiForm(form.Schema, IRecordContainer, ISchemaProvider):
+class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
     """
     A multi-form is a content item that provides 0..* form entry records
     providing IFormEntry via an IRecordContainer inteface, identifying
     record values by a record UUID (key).
     """
+    
+    entry_notes = schema.Text(
+        title=_(u'Entry notes'),
+        description=_(u'Any notes about form entries for this period.'),
+        required=False,
+        )
 

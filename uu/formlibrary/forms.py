@@ -415,6 +415,175 @@ class MultiForm(Item, RecordContainer):
     >>> entry6 = multi_form.create(data={'not_in_schema':True, 'count':2})
     >>> assert not hasattr(entry6, 'not_in_schema')
     >>> assert entry6.count == 2
+    
+    Of course, merely using the multi form object as a factory for new entries
+    does not mean the entries are stored within (yet):
+    
+    >>> assert entry4.record_uid not in multi_form
+    >>> assert entry4.record_uid not in multi_form.keys()
+    
+    Let's add an item to the multi-form (record container):
+    
+    >>> multi_form.add(entry4)
+    
+    There are two ways to check for containment, by either key or value:
+    
+    >>> assert entry4 in multi_form
+    >>> assert entry4.record_uid in multi_form
+    
+    We can get records using a (limited, read) mapping-like interface:
+    
+    >>> assert len(multi_form) == 1 # we just added the first entry
+    >>> assert multi_form.values()[0] is entry4
+    >>> assert multi_form.get(entry4.record_uid) is entry4
+    >>> assert multi_form[entry4.record_uid] is entry4
+    
+    We can deal with references to entries also NOT in the container:
+    
+    >>> import uuid
+    >>> randomuid = str(uuid.uuid4())
+    >>> assert randomuid not in multi_form
+    >>> assert multi_form.get(str(uuid.uuid4()), None) is None
+    >>> assert entry1.record_uid not in multi_form 
+    
+    And we can check containment on either an instance or a UID; checking on
+    an instance is just a convenience that uses its UID (record_uid) field
+    to check for actual containment:
+    
+    >>> assert entry4.record_uid in multi_form
+    >>> assert entry4 in multi_form #shortcut!
+    
+    However, it should be noted for good measure:
+    
+    >>> assert entry4 in multi_form.values()
+    >>> assert entry4.record_uid in multi_form.keys()
+    >>> assert entry4 not in multi_form.keys() # of course!
+    >>> assert (entry4.record_uid, entry4) in multi_form.items()
+    
+    We can modify an entry contained directly; this is the most direct and 
+    low-level update interface for any entry:
+    
+    >>> assert entry4.title is None
+    >>> entry4.title = u'Curious George'
+    >>> assert multi_form.get(entry4.record_uid).title == u'Curious George'
+    
+    We can add another record:
+    
+    >>> multi_form.add(entry6)
+    >>> assert entry6 in multi_form
+    >>> assert entry6.record_uid in multi_form
+    >>> assert len(multi_form) == 2
+    
+    Keys, values, items are always ordered; since we added entry4, then
+    entry6 previously, they will return in that order:
+    
+    >>> expected_order = (entry4, entry6)
+    >>> expected_uid_order = tuple([e.record_uid for e in expected_order])
+    >>> expected_items_order = tuple(zip(expected_uid_order, expected_order))
+    >>> assert tuple(multi_form.keys()) == expected_uid_order
+    >>> assert tuple(multi_form.values()) == expected_order
+    >>> assert tuple(multi_form.items()) == expected_items_order
+    
+    We can re-order this; let's move entry6 up to position 0 (first):
+    
+    >>> multi_form.reorder(entry6, offset=0)
+    >>> expected_order = (entry6, entry4)
+    >>> expected_uid_order = tuple([e.record_uid for e in expected_order])
+    >>> expected_items_order = tuple(zip(expected_uid_order, expected_order))
+    >>> assert tuple(multi_form.keys()) == expected_uid_order
+    >>> assert tuple(multi_form.values()) == expected_order
+    >>> assert tuple(multi_form.items()) == expected_items_order
+    
+    We can also re-order by UID instead of record/entry reference:
+    
+    >>> multi_form.reorder(entry6.record_uid, offset=1) #where it was before
+    >>> expected_order = (entry4, entry6)
+    >>> expected_uid_order = tuple([e.record_uid for e in expected_order])
+    >>> expected_items_order = tuple(zip(expected_uid_order, expected_order))
+    >>> assert tuple(multi_form.keys()) == expected_uid_order
+    >>> assert tuple(multi_form.values()) == expected_order
+    >>> assert tuple(multi_form.items()) == expected_items_order
+    
+    And we can remove records from containment by UID or by reference (note,
+    we use __delitem__() method of a writable mapping):
+    
+    >>> del(multi_form[entry6])
+    >>> assert entry6 not in multi_form
+    >>> assert entry6.record_uid not in multi_form
+    >>> assert len(multi_form) == 1
+    >>> assert entry4 in multi_form
+    >>> del(multi_form[entry4.record_uid])
+    >>> assert entry4 not in multi_form
+    >>> assert len(multi_form) == 0
+    
+    Earlier, direct update of objects was demonstrated: get an object and
+    modify its properties.  This attribute-setting mechanism is the best
+    low-level interface, but it does not (a) support a wholesale update
+    from either a field dictionary/mapping nor another object providing
+    IFormEntry needing its form data to be copied; nor (b) support
+    notification of zope.lifecycle object events.
+    
+    Given these needs, a high level interface for update exists, with the 
+    multi form object acting as a controller for updating contained entries.
+    This provides for update via another entry (a field-by-field copy) or 
+    from a data dictionary/mapping.
+    
+    Let's reuse an existing entry and the IMonkey interface defined above to
+    test the update() interface with appropriate data.
+    
+    >>> newuid = str(uuid.uuid4())
+    >>> data = {    'record_uid' : newuid, 
+    ...             'title'      : u'George',
+    ...             'count'      : 9,
+    ...        }
+    >>> assert len(multi_form) == 0 #empty, nothing in there yet!
+    >>> assert newuid not in multi_form
+
+    
+    Note, update() returns an entry; return value can be ignored if caller
+    deems it not useful.
+    
+    >>> entry = multi_form.update(data)
+    >>> assert newuid in multi_form #update implies adding!
+    >>> assert entry is multi_form.get(newuid)
+    >>> assert entry.title == data['title']
+    >>> assert entry.count == data['count']
+    
+    Now, the entry we just modified was also added.  We can modify it again:
+    
+    >>> data = {    'record_uid' : newuid, 
+    ...             'title'      : u'Curious George',
+    ...             'count'      : 2,
+    ...        }
+    >>> entry = multi_form.update(data)
+    >>> assert newuid in multi_form     # same uid
+    >>> entry.title
+    u'Curious George'
+    >>> entry.count
+    2
+    >>> assert len(multi_form) == 1     # same length, nothing new was added.
+    
+    We could also create a stand-in entry for which data is copied to the
+    permanent entry with the same UUID on update:
+    
+    >>> temp_entry = multi_form.create()
+    >>> temp_entry.record_uid = newuid      # overwrite with the uid of entry
+    >>> temp_entry.title = u'Monkey jumping on the bed'
+    >>> temp_entry.count = 0
+    
+    temp_entry is a stand-in which we will pass to update(), when we really
+    intend to modify entry (they have the same UID):
+    
+    >>> real_entry = multi_form.update(temp_entry)
+    >>> assert multi_form.get(newuid) is not temp_entry
+    >>> assert multi_form.get(newuid) is entry  # still the same object...
+    >>> assert multi_form.get(newuid) is real_entry
+    >>> entry.title                             # ...but data is modified!
+    u'Monkey jumping on the bed'
+    >>> entry.count
+    0
+    >>> assert len(multi_form) == 1     # same length, nothing new was added.
+ 
 
     """
     
@@ -551,11 +720,11 @@ class MultiForm(Item, RecordContainer):
         if not data:
             return {}
         if schema is None:
-            schema = self.definition_schema()
+            schema = self._definition_schema()
         _getv = lambda name: data.get(name, None)
         _indata = lambda name: name in data
         if IRecord.providedBy(data):
-            _getv = lambda v: getattr(data, name, None)
+            _getv = lambda name: getattr(data, name, None)
             _indata = lambda name: hasattr(data, name)
         fieldnames = [k for k, field in getFieldsInOrder(schema)]
         fieldnames.append('record_uid')  # only non-schema attr we keep

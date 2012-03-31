@@ -725,6 +725,124 @@ class MultiForm(Item, RecordContainer):
     
     It should be noted that update_all() removes entries not in the data 
     payload, and it preserves the order contained in the JSON entries.
+    
+    Object events
+    -------------
+    
+    CRUD methods on a controlling object should have some means of extension,
+    pluggable to code that should subscribe to CRUD (object lifecycle) events.
+    We notify four distinct zope.lifecycleevent object event types:
+
+    1. Object created (zope.lifecycleevent.interfaces.IObjectCreatedEvent)
+    
+    2. Object addded to container (the MultiForm form object):
+        (zope.lifecycleevent.interfaces.IObjectAddedEvent).
+    
+    3. Object modified (zope.lifecycleevent.interfaces.IObjectModifiedEvent)
+    
+    4. Object removed (zope.lifecycleevent.interfaces.IObjectRemovedEvent)
+    
+    Note: the create() operation both creates and modifies: as such, both
+    created and modified events are fired off, and since most creations also
+    are followed by an add() to a form, you may have three events to
+    subscribe to early in a new entry's lifecycle.
+    
+    First, some necessary imports of events and the @adapter decorator:
+    
+    >>> from zope.component import adapter
+    >>> from zope.lifecycleevent import IObjectCreatedEvent
+    >>> from zope.lifecycleevent import IObjectModifiedEvent
+    >>> from zope.lifecycleevent import IObjectRemovedEvent
+    >>> from zope.lifecycleevent import IObjectAddedEvent
+    
+    Let's define dummy handlers:
+    
+    >>> @adapter(IFormEntry, IObjectCreatedEvent)
+    ... def handle_create(context, event):
+    ...     print 'object created'
+    ... 
+    >>> @adapter(IFormEntry, IObjectModifiedEvent)
+    ... def handle_modify(context, event):
+    ...     print 'object modified'
+    ... 
+    >>> @adapter(IFormEntry, IObjectRemovedEvent)
+    ... def handle_remove(context, event):
+    ...     print 'object removed'
+    ... 
+    >>> @adapter(IFormEntry, IObjectAddedEvent)
+    ... def handle_add(context, event):
+    ...     print 'object added'
+    ... 
+    
+    Now, let's register the handlers:
+    >>> for h in (handle_create, handle_modify, handle_remove, handle_add):
+    ...     sm.registerHandler(h)
+    ... 
+    
+    We can watch these event handlers get fired when CRUD methods are called.
+    
+    Object creation, with and without data:
+    
+    >>> newentry = multi_form.create()      #should print 'object created'
+    object created
+    >>> another_uid = str(uuid.uuid4())
+    >>> newentry = multi_form.create({'count':88})
+    object modified
+    object created
+    
+    Object addition:
+    
+    >>> multi_form.add(newentry)
+    object added
+    >>>
+    
+    Object removal:
+    
+    >>> del(multi_form[newentry.record_uid])
+    object removed
+    
+    Object update (existing object):
+    
+    >>> entry = multi_form.values()[0]
+    >>> entry = multi_form.update({'record_uid' : entry.record_uid,
+    ...                            'title'      : u'Me'})
+    object modified
+    
+    Object modified (new object or not contained): 
+    
+    >>> random_uid = str(uuid.uuid4())
+    >>> entry = multi_form.update({'record_uid' : random_uid,
+    ...                            'title'      : u'Bananas'})
+    object modified
+    object created
+    object added
+    
+    Event handlers for modification can know what fields are modified; let's
+    create a more interesting modification handler that prints the names of
+    changed fields.
+
+    >>> from zope.lifecycleevent.interfaces import IAttributes
+    >>> unregistered = sm.unregisterHandler(handle_modify)
+    >>> @adapter(IFormEntry, IObjectModifiedEvent)
+    ... def handle_modify(context, event):
+    ...     if event.descriptions:
+    ...         attr_desc = [d for d in event.descriptions
+    ...                         if (IAttributes.providedBy(d) and
+    ...                             d.interface is definition.schema)]
+    ...         if attr_desc:
+    ...             field_names = attr_desc[0].attributes
+    ...             print tuple(field_names)
+    >>> sm.registerHandler(handle_modify)
+    
+    >>> entry = multi_form.values()[0]
+    >>> entry = multi_form.update({'record_uid' : entry.record_uid,
+    ...                            'title'      : u'Hello'})
+    ('title',)
+
+    Finally, clean up and remove all the dummy handlers:
+    >>> for h in (handle_create, handle_modify, handle_remove, handle_add):
+    ...     success = sm.unregisterHandler(h)
+    ... 
  
 
     """

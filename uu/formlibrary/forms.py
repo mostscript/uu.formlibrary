@@ -583,6 +583,148 @@ class MultiForm(Item, RecordContainer):
     >>> entry.count
     0
     >>> assert len(multi_form) == 1     # same length, nothing new was added.
+
+    Basic data normalization
+    ------------------------
+    
+    update() supports basic data normalization for string input that should
+    be converted to unicode (using utf-8), and for z3c.form's string
+    serialization of date and datetime objects [1].
+    
+        [1] http://pypi.python.org/pypi/z3c.form#date-data-converter
+    
+    Let's create a new definition fixture to demonstrate usage:
+    
+    >>> formlibrary = portal['formlib']
+    >>> definition2 = formlibrary.invokeFactory(
+    ...     'uu.formlibrary.definition',
+    ...     id='def2',
+    ...     )
+    >>> definition2 = formlibrary['def2']
+    >>> assert IFormDefinition.providedBy(definition2)
+
+    Give the definition this schema:
+    
+    >>> class IParty(Interface):
+    ...     name = schema.TextLine()
+    ...     birthday = schema.Date()
+    ...     party_time = schema.Datetime()
+    ... 
+    >>> IParty.__name__ = None  # make anonymous schema like used in reality
+    >>> definition2.entry_schema = serializeSchema(IParty)
+    >>> notify(ObjectModifiedEvent(definition2))  # => sync of new schema
+    >>> from zope.schema import getFieldNamesInOrder
+    >>> assert 'birthday' in getFieldNamesInOrder(definition2.schema)
+    
+    Now we need a new form to use this definition:
+    
+    >>> party_form = MultiForm()
+    >>> party_form.definition = IUUID(definition2)
+    >>> assert 'birthday' in party_form.schema      # yep, the same schema
+    >>> assert party_form.schema is definition2.schema  # just to be sure
+
+    Now we need a new form to use this definition:
+    
+    >>> party_form = MultiForm()
+    >>> party_form.definition = IUUID(definition2)
+    >>> assert 'birthday' in party_form.schema      # yep, the same schema
+    >>> assert party_form.schema is definition2.schema  # just to be sure
+
+    Then create an entry using the newly created form form context:
+    
+    >>> entry = party_form.create()
+
+    The entry was signed by party_form.create() using party_form.schema,
+    thus the entry provides the bound definition's schema:
+
+    >>> assert definition2.schema.providedBy(entry)
+    >>> assert hasattr(entry, 'birthday')
+    
+    Finally, set some data that needs normalization (strings and date[time]):
+    
+    >>> data = {
+    ...     'record_uid': entry.record_uid, #which record to update
+    ...     'name'      : 'Me',
+    ...     'birthday'  : u'06/01/1977',
+    ...     'party_time': u'11/06/05 12:00',
+    ...     }
+    >>> entry = party_form.update(data)
+    >>> assert definition2.schema.providedBy(entry)
+    >>> assert isinstance(entry.name, unicode)
+    >>> entry.name #converted to unicode from string via utf-8 decode.
+    u'Me'
+    >>> entry.birthday
+    datetime.date(1977, 6, 1)
+    >>> entry.party_time
+    datetime.datetime(2011, 6, 5, 12, 0)
+
+    
+    JSON integration
+    ----------------
+    
+    As a convenience, update_all() parses JSON into a data dict for use by
+    update(), using the Python 2.6 json library (aka/was: simplejson):
+    
+    >>> import json #requires Python >= 2.6
+    >>> data['name'] = 'Chunky monkey'
+    >>> serialized = json.dumps([data,], indent=2) #JSON array of one item...
+    >>> print serialized #doctest: +ELLIPSIS
+    [
+      {
+        "party_time": "11/06/05 12:00", 
+        "birthday": "06/01/1977", 
+        "name": "Chunky monkey", 
+        "record_uid": "..."
+      }
+    ]
+    
+    The JSON created above is useful enough for demonstration, despite being
+    only a single-item list.
+    
+    >>> entry.name #before
+    u'Me'
+    >>> party_form.update_all(serialized)
+    >>> entry.name #after update
+    u'Chunky monkey'
+    
+    update_all() also takes a singular record, not just a JSON array:
+    
+    >>> data['name'] = 'Curious George'
+    >>> serialized = json.dumps(data, indent=2) # JSON object, not array.
+    >>> print serialized #doctest: +ELLIPSIS
+    {
+      "party_time": "11/06/05 12:00", 
+      "birthday": "06/01/1977", 
+      "name": "Curious George", 
+      "record_uid": "..."
+    }
+    >>> entry.name #before
+    u'Chunky monkey'
+    >>> party_form.update_all(serialized)
+    >>> entry.name #after update
+    u'Curious George'
+    
+    JSON parsing also supports a "bundle" or wrapper object around a list of 
+    entries, where the wrapper contains metadata about the form itself, not
+    its entries (currently, this is just the entry_notes field, which
+    is sourced from the JSON bundle/wrapper object field called 'notes').
+    When wrapped, the list of entries is named 'entries' inside the wrapper.
+    
+    >>> data['name'] = u'Party monkey'
+    >>> serialized = json.dumps({'notes'    : 'something changed',
+    ...                          'entries'  : [data,]},
+    ...                         indent=2) #JSON array of one item...
+    >>> entry.name #before
+    u'Curious George'
+    >>> assert party_form.entry_notes is None #field default is None
+    >>> party_form.update_all(serialized)
+    >>> entry.name #after
+    u'Party monkey'
+    >>> party_form.entry_notes
+    u'something changed'
+    
+    It should be noted that update_all() removes entries not in the data 
+    payload, and it preserves the order contained in the JSON entries.
  
 
     """
@@ -642,7 +784,7 @@ class MultiForm(Item, RecordContainer):
         """
         name = field.__name__
         if name in data:
-            convert = ColloqialDateConverter(field, mkwidget(getRequest()))
+            convert = ColloquialDateConverter(field, mkwidget(getRequest()))
             return convert.toFieldValue(unicode(data.get(name)))
         ## fallback: assume collective.z3cform.datetimewidget widget, three
         ## inputs for day, month, year respectively:
@@ -663,7 +805,7 @@ class MultiForm(Item, RecordContainer):
         schema = entry.schema
         for name, field in getFieldsInOrder(schema):
             if IDate.providedBy(field):
-                v = self._normalize_date_value(name, data)
+                v = self._normalize_date_value(field, data)
                 if v is not None:
                     field.validate(v)    # no enforcement of required here.
                 setattr(entry, name, v)  # new value is possibly empty

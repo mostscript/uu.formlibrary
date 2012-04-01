@@ -11,11 +11,12 @@ from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.dynamicschema.schema import parse_schema
 from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
-from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
-from uu.formlibrary.interfaces import IFormComponents
+from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup, IBaseForm
+from uu.formlibrary.interfaces import IFormComponents, IMultiForm
 from uu.formlibrary.forms import form_definition
 from uu.formlibrary.record import FormEntry
 from uu.formlibrary.utils import grid_wrapper_schema
+from uu.workflows.utils import history_log
 
 
 def copyroles(source, dest):
@@ -65,18 +66,37 @@ def sync_simple_form(form, components):
         if name not in form.data:
             form.data[name] = FormEntry() # add new
         form.data[name].sign(schema)
+    history_log(form, 'Schema updated for form entries.')
 
 
-def simple_form_configuration_modified(context, event):
-    if not ISimpleForm.providedBy(context):
-        raise ValueError('context must be ISimpleForm provider')
+def sync_multi_form(form, definition):
+    """
+    Update all contained form entry records, signed with definition
+    schema.
+    """
+    modified = False 
+    for entry in form.values():
+        oldsig = entry.signature
+        entry.sign(definition.schema)
+        if oldsig != entry.signature:
+            modified = True
+    if modified:
+        history_log(form, 'Schema updated for form entries.')
+
+
+def form_configuration_modified(context, event):
+    if not IBaseForm.providedBy(context):
+        raise ValueError('context must be IBaseForm provider')
     ## re-sign context and data-record with current definition/schema:
     try:
         definition = form_definition(context)
     except ValueError:
         return # no definition means no schema to sync
-    components = IFormComponents(definition)
-    sync_simple_form(context, components)
+    if ISimpleForm.providedBy(context):
+        components = IFormComponents(definition)
+        sync_simple_form(context, components)
+    elif IMultiForm.providedBy(context):
+        sync_multi_form(context, definition)
 
 
 def update_form_entries(context):
@@ -86,21 +106,16 @@ def update_form_entries(context):
     bound_forms = IFormSet(definition)
     simple_forms = [f for f in bound_forms.values()
         if ISimpleForm.providedBy(f)] #TODO: named IFormSet adapter instead???
+    multi_forms = [f for f in bound_forms.values()
+        if IMultiForm.providedBy(f)]
     wftool = getToolByName(definition, 'portal_workflow')
     components = IFormComponents(definition)
     for form in simple_forms:
         if wftool.getInfoFor(form, 'review_state') == 'visible':
-            # only if form is in visible state is it considered okay to
-            # modify the schema of records within it.
-            for name in components.names:
-                group = components.groups[name]
-                schema = group.schema
-                if group.group_usage == u'grid':
-                    schema = grid_wrapper_schema(group.schema)
-                if name not in form.data:
-                    form.data[name] = FormEntry() # add new
-                form.data[name].sign(schema)
-
+            sync_simple_form(form, components)
+    for form in multi_forms:
+        if wftool.getInfoFor(form, 'review_state') == 'visible':
+            sync_multi_form(form, definition)
 
 def definition_schema_handler(context, event):
     """

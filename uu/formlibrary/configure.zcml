@@ -45,9 +45,9 @@
   <!-- event subscribers -->
 
   <subscriber
-    for=".interfaces.ISimpleForm
+    for=".interfaces.IBaseForm
          zope.lifecycleevent.interfaces.IObjectModifiedEvent"
-    handler=".handlers.simple_form_configuration_modified"
+    handler=".handlers.form_configuration_modified"
     />
 
   <subscriber

@@ -4,7 +4,7 @@ from plone.dexterity.content import Item
 from plone.uuid.interfaces import IUUID
 from zope.component import adapts
 from zope.interface import implements
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 
 from uu.formlibrary.interfaces import IFormQuery, IFormSet, IFormDefinition

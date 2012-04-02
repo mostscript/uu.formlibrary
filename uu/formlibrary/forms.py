@@ -8,7 +8,7 @@ from plone.autoform.interfaces import WIDGETS_KEY
 from plone.z3cform.fieldsets.group import GroupFactory
 from z3c.form import form, field, button, converter, widget
 from z3c.form.testing import TestRequest
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 from zope.component import adapter, queryUtility
 from zope.event import notify
 from zope.interface import implements, implementer
@@ -262,7 +262,7 @@ class MultiForm(Item, RecordContainer):
     site:
 
     >>> from zope.component import queryUtility, getSiteManager
-    >>> from zope.app.component.hooks import getSite
+    >>> from zope.component.hooks import getSite
     >>> portal = getSite() # (for testing: set up by plone.testing layer)
     >>> assert portal is not None
     >>> sm = getSiteManager(portal)

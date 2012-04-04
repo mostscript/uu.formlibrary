@@ -1,0 +1,79 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+
+<body>
+  <div metal:fill-slot="main">
+
+ <tal:globals define="series view/seriesinfo">
+  <div metal:define-macro="formseries_headmeta"
+       tal:define="is_series view/SERIES">
+    <div class="user-message" tal:condition="view/user_message">
+        <span tal:content="view/user_message">Optional message to user</span>
+    </div>
+    
+    <div id="form-metadata" class="form-meta">
+     <div class="wrapper">
+      <!-- optional logo -->
+      <img src="" 
+          tal:condition="view/logourl"
+          tal:attributes="src view/logourl" />
+      <br tal:condition="view/logourl" />
+      <!-- metadata for form+series -->
+      <h2 tal:content="view/title">Monthly Chart Audit Form</h2>
+      <h4 class="subhead" tal:condition="python:'subhead' in series">
+        <em tal:content="series/subhead">Subheading, if any</em>
+      </h4>
+      <p class="description" tal:condition="python: 'description' in series" tal:content="series/description">
+        Optional description.
+      </p>
+      
+      <div class="periodinfo" tal:condition="python:not is_series">
+        This form's reporting period is dated from <span tal:content="context/start">START</span>
+            to <span tal:content="context/end">END</span>.
+      </div>
+
+      
+      <div class="periodinfo" tal:condition="is_series">
+        This is a form series defined for the period of <span tal:content="context/start">START</span>
+            to <span tal:content="context/end">END</span>.
+      </div>
+
+      <tal:block condition="python: (not is_series) and view.VIEWNAME=='edit'">
+        <div class="instructions" tal:condition="python: getattr(view, 'instructions', None)">
+          <h4>Instructions</h4>
+          <div class="instructions-content" tal:content="structure view/instructions">
+            Instructions HTML here.
+          </div>
+        </div>
+      </tal:block>
+    
+     </div>
+     <div tal:condition="python: (not is_series) and view.VIEWNAME=='edit'" class="meta-footer" style="clear:both;">
+        <a href="javascript:void(0);" class="meta-toggle">[HIDE metadata and instructions.]</a>
+     </div>
+    </div>
+  </div>
+
+  <div metal:define-macro="formseries_info" class="form-info">
+    <tal:block condition="python: 'series_info' in series and series['series_info']">
+     <div tal:content="structure series/series_info/output">Rich-text series info here</div>
+    </tal:block>
+  </div>
+
+  <div metal:define-macro="formseries_footer" class="form-footer">
+    <tal:block condition="python: 'contact' in series and series['contact']">
+     <h4>Contact Info:</h4>
+     <div tal:condition="python:hasattr(series['contact'], 'output')" tal:content="structure series/contact/output">Rich-text contact info here</div>
+     <div tal:condition="python:not hasattr(series['contact'], 'output')" tal:content="series/contact">Plain text backward-compatible contact information.</div>
+    </tal:block>
+  </div>
+
+  </tal:globals>
+  </div>
+</body>
+</html>

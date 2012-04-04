@@ -28,8 +28,10 @@ from uu.dynamicschema.interfaces import ISchemaSignedEntity
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.dynamicschema.interfaces import valid_xml_schema
 from uu.record.interfaces import IRecordContainer
+from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 from uu.formlibrary import _
+from uu.formlibrary.utils import DOW
 
 
 # portal type constants:
@@ -39,11 +41,18 @@ SIMPLE_FORM_TYPE = 'uu.formlibrary.simpleform'
 MULTI_FORM_TYPE = 'uu.formlibrary.multiform'
 FORM_SET_TYPE = 'uu.formlibrary.setspecifier'
 FIELD_GROUP_TYPE = 'uu.formlibrary.fieldgroup'
-FORM_TYPES = (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE)
+SERIES_TYPE = 'uu.formlibrary.series'
+FORM_TYPE_NAMES = {
+    MULTI_FORM_TYPE     : u'Multi-record form',
+    SIMPLE_FORM_TYPE    : u'Flex form', 
+    }
+FORM_TYPES = tuple(FORM_TYPE_NAMES.keys())
 
 
 mkterm = lambda token, title: SimpleTerm(token, title=title)
-mkvocab = lambda s: SimpleVocabulary([mkterm(t,title) for (t,title) in s])
+_mkvocab = lambda s: SimpleVocabulary([mkterm(t,title) for (t,title) in s])
+_terms = lambda s: SimpleVocabulary([SimpleTerm(t) for t in s])
+mkvocab = lambda s: _mkvocab(s) if s and isinstance(s[0], tuple) else _terms(s)
 
 
 class BoundFormSourceBinder(UUIDSourceBinder):
@@ -442,13 +451,15 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
             ),
         defaultFactory=list, #req zope.schema >= 3.8.0
         )
-    
+   
+    form.widget(query_start=SmartdateFieldWidget)
     query_start = schema.Date(
         title=u'Date range start',
         description=u'Date range inclusion query (start).',
         required=False,
         )
     
+    form.widget(query_end=SmartdateFieldWidget)
     query_end = schema.Date(
         title=u'Date range end',
         description=u'Date range inclusion query (end).',
@@ -660,12 +671,14 @@ class IPeriodicFormInstance(form.Schema, IAttributeUUID):
         required=True,
         )   
     
+    form.widget(start=SmartdateFieldWidget)
     start = schema.Date(
         title=_(u'Start date'),
         description=_(u'Start date for reporting period.'),
         required=False,
         )   
     
+    form.widget(end=SmartdateFieldWidget)
     end = schema.Date(
         title=_(u'End date'),
         description=_(u'End date for reporting period.'),
@@ -730,9 +743,190 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
     record values by a record UUID (key).
     """
     
+    # omit IRecordContainer['factory'] from generated form
+    form.omitted('factory')
+    
     entry_notes = schema.Text(
         title=_(u'Entry notes'),
         description=_(u'Any notes about form entries for this period.'),
+        required=False,
+        )
+
+
+class IPeriodicSeries(form.Schema):
+    """Definition of a sequence of periods of time"""
+    
+    frequency = schema.Choice(
+        title=_(u'Frequency'),
+        description=_(u'Frequency of form collection.'),
+        vocabulary=mkvocab((
+            'Monthly',
+            'Quarterly',
+            'Weekly',
+            'Annual',
+            'Twice monthly',
+            'Every two months',
+            'Every six months',
+            )),
+        default='Monthly',
+        )
+
+    form.widget(start=SmartdateFieldWidget)
+    start = schema.Date(
+        title=_(u'Start date'),
+        description=_(u'Start date for series.'),
+        required=False,
+        )
+
+    form.widget(end=SmartdateFieldWidget)
+    end = schema.Date(
+        title=_(u'End date'),
+        description=_(u'End date for series.'),
+        required=False,
+        )
+
+    active_weekdays = schema.List(
+        title=_(u'Active weekdays'),
+        description=_(u'Working or active days of week; the first and last '\
+                      u'of which are considered when computing reporting '\
+                      u'periods for populating forms of weekly frequency '\
+                      u'(safely ignored for any non-weekly frequencies). '\
+                      u'Please note: days of week must be in sequential '\
+                      u'order.'),
+        value_type=schema.Choice(
+            vocabulary=mkvocab((
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+                'Sunday',
+                )),
+            ),
+        constraint=DOW.validate,     #any seven days must be in sequence!
+        defaultFactory=DOW.weekdays, #requires zope.schema >= 3.8.0
+        required=False,
+        )
+
+
+class IFormSeries(form.Schema, IPeriodicSeries):
+    """
+    A time-series container of related periodic forms, may contain
+    shared metadata about that group of forms.
+    """
+     
+    form.fieldset(
+        'Display',
+        label=u"Form display metadata",
+        fields=['contact', 'logo', 'form_css']
+        )
+    
+    form.fieldset(
+        'Review',
+        label=u"Review information",
+        fields=['notes',]
+        )
+    
+    title = schema.TextLine(
+        title=_(u'Title'),
+        description=_(u'Series title or heading; displayed on forms.'),
+        required=True,
+        )
+
+    subhead = schema.TextLine(
+        title=_(u'Sub-heading'),
+        description=_(u'Second-level title/heading for form display.'),
+        required=False,
+        )
+
+    description = schema.Text(
+        title=u'Description',
+        description=_(u'Series description; may be displayed on forms.'),
+        required=False,
+        )
+    
+    contact = RichText(
+        title=_(u'Contact'),
+        description=_(u'Project manager or coordinator contact information.'),
+        required=False,
+        )
+    
+    series_info = RichText(
+        title=_(u'Series info'),
+        description=_(u'Series information for display on series summary page.'),
+        required=False,
+        )
+    
+    logo = NamedImage(
+        title=_(u'Logo'),
+        description=_(u'Optionally upload a logo image for display on the '\
+                      u'form.  If present, overrides any logo from form '\
+                      u'definitions on the display of contained forms'),
+        required=False,
+        )
+     
+    form.widget(form_css=TextAreaFieldWidget)
+    form_css = schema.Bytes(
+        title=_(u'Form styles'),
+        description=_(u'Additional CSS stylesheet rules for forms contained '\
+                      u'within this series (optional).'),
+        required=False,
+        )
+    
+    multiform_display_mode = schema.Choice(
+        title=_(u'Multi-record form display mode?'),
+        description=_(u'Display layout for multi-record forms only.'),
+        vocabulary=mkvocab((
+            'Columns',
+            'Stacked',
+            )), 
+        default='Stacked',
+        )
+    
+    dexterity.read_permission(notes='cmf.ReviewPortalContent')
+    dexterity.write_permission(notes='cmf.ReviewPortalContent')
+    notes = schema.Text(
+        title=_(u'Notes'),
+        description=_(u'Administrative, review notes about series.'),
+        required=False,
+        )
+     
+    @invariant
+    def validate_start_end(obj):
+        if not (obj.start is None or obj.end is None) and obj.start > obj.end:
+            raise Invalid(_(u"Start date cannot be after end date."))
+
+
+class IPopulateForms(form.Schema):
+    """Interface/schema for wizard form view for populating forms"""
+    
+    form_type = schema.Choice(
+        title=_(u'Form type'),
+        description=_(u'Select a type of form to populate.'),
+        vocabulary=mkvocab(FORM_TYPE_NAMES.items()),
+        default=SIMPLE_FORM_TYPE,
+        )
+    
+    form.widget(definition=ContentTreeFieldWidget)
+    definition = schema.Choice(
+        title=u'Choose form definition',
+        description=u'Choose a form definition, schema bound to this form.',
+        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
+        required=True,
+        )
+    
+    title_prefix = schema.TextLine(
+        title=_(u'Title prefix'),
+        description=_(u'Optional text to be placed at front of title; if '\
+                      u'present title components are separated by hyphen.'),
+        required=False,
+        )
+    
+    title_suffix = schema.TextLine(
+        title=_(u'Title suffix'),
+        description=_(u'Optional text to be placed at end of title; if '\
+                      u'present title components are separated by hyphen.'),
         required=False,
         )
 

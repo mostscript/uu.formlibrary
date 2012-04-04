@@ -47,11 +47,39 @@
     permission="zope2.View"
     />
 
+  <browser:page
+    name="series_summary"
+    for="uu.formlibrary.interfaces.IFormSeries"
+    class=".listseries.FormSeriesListing"
+    template="listseries.pt"
+    permission="zope2.View"
+    />
+
+ <browser:page
+    name="formcommon"
+    for="..interfaces.IBaseForm"
+    template="common.pt"
+    permission="zope2.View"
+    />
+
+ <browser:page
+    name="formcommon"
+    for="..interfaces.IFormSeries"
+    template="common.pt"
+    permission="zope2.View"
+    />
+ 
   <!-- static resources -->
   
   <browser:resourceDirectory
     name="uu.formlibrary.icons"
     directory="resources/icons"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+
+  <browser:resource
+    name="formlibrary.css"
+    file="resources/formlibrary.css"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 

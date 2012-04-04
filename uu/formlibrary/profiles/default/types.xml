@@ -5,4 +5,5 @@
   <object name="uu.formlibrary.setspecifier" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.multiform" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.simpleform" meta_type="Dexterity FTI" />
+  <object name="uu.formlibrary.series" meta_type="Dexterity FTI" />
 </object>

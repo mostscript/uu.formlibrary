@@ -916,17 +916,23 @@ class IPopulateForms(form.Schema):
         required=True,
         )
     
-    title_prefix = schema.TextLine(
-        title=_(u'Title prefix'),
+    title_prefixes = schema.List(
+        title=_(u'Title prefixes'),
         description=_(u'Optional text to be placed at front of title; if '\
-                      u'present title components are separated by hyphen.'),
+                      u'present title components are separated by hyphen. '\
+                      u'One prefix per-line may be used.'),
+        value_type=schema.TextLine(),
         required=False,
+        defaultFactory=list,
         )
     
-    title_suffix = schema.TextLine(
-        title=_(u'Title suffix'),
+    title_suffixes = schema.List(
+        title=_(u'Title suffixes'),
         description=_(u'Optional text to be placed at end of title; if '\
-                      u'present title components are separated by hyphen.'),
+                      u'present title components are separated by hyphen. '\
+                      u'One suffix per-line may be used.'),
+        value_type=schema.TextLine(),
         required=False,
+        defaultFactory=list,
         )
 

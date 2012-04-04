@@ -935,4 +935,11 @@ class IPopulateForms(form.Schema):
         required=False,
         defaultFactory=list,
         )
+    
+    custom_range = schema.Bool(
+        title=_(u'Use custom ranges?'),
+        description=_(u'Use custom start/end dates and frequency, instead '\
+                      u'of relying upon metadata on this form series?'),
+        default=False,
+        )
 

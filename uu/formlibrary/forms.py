@@ -90,7 +90,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     ignoreContext = True    # form operates without edit context.
     
     autoGroups = True       # autoGroups requires modification to plone.autoform
-                            # to support anonymouse schema without __name__
+                            # to support anonymous schema without __name__
                             # See commit on GitHub: http://goo.gl/3W233
     
     enable_form_tabbing = False; # do not display fieldsets in tabs.

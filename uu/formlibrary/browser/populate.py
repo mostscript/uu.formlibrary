@@ -76,22 +76,6 @@ class PopulateForms(AutoExtensibleForm, form.Form):
             msg += u' (%s)' % reason
         self._status.addStatusMessage(msg, type='info')
 
-<<<<<<< TREE
-    @button.buttonAndHandler(u'Create forms using these rules')
-    def handleApply(self, action):
-        data, errors = self.extractData()
-        if errors:
-            import pdb; pdb.set_trace()
-            self._status.addStatusMessage(
-                u'There were errors populating forms.',
-                type='error',
-                )
-            return
-        created_count = 0
-        typename = str(data['form_type'])
-        typelabel = FORM_TYPE_NAMES.get(typename, unicode(typename))
-        start, end, freq, weekdays = series_range(self.context, data)
-=======
     @button.buttonAndHandler(u'Create forms using these rules')
     def handleApply(self, action):
         data, errors = self.extractData()
@@ -105,7 +89,6 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         typename = str(data['form_type'])
         typelabel = FORM_TYPE_NAMES.get(typename, unicode(typename))
         start, end, freq, weekdays = series_range(self.context, data)
->>>>>>> MERGE-SOURCE
         if start is None:
             return self._nothing_to_do(u'No start date specified.')
         if freq == 'Weekly':

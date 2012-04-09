@@ -24,7 +24,7 @@
           tal:attributes="src view/logourl" />
       <br tal:condition="view/logourl" />
       <!-- metadata for form+series -->
-      <h2 tal:content="view/title">Monthly Chart Audit Form</h2>
+      <h2 tal:content="view/title">Periodic Form</h2>
       <h4 class="subhead" tal:condition="python:'subhead' in series">
         <em tal:content="series/subhead">Subheading, if any</em>
       </h4>

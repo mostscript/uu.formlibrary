@@ -1,3 +1,4 @@
+from datetime import date
 from itertools import product
 
 from plone.autoform.form import AutoExtensibleForm
@@ -24,10 +25,25 @@ def series_range(context, formdata):
     """
     Returns series start, end, frequency label
     """
-    # TODO: support range overrides from formdata (IPeriodicSeries) if 
-    # override is specified.
+    prefix = 'IPeriodicSeries'
+    _p = lambda v: '.'.join((prefix, v))
+    P_START, P_END, P_WEEKDAYS, P_FREQ = [
+        _p(v) for v in ('start', 'end', 'active_weekdays', 'frequency')
+        ]
     end = context.end or date(date.today().year,12,31) #default:EOY
-    return context.start, end, context.frequency, context.active_weekdays
+    start = context.start
+    freq = context.frequency
+    weekdays = context.active_weekdays
+    if formdata:
+        if isinstance(formdata.get(P_START, None), date):
+            start = formdata.get(P_START)
+        if isinstance(formdata.get(P_END, None), date):
+            end = formdata.get(P_END)
+        if isinstance(formdata.get(P_WEEKDAYS, None), list):
+            weekdata = formdata.get(P_WEEKDAYS)
+        if isinstance(formdata.get(P_FREQ, None), str):
+            freq = formdata.get(P_FREQ)
+    return start, end, freq, weekdays
 
 
 def title_variants(info, prefixes, suffixes):
@@ -80,6 +96,7 @@ class PopulateForms(AutoExtensibleForm, form.Form):
     
     def update(self, *args, **kwargs):
         super(PopulateForms, self).update()
+        ## fieldset label fixup for periodic series group:
         periodic_group = [g for g in self.groups
                             if g.label == u'IPeriodicSeries']
         if periodic_group:
@@ -88,17 +105,25 @@ class PopulateForms(AutoExtensibleForm, form.Form):
 
     @button.buttonAndHandler(u'Create forms using these rules')
     def handleApply(self, action):
+        periodic_data = None
         data, errors = self.extractData()
         if errors:
             self._status.addStatusMessage(
-                u'There were errors populating forms.',
+                u'There were errors populating forms '\
+                u'or in interpreting your request '\
+                u'(see below for details).',
                 type='error',
                 )
+            self.status = self.formErrorsMessage
             return
         created_count = 0
         typename = str(data['form_type'])
         typelabel = FORM_TYPE_NAMES.get(typename, unicode(typename))
-        start, end, freq, weekdays = series_range(self.context, data)
+        if data.get('custom_range', False):
+            periodic_group = [g for g in self.groups
+                                if g.label == u'IPeriodicSeries'][0]
+            periodic_data = periodic_group.extractData()[0]
+        start, end, freq, weekdays = series_range(self.context, periodic_data)
         if start is None:
             return self._nothing_to_do(u'No start date specified.')
         if freq == 'Weekly':
@@ -125,6 +150,15 @@ class PopulateForms(AutoExtensibleForm, form.Form):
                 )
             for id, title in variants:
                 ## every title/id permutation for each date slice
+                if id in self.context.objectIds():
+                    self._status.addStatusMessage(
+                        u'Skipped already created form %s ("%s")' % (
+                            id,
+                            title,
+                            ), 
+                        type='warning',
+                        )
+                    continue
                 form = construct(self.context, typename, id)
                 form.title = title
                 form.start = info['start']

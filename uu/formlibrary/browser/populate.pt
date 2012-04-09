@@ -10,9 +10,12 @@
 jQuery(document).ready(function() {
   jQuery('#fieldsetlegend-default').hide();
   var override_panel = jQuery('#formfield-form-widgets-IPeriodicSeries-frequency').parent();
-  override_panel.hide();
+  var override_checkbox = jQuery('#form-widgets-custom_range-0');
+  if (!override_checkbox.is(':checked')) {
+    override_panel.hide();
+  }
   jQuery('legend', override_panel).addClass('override-panel');
-  jQuery('#form-widgets-custom_range-0').change(function(ev) {
+  override_checkbox.change(function(ev) {
     override_panel.slideToggle();
   });
 });

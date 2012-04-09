@@ -2,8 +2,10 @@ from itertools import product
 
 from plone.autoform.form import AutoExtensibleForm
 from plone.i18n.normalizer.interfaces import IURLNormalizer
+from plone.z3cform.layout import FormWrapper
 from z3c.form import button, form
 from zope.component import queryUtility
+from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.statusmessages.interfaces import IStatusMessage
 
 from uu.formlibrary.interfaces import IPopulateForms, IPeriodicSeries
@@ -75,6 +77,14 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         if reason is not None:
             msg += u' (%s)' % reason
         self._status.addStatusMessage(msg, type='info')
+    
+    def update(self, *args, **kwargs):
+        super(PopulateForms, self).update()
+        periodic_group = [g for g in self.groups
+                            if g.label == u'IPeriodicSeries']
+        if periodic_group:
+            periodic_group[0].label = u'Custom frequency/duration range'
+            periodic_group[0].description = u''
 
     @button.buttonAndHandler(u'Create forms using these rules')
     def handleApply(self, action):
@@ -130,4 +140,14 @@ class PopulateForms(AutoExtensibleForm, form.Form):
                 ),
             type='info',
             )
+
+
+class PopulateFormsView(FormWrapper):
+    """A wrapper view for PopulateForms"""
+    
+    form = PopulateForms 
+    index = ViewPageTemplateFile('populate.pt')
+     
+    def __init__(self, context, request):
+        FormWrapper.__init__(self, context, request)
 

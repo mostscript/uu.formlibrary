@@ -1,0 +1,54 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+    <metal:block fill-slot="javascript_head_slot">
+<script type="text/javascript">
+jQuery(document).ready(function() {
+  jQuery('#fieldsetlegend-default').hide();
+  var override_panel = jQuery('#formfield-form-widgets-IPeriodicSeries-frequency').parent();
+  override_panel.hide();
+  jQuery('legend', override_panel).addClass('override-panel');
+  jQuery('#form-widgets-custom_range-0').change(function(ev) {
+    override_panel.slideToggle();
+  });
+});
+</script>
+    </metal:block>
+    <metal:block fill-slot="style_slot">
+<style>
+legend.override-panel {
+  font-size:240%;
+  font-weight:bold;
+  background-color:#ccc;
+  display:block;
+  width:100%;
+}
+#fieldset-default div.field {
+  float:left;
+  clear:none;
+  margin-right:1em;
+  width:45%;
+}
+#formfield-form-widgets-custom_range {
+  clear:both !Important;
+  width:100% !Important;
+  color:#bbb;
+}
+#formfield-form-widgets-custom_range div.formHelp {
+  color:#ccc;
+}
+</style>
+    </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="main">
+    <h2>Populate forms for this series</h2>
+    <p class="help">Use this form to specify the characteristics of forms you wish to create; submitting this form will create forms for you.</p>
+    <span tal:replace="structure view/contents" />
+ </div>
+</body>
+</html>

@@ -50,7 +50,7 @@
   <browser:page
     name="populate_series"
     for="uu.formlibrary.interfaces.IFormSeries"
-    class=".populate.PopulateForms"
+    class=".populate.PopulateFormsView"
     permission="cmf.AddPortalContent"
     />
 

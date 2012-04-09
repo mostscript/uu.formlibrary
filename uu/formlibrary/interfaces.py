@@ -666,8 +666,8 @@ class IPeriodicFormInstance(form.Schema, IAttributeUUID):
     
     title = schema.TextLine(
         title=_(u'Title'),
-        description=_(u'Title for audit form instance; usually name of '\
-                      u'a calendar period.'),
+        description=_(u'Title for form instance; usually contains the '\
+                      u'name of a calendar period.'),
         required=True,
         )   
     

@@ -48,6 +48,13 @@
     />
 
   <browser:page
+    name="populate_series"
+    for="uu.formlibrary.interfaces.IFormSeries"
+    class=".populate.PopulateForms"
+    permission="cmf.AddPortalContent"
+    />
+
+  <browser:page
     name="series_summary"
     for="uu.formlibrary.interfaces.IFormSeries"
     class=".listseries.FormSeriesListing"

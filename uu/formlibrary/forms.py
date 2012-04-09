@@ -373,7 +373,7 @@ class MultiForm(Item, RecordContainer):
     >>> assert multi_form.values() == ()
     >>> assert multi_form.items() == () #of course, these are empty now.
 
-    Before we add chart/row/record items, we need to create them; there are
+    Before we add row/record items, we need to create them; there are
     two possible ways to do this:
 
     >>> from uu.formlibrary.record import FormEntry
@@ -846,9 +846,6 @@ class MultiForm(Item, RecordContainer):
  
 
     """
-    
-    # TODO: update docstring with tests copied from uu.qiforms.content.ChartAudit
-    # with modifications...
    
     portal_type = MULTI_FORM_TYPE
 

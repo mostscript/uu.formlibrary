@@ -231,6 +231,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             'form_css',
             'entry_schema',
             'sync_states',
+            'multiform_display_mode',
             ]
         )
      
@@ -256,7 +257,17 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             vocabulary='plone.app.vocabularies.WorkflowStates'),
         defaultFactory=lambda: list(('visible',)),
         )
-     
+    
+    multiform_display_mode = schema.Choice(
+        title=_(u'Multi-record form display mode?'),
+        description=_(u'Display layout for multi-record forms only.'),
+        vocabulary=mkvocab((
+            'Columns',
+            'Stacked',
+            )), 
+        default='Stacked',
+        )
+    
     instructions = RichText(
         title=_(u'Instructions'),
         description=_(u'Instructions for data entry'),
@@ -872,16 +883,6 @@ class IFormSeries(form.Schema, IPeriodicSeries):
         description=_(u'Additional CSS stylesheet rules for forms contained '\
                       u'within this series (optional).'),
         required=False,
-        )
-    
-    multiform_display_mode = schema.Choice(
-        title=_(u'Multi-record form display mode?'),
-        description=_(u'Display layout for multi-record forms only.'),
-        vocabulary=mkvocab((
-            'Columns',
-            'Stacked',
-            )), 
-        default='Stacked',
         )
     
     dexterity.read_permission(notes='cmf.ReviewPortalContent')

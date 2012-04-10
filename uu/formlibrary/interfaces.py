@@ -892,7 +892,12 @@ class IFormSeries(form.Schema, IPeriodicSeries):
         description=_(u'Administrative, review notes about series.'),
         required=False,
         )
-     
+    
+    form.order_after(frequency='description')
+    form.order_after(start='frequency')
+    form.order_after(end='start')
+    form.order_after(active_weekdays='start')
+    
     @invariant
     def validate_start_end(obj):
         if not (obj.start is None or obj.end is None) and obj.start > obj.end:

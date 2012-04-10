@@ -1,0 +1,55 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      i18n:domain="uu.qiforms">
+<head>
+ <title>New row</title>
+</head>
+<body>
+
+<tal:globals define="series view/seriesinfo;
+                     fields view/fields;">
+
+<ol class="formrows" tal:condition="python: 'stacked' not in request.form">
+  <li tal:define="rowform view/rowform">
+    <form class="formrow" id="" tal:attributes="id view/last_row_uid">
+      <div class="rowcontrol">
+        <a href="javascript:void(0)" class="rowdelete">&thinsp;&#x2718;</a>
+        <a href="javascript:void(0)" class="rowup" title="Up">&thinsp;&#9650;</a>
+        <a href="javascript:void(0)" class="rowdown" title="Down">&thinsp;&#9660;</a>
+      </div>
+      <table class="singlerowform">
+        <tr class="headings">
+        <tal:block repeat="field fields">
+         <th class="c0" tal:attributes="class python:view.classname(field)">
+           <div class="field_title" tal:content="field/title">Title</div>
+           <div class="field_desc" tal:content="field/description">Description</div>
+         </th>
+        </tal:block>
+        </tr>
+        <tr tal:replace="structure rowform">
+           ROWFORM
+        </tr>
+      </table>
+    </form>
+  </li>
+</ol>
+<ol class="formrows" tal:condition="python: 'stacked' in request.form">
+  <li tal:define="rowform view/rowform">
+    <form class="formrow" id="" tal:attributes="id view/last_row_uid">
+      <div class="rowcontrol">
+        <a href="javascript:void(0)" class="rowdelete">&thinsp;&#x2718;</a>
+        <a href="javascript:void(0)" class="rowup" title="Up">&thinsp;&#9650;</a>        <a href="javascript:void(0)" class="rowdown" title="Down">&thinsp;&#9660;</a>              </div>
+      <div class="singlerowform">
+        <span tal:replace="structure rowform">
+           STACKED BOX FORM FOR RECORD HERE
+        </span>
+      </div>
+    </form>
+  </li> 
+</ol> 
+
+</tal:globals>
+</body>
+</html>
+

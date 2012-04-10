@@ -1,0 +1,10 @@
+<div>
+ <div class="fielddiv" tal:repeat="widget view/widgets/values">
+  <label tal:content="widget/label">FIELD TITLE</label>
+  <p class="description" tal:condition="widget/field/description" tal:content="widget/field/description">FIELD DESCRIPTION</p>
+  <span tal:replace="structure widget/render" />
+  <div style="clear:both;"></div>
+ </div>
+ <div style="clear:both;"></div>
+</div>
+

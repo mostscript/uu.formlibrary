@@ -1,0 +1,6 @@
+<tr>
+ <td tal:repeat="widget view/widgets/values">
+  <span tal:replace="structure widget/render" />
+ </td>
+</tr>
+

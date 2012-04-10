@@ -1,7 +1,7 @@
 <configure
   xmlns="http://namespaces.zope.org/zope"
   xmlns:browser="http://namespaces.zope.org/browser"
-  i18n_domain="uu.qiforms">
+  i18n_domain="uu.formlibrary">
 
   <!-- FormInputView can adapt either ISimpleForm or
        IFormDefinition, so it is defined as a view
@@ -75,12 +75,42 @@
     template="common.pt"
     permission="zope2.View"
     />
+
+  <browser:page
+    name="form_entry"
+    for="uu.formlibrary.interfaces.IMultiForm"
+    class=".multi.MultiFormEntry"
+    template="multi.pt"
+    permission="uu.workflows.EnterData"
+    />
+
+  <browser:page
+    name="new_row"
+    for="uu.formlibrary.interfaces.IMultiForm"
+    class=".multi.MultiFormEntry"
+    template="newrow.pt"
+    permission="uu.workflows.EnterData"
+    />
+ 
+ <browser:page
+    name="form_view"
+    for="..interfaces.IMultiForm"
+    class=".multi.MultiFormDisplay"
+    template="multi.pt"
+    permission="zope2.View"
+    />
  
   <!-- static resources -->
   
   <browser:resourceDirectory
     name="uu.formlibrary.icons"
     directory="resources/icons"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+
+  <browser:resourceDirectory
+    name="uu.formlibrary.js"
+    directory="resources/js"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 

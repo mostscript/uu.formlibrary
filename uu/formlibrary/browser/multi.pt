@@ -1,0 +1,149 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.qiforms">
+<head>
+
+<metal:block fill-slot="javascript_head_slot">
+
+<meta name="VIEWNAME" content="" tal:attributes="content view/VIEWNAME" />
+
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/json2.js"></script>
+
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js"></script>
+
+</metal:block>
+<metal:block fill-slot="style_slot">
+ <link rel="stylesheet" media="all" href="qiforms.css" tal:attributes="href string:${view/portalurl}/qiforms.css" type="text/css" />
+
+<style tal:condition="python:'form_css' in view.seriesinfo" tal:content="view/seriesinfo/form_css">
+<style tal:condition="python:view.definition.form_css.strip()" tal:content="view/definition/form_css" />
+</style>
+
+<tal:comment tal:replace="nothing">
+ <!-- BELOW ARE RESPECTIVE EDIT/DISPLAY STYLES -->
+</tal:comment>
+
+ <style tal:condition="python: view.VIEWNAME == 'edit'">
+  div#portal-column-one { display:none; }
+ </style>
+
+ <style tal:condition="python: view.VIEWNAME == 'view'">
+  ol.formrows { margin-top:0.6em; }
+  ol.formrows li { margin-top:0.1em; list-style-position:inside; }
+  ol.formrows li form table.singlerowform { margin-left:3%; width:96%; margin-top:-2.5em; padding-top:0; } 
+  table.formheadings { margin-left:3.75%; width:95%; margin-top:0.6em; background-color:#ddd; }
+ </style>
+
+ <style tal:condition="python: view.displaymode == 'Stacked'">
+  form.add-control { display:block; clear:both; }
+  div.rowcontrol { width:100% !Important; margin-left:-2px;} 
+  ol.formrows div.singlerowform div.fielddiv { width:31%; float:left; margin-right:0.2em; } 
+  ol.formrows div.singlerowform div.fielddiv label { width:12em; display:block; } 
+  ol.formrows li div.singlerowform { margin-bottom:0.5em; }
+  ol.formrows li form { margin:1.5em 0; border:1px dotted #999; padding-bottom:0.4em; width:100%; font-size:90%; }
+  ol.formrows div.singlerowform div.fielddiv span.option label { display:inline !Important; width:auto; color:#00a; float:none; }
+  div.fielddiv .description { font-size:90%; font-style:italic; color:#999; float:none; display:block; margin-left:2em; }
+ </style>
+
+</metal:block>
+</head>
+
+<body>
+  <div metal:fill-slot="main">
+
+ <tal:globals define="series view/seriesinfo;
+                      fields view/fields;">
+  <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
+
+  <div tal:condition="python: view.VIEWNAME == 'view'" tal:replace="structure provider:plone.belowcontenttitle" />
+
+<tal:block condition="python: view.displaymode!='Stacked' or view.VIEWNAME=='view'">
+    <table class="formheadings">
+     <tr class="headings">
+     <tal:block repeat="field fields">
+      <th class="c0" tal:attributes="class python:view.classname(field)">
+        <div class="field_title" tal:content="field/title">Title</div>
+           <div class="field_desc" tal:condition="field/description"><a><span tal:content="field/description">Description</span></a></div>
+      </th>
+     </tal:block>
+     </tr>
+    </table>
+
+<ol class="formrows">
+<tal:block repeat="uid view/entry_uids">
+  <li tal:define="rowform python:view.rowform(uid)">
+    <form class="formrow" id="" tal:attributes="id view/last_row_uid">
+      <div tal:condition="python: view.VIEWNAME=='edit'" class="rowcontrol">
+        <a href="javascript:void(0)" class="rowdelete">&thinsp;&#x2718;</a>
+        <a href="javascript:void(0)" class="rowup" title="Up">&thinsp;&#9650;</a>
+        <a href="javascript:void(0)" class="rowdown" title="Down">&thinsp;&#9660;</a>
+      </div>
+      <table class="singlerowform">
+        <tr class="headings">
+        <tal:block repeat="field fields">
+         <th class="c0" tal:attributes="class python:view.classname(field)">
+           <div class="field_title" tal:content="field/title">Title</div>
+           <div class="field_desc" tal:condition="field/description"><a><span tal:content="field/description">Description</span></a></div>
+         </th>
+        </tal:block>
+        </tr>
+        <tr tal:replace="structure rowform">
+           ROWFORM
+        </tr>
+      </table>
+    </form>
+  </li>
+</tal:block>
+</ol>
+</tal:block>
+<ol class="formrows" tal:condition="python: view.displaymode=='Stacked' and view.VIEWNAME=='edit'">
+<tal:block repeat="uid view/entry_uids">
+  <li tal:define="rowform python:view.rowform(uid)">
+    <form class="formrow" id="" tal:attributes="id view/last_row_uid">
+      <div tal:condition="python: view.VIEWNAME=='edit'" class="rowcontrol">
+        <a href="javascript:void(0)" class="rowdelete">&thinsp;&#x2718;</a>
+        <a href="javascript:void(0)" class="rowup" title="Up">&thinsp;&#9650;</a>
+        <a href="javascript:void(0)" class="rowdown" title="Down">&thinsp;&#9660;</a>
+      </div>
+      <div class="singlerowform">
+        <span tal:replace="structure rowform">
+           STACKED BOX FORM FOR RECORD HERE.
+        </span>
+      </div>
+      <div style="clear:both;"></div>
+    </form>
+  </li>
+</tal:block>
+</ol>
+<form tal:condition="python: view.VIEWNAME=='edit'" class="add-control" name="add-control">
+  <input tal:condition="python: view.displaymode=='Stacked'" id="new_row_url" type="hidden" value="" tal:attributes="value string:${view/new_row_url}?stacked=1" />
+  <input tal:condition="python: view.displaymode!='Stacked'" id="new_row_url" type="hidden" value="" tal:attributes="value view/new_row_url" />
+  <input class="numrows" style="width:2em;" value="1"><input id="btn-addrow" name="addrow" type="button" value="&#x271a; Add row(s)" />
+</form>
+
+  <div class="form-notes">
+    <h4>Process changes or notes</h4>
+    <textarea tal:condition="python: view.VIEWNAME=='edit'" class="entry_notes"
+              name="entry_notes"><tal:block condition="python: not context.entry_notes">Enter any notes pertaining to this period.</tal:block><tal:block condition="context/entry_notes" tal:content="context/entry_notes"></tal:block></textarea>
+    <div tal:condition="python: view.VIEWNAME=='view'" tal:content="python:context.entry_notes or ''">
+    </div>
+  </div>
+
+ <div metal:use-macro="context/@@formcommon/macros/formseries_footer"></div>
+
+<form tal:condition="python: view.VIEWNAME=='edit'" id="coredata" method="POST">
+  <input type="hidden" name="payload" id="payload" value="" />
+  <input id="btn-saveform" name="saveform" type="button" value="&#x2714; Save form" />
+</form>
+
+  </tal:globals>
+  </div>
+</body>
+</html>

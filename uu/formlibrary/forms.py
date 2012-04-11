@@ -1005,6 +1005,4 @@ class MultiForm(Item, RecordContainer):
                 self.entry_notes = notes
                 return True
         return False 
-        
-    # TODO: update handlers
 

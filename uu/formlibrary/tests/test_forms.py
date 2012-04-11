@@ -215,6 +215,4 @@ class ComposedFormTest(unittest.TestCase):
                 fullname = '.'.join((composed.getPrefix(schema), name))
                 assert fullname in formgroup.fields # prefixed name in keys
                 assert field in [f.field for f in formgroup.fields.values()]
-        
-        #import pdb; pdb.set_trace() #exploratory TODO TODO TODO REMOVE TODO
 

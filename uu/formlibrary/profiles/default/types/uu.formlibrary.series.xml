@@ -60,4 +60,15 @@
           url_expr="string:${object_url}/@@populate_series" visible="True">
     <permission value="Add portal content"/>
   </action>
+  <action
+    title="Download archive"
+    action_id="download_csv"
+    category="object_buttons"
+    condition_expr="python:len(context.contentIds())&gt;0"
+    icon_expr=""
+    link_target=""
+    url_expr="string:${object_url}/@@export"
+    visible="True">
+    <permission value="View"/>
+  </action>
 </object>

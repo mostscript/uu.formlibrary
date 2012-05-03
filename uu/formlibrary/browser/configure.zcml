@@ -99,6 +99,20 @@
     template="multi.pt"
     permission="zope2.View"
     />
+
+  <browser:page
+    name="multicsv"
+    for="..interfaces.IMultiForm"
+    class=".csv.MultiFormCSVDownload"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="export"
+    for="..interfaces.IFormSeries"
+    class=".csv.SeriesCSVArchiveView"
+    permission="zope2.View"
+    />
  
   <!-- static resources -->
   

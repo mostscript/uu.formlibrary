@@ -56,4 +56,10 @@
           visible="True">
     <permission value="Enter Data"/>
   </action>
+  <action title="Download CSV" action_id="download_csv"
+    category="object_buttons" condition_expr="python:len(context.keys())&gt;0"
+    icon_expr="" link_target="" url_expr="string:${object_url}/@@multicsv"
+    visible="True">
+    <permission value="View"/>
+  </action>
 </object>

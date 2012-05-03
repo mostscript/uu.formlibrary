@@ -726,7 +726,9 @@ class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
     form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Bound form definition',
-        description=u'Choose a form definition, schema bound to this form.',
+        description=u'Select a form definition to bind to this form. '\
+                    u'The definition that you choose will control the '\
+                    u'available fields and behavior of this form instance.',
         source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         )
 
@@ -948,4 +950,37 @@ class IPopulateForms(form.Schema):
                       u'of relying upon metadata on this form series?'),
         default=False,
         )
+
+
+class ICSVColumn(Interface):
+    """ 
+    Abstraction for a CSV column specification used for a set of records.
+    """
+    
+    name = schema.BytesLine(
+        title=u'Field column name',
+        description=u'Column name, based on field name',
+        required=True,
+        )   
+    
+    title = schema.TextLine(
+        title=u'Title',
+        description=u'Column / field title',
+        default=u'',
+        required=False,
+        )   
+    
+    field = schema.Object(
+        title=u'Field object',
+        description=u'Field object from interface',
+        schema=Interface,
+        )   
+    
+    def get(record):
+        """Return column value as string for a record or an empty string."""
+
+
+class IMultiFormCSV(Interface):
+    """Adapter interface to get CSV from a multiple-form context"""
+
 

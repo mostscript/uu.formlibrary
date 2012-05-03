@@ -41,6 +41,10 @@
     provides=".interfaces.IFormDefinition"
     for=".interfaces.IBaseForm"
     />
+
+  <adapter
+    factory=".importexport.csv_export"
+    />
   
   <!-- event subscribers -->
 

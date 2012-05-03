@@ -919,7 +919,8 @@ class IPopulateForms(form.Schema):
     form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Choose form definition',
-        description=u'Choose a form definition, schema bound to this form.',
+        description=u'Select a form definition to bind to these created '\
+                    u'forms.',
         source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         required=True,
         )

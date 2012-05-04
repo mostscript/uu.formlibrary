@@ -126,7 +126,10 @@ class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
     
     title = schema.TextLine(
         title=u'Title',
-        description=u'Name of form definition; used to create an identifier.',
+        description=u'Name of definition; this is used as a label displayed '\
+                    u'when binding forms to this definition, and also is '\
+                    u'used to help create a unique short name for the '\
+                    u'definition used in its URL.',
         required=True,
         )
     
@@ -322,7 +325,16 @@ class IFieldGroup(IDefinitionBase):
     
     form.omitted('id') # generated from title, not edited generally
     id = schema.BytesLine()
-    
+     
+    title = schema.TextLine(
+        title=u'Title',
+        description=u'Name of field group; used as a label displayed '\
+                    u'in group headings in form display/entry, and also is '\
+                    u'used to help create a unique short name for the '\
+                    u'group used in its URL.',
+        required=True,
+        )
+     
     group_usage = schema.Choice(
         title=u'Field group usage',
         description=u'What type of use is expected for this field group?',

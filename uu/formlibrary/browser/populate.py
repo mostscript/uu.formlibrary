@@ -64,11 +64,11 @@ def title_variants(info, prefixes, suffixes):
     elif prefixes:
         for prefix in prefixes:
             title = u'%s - %s' % (prefix, info['title'])
-            result.append(normalizer.normalize(title), title)
+            result.append((normalizer.normalize(title), title))
     elif suffixes:
         for suffix in suffixes:
             title = u'%s - %s' % (info['title'], suffix)
-            result.append(normalizer.normalize(title), title)
+            result.append((normalizer.normalize(title), title))
     return result
 
 

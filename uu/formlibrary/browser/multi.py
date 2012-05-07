@@ -68,6 +68,10 @@ class RowDisplayForm(form.DisplayForm):
         super(RowDisplayForm, self).__init__(record, request)
 
 
+class DivRowDisplayForm(RowDisplayForm):
+    template = DIV_TEMPLATE
+
+
 class MultiFormEntry(object):
 
     VIEWNAME = 'edit'
@@ -166,13 +170,14 @@ class MultiFormEntry(object):
         else:
             record = self.context.get(uid)
         self._last_uid = record.record_uid
-        if self.VIEWNAME == 'edit':
-            if self.displaymode == 'Stacked':
-                form = DivRowForm(record, record.schema, self.request)
-            else:
-                form = RowForm(record, record.schema, self.request)
-        else:
-            form = RowDisplayForm(record, record.schema, self.request)
+        row_views = {
+            ('edit', 'Stacked'): DivRowForm,
+            ('view', 'Stacked'): DivRowDisplayForm,
+            ('edit', 'Columns'): DivRowForm,
+            ('view', 'Columns'): DivRowDisplayForm,
+        }
+        row_view_cls = row_views[(self.VIEWNAME, self.displaymode)]
+        form = row_view_cls(record, record.schema, self.request)
         form.update()
         return form.render()
     
@@ -187,6 +192,8 @@ class MultiFormEntry(object):
     
     @property
     def displaymode(self):
+        if self.VIEWNAME == 'edit':
+            return self.definition.multiform_entry_mode
         return self.definition.multiform_display_mode
 
 

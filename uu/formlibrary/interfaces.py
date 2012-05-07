@@ -235,6 +235,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             'entry_schema',
             'sync_states',
             'multiform_display_mode',
+            'multiform_entry_mode',
             ]
         )
      
@@ -263,7 +264,19 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
     
     multiform_display_mode = schema.Choice(
         title=_(u'Multi-record form display mode?'),
-        description=_(u'Display layout for multi-record forms only.'),
+        description=_(u'Read-only display layout, applies only to '\
+                      u'multi-record forms.'),
+        vocabulary=mkvocab((
+            'Columns',
+            'Stacked',
+            )), 
+        default='Stacked',
+        )
+    
+    multiform_entry_mode = schema.Choice(
+        title=_(u'Multi-record form entry mode?'),
+        description=_(u'Form entry display layout, applies only to '\
+                      u'multi-record forms.'),
         vocabulary=mkvocab((
             'Columns',
             'Stacked',

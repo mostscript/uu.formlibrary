@@ -60,7 +60,7 @@ def title_variants(info, prefixes, suffixes):
             result.append((id, title))
     elif not prefixes and not suffixes:
         title = info['title']
-        result.append(normalizer.normalize(title), title)
+        result.append((normalizer.normalize(title), title))
     elif prefixes:
         for prefix in prefixes:
             title = u'%s - %s' % (prefix, info['title'])

@@ -51,7 +51,7 @@ def title_variants(info, prefixes, suffixes):
     result = []
     _clean = lambda s: filter(lambda v: bool(v), map(strip, s))
     prefixes = _clean(prefixes) if prefixes else []
-    sufixes = _clean(suffixes) if prefixes else []
+    suffixes = _clean(suffixes) if suffixes else []
     normalizer = queryUtility(IURLNormalizer)
     if prefixes and suffixes:
         for prefix, suffix in product(prefixes, suffixes):

@@ -49,9 +49,9 @@ def series_range(context, formdata):
 def title_variants(info, prefixes, suffixes):
     """For one range info object, return id, title variants/permutations"""
     result = []
-    _clean = lambda s: filter(lambda v: bool(v), map(strip, s)) if s else []
-    prefixes = _clean(prefixes)
-    sufixes = _clean(suffixes)
+    _clean = lambda s: filter(lambda v: bool(v), map(strip, s))
+    prefixes = _clean(prefixes) if prefixes else []
+    sufixes = _clean(suffixes) if prefixes else []
     normalizer = queryUtility(IURLNormalizer)
     if prefixes and suffixes:
         for prefix, suffix in product(prefixes, suffixes):

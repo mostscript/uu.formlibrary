@@ -64,7 +64,7 @@
 
   <div tal:condition="python: view.VIEWNAME == 'view'" tal:replace="structure provider:plone.belowcontenttitle" />
 
-<tal:block condition="python: view.displaymode!='Stacked' or view.VIEWNAME=='view'">
+<tal:block condition="python: view.displaymode!='Stacked'">
     <table class="formheadings">
      <tr class="headings">
      <tal:block repeat="field fields">

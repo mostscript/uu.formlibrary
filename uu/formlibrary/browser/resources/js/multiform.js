@@ -223,8 +223,8 @@ uu.formlibrary.multiform.handle_new_row = function() {
         jq.ajax({
             url: uu.formlibrary.multiform.new_row_url(),
             success: function(responseText) { /*callback*/
-                var div = jq('<div />').append(responseText).find('ol.formrows li');
-                jq('ol.formrows').append(div)
+                var row = jq('<div />').append(responseText).find('ol.formrows li');
+                jq('ol.formrows').append(row);
                 uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
                 uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
                 }

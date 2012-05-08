@@ -173,8 +173,8 @@ class MultiFormEntry(object):
         row_views = {
             ('edit', 'Stacked'): DivRowForm,
             ('view', 'Stacked'): DivRowDisplayForm,
-            ('edit', 'Columns'): DivRowForm,
-            ('view', 'Columns'): DivRowDisplayForm,
+            ('edit', 'Columns'): RowForm,
+            ('view', 'Columns'): RowDisplayForm,
         }
         row_view_cls = row_views[(self.VIEWNAME, self.displaymode)]
         form = row_view_cls(record, record.schema, self.request)

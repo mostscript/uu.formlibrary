@@ -234,15 +234,18 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             'form_css',
             'entry_schema',
             'sync_states',
-            'multiform_display_mode',
-            'multiform_entry_mode',
             ]
         )
      
     form.fieldset(
         'Display',
         label=u"Form display metadata",
-        fields=['instructions', 'logo']
+        fields=[
+            'multiform_display_mode',
+            'multiform_entry_mode',
+            'instructions',
+            'logo',
+            ]
         )
     
     form.widget(form_css=TextAreaFieldWidget)

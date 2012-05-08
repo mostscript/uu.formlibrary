@@ -103,7 +103,7 @@
 </tal:block>
 </ol>
 </tal:block>
-<ol class="formrows" tal:condition="python: view.displaymode=='Stacked' and view.VIEWNAME=='edit'">
+<ol class="formrows" tal:condition="python: view.displaymode=='Stacked'">
 <tal:block repeat="uid view/entry_uids">
   <li tal:define="rowform python:view.rowform(uid)">
     <form class="formrow" id="" tal:attributes="id view/last_row_uid">

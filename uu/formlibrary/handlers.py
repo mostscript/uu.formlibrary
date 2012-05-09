@@ -1,4 +1,5 @@
 from plone.supermodel import serializeSchema
+from zope.annotation.interfaces import IAnnotations
 from zope.component import queryUtility
 from zope.globalrequest import getRequest
 from Acquisition import aq_base
@@ -19,6 +20,24 @@ from uu.formlibrary.utils import grid_wrapper_schema
 from uu.workflows.utils import history_log
 
 
+def _ignorepaths(request):
+    """
+    return mutable list of base paths to ignore for delete integrity
+    """
+    key = 'uu.formlibrary.handlers.ignorepaths'
+    anno = IAnnotations(request)
+    if key not in anno:
+        anno[key] = []
+    return anno.get(key)
+    
+
+def before_site_delete(context, event):
+    request = getRequest()
+    if request is None:
+        return
+    _ignorepaths(request).append(tuple(context.getPhysicalPath()))
+
+
 def copyroles(source, dest):
     """ 
     recursive copy of local roles for a copied content item or tree thereof.
@@ -35,6 +54,11 @@ def copyroles(source, dest):
 def definition_delete_integrity(context, event):
     request = getRequest()
     if request is not None:
+        path = context.getPhysicalPath()
+        for base in _ignorepaths(request):
+            if tuple(path[:len(base)]) == base:
+                # allow deletion of Plone site marked by before_site_delete() 
+                return
         formset = IFormSet(context)
         if len(formset) > 0:
             msg = 'Item in use, cannot be removed while form instances '\

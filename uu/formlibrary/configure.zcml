@@ -71,7 +71,15 @@
          zope.lifecycleevent.interfaces.IObjectRemovedEvent"
     handler=".handlers.definition_delete_integrity"
     />
-
+  
+  <!-- shim to make definition_delete_integrity not cause issues
+       when deleting a Plone site -->
+  <subscriber
+    for="Products.CMFCore.interfaces._content.ISiteRoot
+         OFS.interfaces.IObjectWillBeMovedEvent"
+    handler=".handlers.before_site_delete"
+    />
+  
   <subscriber
     for="plone.schemaeditor.interfaces.ISchemaContext
          plone.schemaeditor.interfaces.ISchemaModifiedEvent"

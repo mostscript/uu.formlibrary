@@ -36,7 +36,7 @@ class LibraryView(object):
         """
         if self._brains is None:
             q = {'portal_type': self.definition_type}
-            q.update({'sort_on':'modified', 'sort_order': 'decscending'})
+            q.update({'sort_on':'modified', 'sort_order': 'descending'})
             q = local_query(self.context, q)
             r = self.catalog.searchResults(q)
             self._brains = r

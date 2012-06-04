@@ -144,6 +144,12 @@ class MultiFormEntry(object):
         base = self.definition.absolute_url()
         return '%s/@@download/logo/%s' % (base, filename)
     
+    def instructions(self):
+        _instructions = getattr(self.definition, 'instructions')
+        if not _instructions:
+            return u''
+        return getattr(_instructions, 'output', None) or u''
+    
     def portalurl(self):
         return getSite().absolute_url()
     

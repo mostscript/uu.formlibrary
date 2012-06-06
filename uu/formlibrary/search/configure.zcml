@@ -1,0 +1,24 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  i18n_domain="uu.formlibrary">
+  
+  <!-- search API supports definition and multi-form contexts -->  
+  
+  <browser:page
+    name="searchapi"
+    for="uu.formlibrary.interfaces.IFormDefinition"
+    class=".api.SearchAPI"
+    permission="zope2.View"
+    allowed_attributes="filters comparators"
+    />
+  
+  <browser:page
+    name="searchapi"
+    for="uu.formlibrary.interfaces.IMultiForm"
+    class=".api.SearchAPI"
+    permission="zope2.View"
+    allowed_attributes="filters comparators"
+    />
+
+</configure>

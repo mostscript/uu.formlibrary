@@ -1,0 +1,30 @@
+
+form.record-filters {
+    display:block;
+    background-color:#ccc;
+    width:100%;
+}
+
+table.query-filters {
+    width:100%;
+}
+
+table.query-filters th, table.query-filters td {
+    width:30%;
+    color:#889;
+}
+
+table.query-filters th.rowcontrol, table.query-filters td.rowcontrol {
+    width:10%;
+}
+
+a.addfilter, a.runquery, a.savequery {
+    display:block;
+    float:left;
+    max-width:10em;
+    border:1px solid #999;
+    background-color:#eee;
+    padding:0.2em;
+    margin-right:1em;
+    cursor:pointer;
+}

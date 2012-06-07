@@ -3,6 +3,15 @@
   xmlns:browser="http://namespaces.zope.org/browser"
   i18n_domain="uu.formlibrary">
   
+  <browser:page
+    name="form_search"
+    for="uu.formlibrary.interfaces.IMultiForm"
+    class=".formsearch.FormSearchView"
+    template="formsearch.pt"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+  
   <!-- search API supports definition and multi-form contexts -->  
   
   <browser:page
@@ -10,6 +19,7 @@
     for="uu.formlibrary.interfaces.IFormDefinition"
     class=".api.SearchAPI"
     permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     allowed_attributes="filters comparators"
     />
   
@@ -18,7 +28,17 @@
     for="uu.formlibrary.interfaces.IMultiForm"
     class=".api.SearchAPI"
     permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     allowed_attributes="filters comparators"
+    />
+
+
+  <!-- resources -->
+
+  <browser:resourceDirectory
+    name="uu.formlibrary.search"
+    directory="resources"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
 </configure>

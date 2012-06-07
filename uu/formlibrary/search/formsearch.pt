@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.js"></script>
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="main">
+  <h2>Form Search</h2>
+  <hr />
+  <h1>Define your filter</h1>
+  <form class="record-filters" action="">
+    <table class="query-filters">
+      <tr><th>Field</th><th>Comparison</th><th>Value</th><th class="rowcontrol">&nbsp; <!-- row control --></th></tr>
+    </table>
+  </form>
+  <a class="addfilter"><span>Add filter</span></a>
+  <a class="runquery"><span>Run query</span></a>
+  <a class="savequery"><span>Save query</span></a>
+  <div style="clear:both"></div>
+ </div>
+</body>
+</html>

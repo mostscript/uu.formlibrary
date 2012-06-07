@@ -5,6 +5,7 @@ from zope.publisher.interfaces import IPublishTraverse, NotFound
 
 from uu.formlibrary.search.interfaces import ISearchAPI, API_VERSION
 from comparators import Comparators
+from filters import Filters
 
 
 class SearchAPI(object):
@@ -12,7 +13,7 @@ class SearchAPI(object):
     Browser view entry point for API capabilities.
     """
     
-    CAPABILITIES = ['comparators',] # 'filters']
+    CAPABILITIES = ['comparators', 'filters']
     
     implements(IPublishTraverse, ISearchAPI)
 
@@ -21,7 +22,7 @@ class SearchAPI(object):
         self.request = None
         self.version = API_VERSION
         self.comparators = Comparators(request)
-        self.filters = None  # TODO: implement
+        self.filters = Filters(context, request)
         self._capabilities_security_context()
     
     def _capabilities_security_context(self):

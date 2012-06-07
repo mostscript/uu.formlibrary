@@ -41,6 +41,7 @@ setup(name='uu.formlibrary',
           'uu.workflows',
           'uu.record',
           'uu.dynamicschema',
+          'uu.retrieval',
           'uu.smartdate',
           # -*- Extra requirements: -*-
       ],

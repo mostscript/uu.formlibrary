@@ -11,6 +11,7 @@ from interfaces import IComparator, IComparators
 
 _u = lambda v: v if isinstance(v, unicode) else str(v).decode('utf-8')
 
+_is_iter = lambda v: not isinstance(v, basestring) and hasattr(v, '__iter__')
 
 class ComparatorInfo(object):
     implements(IComparator)
@@ -33,38 +34,38 @@ class ComparatorInfo(object):
 
 ALL = ComparatorInfo(u'All', u'contains all of', symbol=u'\u2286')
 ANY = ComparatorInfo(u'Any', u'includes any of', symbol=u'*')
+CONTAINS = ComparatorInfo(u'Contains', u'contains', symbol=u'\u2208')
+DOESNOTCONTAIN = ComparatorInfo(u'DoesNotContain', u'does not contain', symbol=u'\u2209')
 EQ = ComparatorInfo(u'Eq', u'is equal to', symbol=u'=')
 GE = ComparatorInfo(u'Ge', u'is greater than or equal to', symbol=u'\u2264')
 GT = ComparatorInfo(u'Gt', u'is greater than', symbol=u'>')
-IN = ComparatorInfo(u'In', u'contains', symbol=u'\u2208')
 INRANGE = ComparatorInfo(u'InRange', u'is between', symbol=u'(\u2026)')
 LE = ComparatorInfo(u'Le', u'is less than or equal to', symbol=u'\u2265')
 LT = ComparatorInfo(u'Ge', u'is less than', symbol=u'<')
 NOTEQ = ComparatorInfo(u'NotEq', u'is not', symbol=u'\u2260')
-NOTIN = ComparatorInfo(u'NotIn', u'does not contain', symbol=u'\u2209')
 NOTINRANGE = ComparatorInfo(u'NotInRange', u'is not between', symbol=u'\u2209')
 
 COMPARATORS = (
     ALL,
     ANY,
+    CONTAINS,
+    DOESNOTCONTAIN,
     EQ,
     GE,
     GT,
-    IN,
     INRANGE,
     LE,
     LT,
-    NOTIN,
     NOTEQ,
     NOTINRANGE,
     )
 
 
-FIELD_COMPARATORS = (ANY, EQ, GE, GT, INRANGE, LE, LT, NOTEQ, NOTINRANGE)
-
-TEXT_COMPARATORS = (IN, NOTIN)
-
-KEYWORD_COMPARATORS = (ANY, ALL, NOTIN)
+COMPARATORS_BY_INDEX = {
+    'field'     : (ANY, EQ, GE, GT, INRANGE, LE, LT, NOTEQ, NOTINRANGE),
+    'text'      : (CONTAINS, DOESNOTCONTAIN),
+    'keyword'   : (ANY, ALL, DOESNOTCONTAIN),
+    }
 
 
 class ComparatorRepresentation(object):
@@ -132,24 +133,42 @@ class Comparators(object):
     def __contains__(self, name):
         return _u(name) in self._map
     
-    def __call__(self, symbols=False):
-        """Return list of (name, label) tuples"""
+    def __call__(self, symbols=False, byindex=None):
+        """
+        Return list of (name, label) tuples, optionally filtered
+        by index type (1..* names as sequence or delimited string).
+        """
         keys = sorted(self.keys())
         _label = lambda name: self.get(name).label
         if symbols:
             _label = lambda name: self.get(name).display_label()
+        if byindex is not None:
+            if not _is_iter(byindex):
+                byindex = str(byindex).split()  # 1..* delimited by spaces
+            _keys = set()
+            for idxtype in byindex:
+                if idxtype in COMPARATORS_BY_INDEX:
+                    comparators = COMPARATORS_BY_INDEX[idxtype]
+                    _keys = _keys.union(c.name for c in comparators)
+            if _keys:
+                keys = [k for k in keys if k in _keys]  # orig order was sorted
         return [(k, _label(k)) for k in keys]
 
-    def publish_json(self, symbols=False):
+    def publish_json(self, symbols=False, byindex=None):
         if self.request is not None:
-            if 'symbols' in self.request.form:
+            form = self.request.form
+            if 'symbols' in form:
                 symbols = True
-        v = json.dumps(self(symbols=symbols), indent=2)
+            if 'byindex' in form:
+                _byindex = str(form.get('byindex'))
+                if _byindex and _byindex in COMPARATORS_BY_INDEX:
+                    byindex = _byindex
+        v = json.dumps(self(symbols=symbols, byindex=byindex), indent=2)
         if self.request is not None:
             self.request.response.setHeader('Content-type', 'application/json')
             self.request.response.setHeader('Content-length', str(len(v)))
         return v
-
+    
     ## IBrowserPublisher / IPublishTraverse methods:
     
     def publishTraverse(self, request, name):

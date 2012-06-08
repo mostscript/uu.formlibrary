@@ -28,11 +28,26 @@ class FieldInfo(object):
         self.title = field.title
         self.description = field.description or None
         self.fieldtype = field.__class__.__name__
+        self.value_type = getattr(field, 'value_type', None)
+        if self.value_type is not None:
+            self.value_type = self.value_type.__class__.__name__
+        if self.fieldtype == 'Choice':
+            self.vocabulary = [t.value for t in field.vocabulary]
+        if self.value_type == 'Choice':
+            self.vocabulary = [t.value for t in field.value_type.vocabulary]
         self.index_types = schema_index_types(field)
     
     def __call__(self):
         """Return a dict representation for use in API"""
-        keep = ('name', 'title', 'description', 'fieldtype', 'index_types')
+        keep = (
+            'name',
+            'title',
+            'description',
+            'fieldtype',
+            'value_type',
+            'index_types',
+            'vocabulary',
+            )
         items = self.__dict__.items()
         return dict([(k,v) for k,v in items if v is not None and k in keep])
     

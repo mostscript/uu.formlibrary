@@ -16,6 +16,7 @@ table.query-filters th, table.query-filters td {
 
 table.query-filters th.rowcontrol, table.query-filters td.rowcontrol {
     width:10%;
+    text-align:right;
 }
 
 a.addfilter, a.runquery, a.savequery {

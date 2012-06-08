@@ -6,8 +6,12 @@ if (!uu.formlibrary.searchform) uu.formlibrary.searchform = new Object();
 
 uu.formlibrary.searchform.add_row = function() {
     var table = jq('table.query-filters');
-    table.append('<tr><td class="fieldspec"></td><td class="compare"></td><td class="value"></td><td class="rowcontrol"></td></tr>');
-    return jq('tr:last', table);  // returns newly appended row
+    table.append('<tr><td class="fieldspec"></td><td class="compare"></td><td class="value"></td><td class="rowcontrol"><a class="removerow" title="Remove filter row"><img src="./delete_icon.png" alt="delete"/></a></td></tr>');
+    var row = jq('tr:last', table);
+    jq('a.removerow', row).click(function(e) {
+        jq(this).parents('table.query-filters tr').remove();
+    });
+    return row;
 };
 
 
@@ -20,7 +24,6 @@ uu.formlibrary.searchform.load_comparator_list = function(row, index_types) {
     jq.ajax({
         url: comparators_url,
         success: function(data) {   
-            console.log(data); //TODO REM
             for (var i=0; i<data.length; i++) {
                 var pair = data[i];
                 var name = pair[0];
@@ -47,7 +50,6 @@ uu.formlibrary.searchform.handle_filter_selection = function(e) {
         jq.ajax({
             url: detail_url,
             success: function(data) {
-                console.log(data); //TODO
                 var index_types = data.index_types;
                 uu.formlibrary.searchform.load_comparator_list(row, index_types);
             }

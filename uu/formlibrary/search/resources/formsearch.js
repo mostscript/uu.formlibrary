@@ -83,12 +83,6 @@ uu.formlibrary.searchform.load_comparator_list = function(row, index_types) {
                 var pair = data[i];
                 var name = pair[0];
                 var label = pair[1];
-                /*
-                if ((fieldinfo.value_type == 'Choice') | (fieldinfo.fieldtype == 'Choice')) {
-                    var choice_ignores = ['Lt', 'Le', 'Gt', 'Ge', 'InRange', 'NotInRange'];
-                    if (choice_ignores.indexOf(name)>0) continue;
-                }
-                */
                 jq('<option>').appendTo(select).attr('value', name).text(label);
             }
         }

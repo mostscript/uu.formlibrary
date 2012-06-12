@@ -133,7 +133,7 @@ class Comparators(object):
     def __contains__(self, name):
         return _u(name) in self._map
     
-    def __call__(self, symbols=False, byindex=None):
+    def __call__(self, symbols=False, byindex=None, choice=False):
         """
         Return list of (name, label) tuples, optionally filtered
         by index type (1..* names as sequence or delimited string).
@@ -152,9 +152,13 @@ class Comparators(object):
                     _keys = _keys.union(c.name for c in comparators)
             if _keys:
                 keys = [k for k in keys if k in _keys]  # orig order was sorted
+        if choice:
+            ## controlled vocabulary has no range comparison, only membership
+            _omit = ('Lt', 'Le', 'Gt', 'Ge', 'InRange', 'NotInRange')
+            return [(k, _label(k)) for k in keys if k not in _omit]
         return [(k, _label(k)) for k in keys]
 
-    def publish_json(self, symbols=False, byindex=None):
+    def publish_json(self, symbols=False, byindex=None, choice=False):
         if self.request is not None:
             form = self.request.form
             if 'symbols' in form:
@@ -163,7 +167,10 @@ class Comparators(object):
                 _byindex = str(form.get('byindex'))
                 if _byindex and _byindex in COMPARATORS_BY_INDEX:
                     byindex = _byindex
-        v = json.dumps(self(symbols=symbols, byindex=byindex), indent=2)
+            if 'choice' in form:
+                choice = True
+        v = self(symbols=symbols, byindex=byindex, choice=choice)
+        v = json.dumps(v, indent=2)
         if self.request is not None:
             self.request.response.setHeader('Content-type', 'application/json')
             self.request.response.setHeader('Content-length', str(len(v)))

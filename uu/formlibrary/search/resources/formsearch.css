@@ -1,7 +1,7 @@
 
 form.record-queries {
     display:block;
-    background-color:#ccc;
+    background-color:#ddd;
     width:100%;
 }
 
@@ -9,9 +9,19 @@ table.queries {
     width:100%;
 }
 
+table.queries tr.even td {
+    background-color:#eee;
+}
+
 table.queries th, table.queries td {
     width:30%;
     color:#889;
+    padding:0.3em 0.1em;
+}
+
+table.queries th {
+    background-color:#667;
+    color:#eee;
 }
 
 table.queries th.rowcontrol, table.queries td.rowcontrol {

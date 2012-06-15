@@ -10,11 +10,55 @@ uu.formlibrary.searchform.add_row = function() {
     var row = jq('tr:last', table);
     jq('a.removerow', row).click(function(e) {
         jq(this).parents('table.queries tr').remove();
+        uu.formlibrary.searchform.toggle_placeholder();
     });
+    jq('table.queries tr:nth-child(2n)').addClass('even');  /* cross-browser zebra striping marker */
     return row;
 };
 
+
+uu.formlibrary.searchform.rowno = function(row) {
+    var table = jq(row).parents('table.queries');
+    var rows = jq('tr').not('tr.headings');
+    return rows.index(row);
+}
+
+uu.formlibrary.searchform.add_value_radio = function(row, fieldname, vocabulary) {
+    var td = jq('td.value', row);
+    td.empty();
+    for (var i=0; i<vocabulary.length; i++) {
+        var term = vocabulary[i];
+        var idiv = jq('<div><input type="radio"/></div>').appendTo(td);
+        var input = jq('input', idiv);
+        var input_name = fieldname + '-' + uu.formlibrary.searchform.rowno(row);
+        var input_id = input_name + '-' + term;
+        input.attr('name', input_name);
+        input.attr('id', input_id);
+        input.attr('value', term);
+        jq('<label>'+term+'</label>').attr('for', input_id).appendTo(idiv);
+        console.log(term);
+    }
+}
+
+uu.formlibrary.searchform.add_value_input = function(row, fieldinfo) {
+    var td = jq('td.value', row);
+    td.empty();
+    var fieldname = fieldinfo.fieldname;
+    var input_name = fieldname + '-' + uu.formlibrary.searchform.rowno(row);
+    if (fieldinfo.fieldtype == 'Date') {
+        /* date input, use smartdate.js enhanced input */
+        jq('<input class="smartdate-widget date-field" type="text" />').appendTo(td).attr('name', input_name);
+        smartdate.hookups();
+    } else {
+        /* default input */
+        jq('<input type="text" />').appendTo(td).attr('name', input_name);
+    }
+}
+
 uu.formlibrary.searchform.add_value_selection = function(row, fieldname, vocabulary) {
+    if (vocabulary.length <= 3) {
+        return uu.formlibrary.searchform.add_value_radio(row, fieldname, vocabulary);
+    }
     var td = jq('td.value', row);
     td.empty();
     var select = jq('<select>').appendTo(td);
@@ -61,7 +105,7 @@ uu.formlibrary.searchform.handle_select_comparator = function(e) {
         }
     } else {
         //assume input
-        uu.formlibrary.searchform.add_value_input(row);
+        uu.formlibrary.searchform.add_value_input(row, fieldinfo);
     }
 };
 
@@ -75,7 +119,6 @@ uu.formlibrary.searchform.load_comparator_list = function(row, index_types) {
     if ((fieldinfo.value_type == 'Choice') | (fieldinfo.fieldtype == 'Choice')) {
         comparators_url += '&choice';
     }
-    console.log(comparators_url);
     jq.ajax({
         url: comparators_url,
         success: function(data) {   
@@ -115,7 +158,6 @@ uu.formlibrary.searchform.handle_field_selection = function(e) {
 
 
 uu.formlibrary.searchform.handle_query_data = function(fieldspec, data) {
-    console.log('1');
     var fieldnames = new Object();
     for (key in data) {
         var field_info = data[key];
@@ -133,6 +175,21 @@ uu.formlibrary.searchform.handle_query_data = function(fieldspec, data) {
     select.change(uu.formlibrary.searchform.handle_field_selection);
 };
 
+uu.formlibrary.searchform.toggle_placeholder = function() {
+    var placeholder = jq('table.queries td.noqueries');
+    var rowcount = jq('table.queries td').length - placeholder.length;
+    if ((rowcount == 0) & (placeholder.length == 0)) {
+        /* no placeholder, but no rows, there should be a placeholder */
+        var html = '<tr><td class="noqueries" colspan="4"><em>There are no queries defined for this filter.</em><!--placeholder--></td></tr>';
+        jq(html).appendTo(jq('table.queries'));
+    } else if ((rowcount == 0) & (placeholder.length == 1)) {
+        return; // no rows, placeholder already in place
+    } else if (placeholder.length > 0) {
+        /* positive rowcount, should never have placeholder; remove if found */
+        placeholder.parent('tr').remove(); 
+    }
+}
+
 uu.formlibrary.searchform.handle_add_click = function(e) {
     var new_row = uu.formlibrary.searchform.add_row();
     var fieldspec = jq('td.fieldspec', new_row);
@@ -141,11 +198,13 @@ uu.formlibrary.searchform.handle_add_click = function(e) {
         jq.ajax({
             url: fields_url,
             success: function(data) {
+                uu.formlibrary.searchform.toggle_placeholder();
                 uu.formlibrary.searchform.query_data = data;  // save/cache state for later use
                 uu.formlibrary.searchform.handle_query_data(fieldspec, data);
             }
         });
     } else {
+        uu.formlibrary.searchform.toggle_placeholder();
         uu.formlibrary.searchform.handle_query_data(fieldspec, uu.formlibrary.searchform.query_data);
     }
 };

@@ -25,7 +25,7 @@
       <td class="noqueries" colspan="4"><em>There are no queries defined for this filter.</em><!--placeholder--></td> 
     </table>
   </form>
-  <a class="addquery"><span>Add field query</span></a>
+  <a class="addquery"><span><strong>&#x2b;</strong> Add a field query to this filter</span></a>
   <div style="clear:both"></div>
  </div>
 </body>

@@ -29,13 +29,14 @@ table.queries th.rowcontrol, table.queries td.rowcontrol {
     text-align:right;
 }
 
-a.addquery, a.runquery, a.savequery {
+a.addquery {
     display:block;
     float:left;
-    max-width:10em;
+    max-width:15em;
     border:1px solid #999;
     background-color:#eee;
     padding:0.2em;
     margin-right:1em;
     cursor:pointer;
+    color:#072;
 }

@@ -1,25 +1,25 @@
 
-form.record-filters {
+form.record-queries {
     display:block;
     background-color:#ccc;
     width:100%;
 }
 
-table.query-filters {
+table.queries {
     width:100%;
 }
 
-table.query-filters th, table.query-filters td {
+table.queries th, table.queries td {
     width:30%;
     color:#889;
 }
 
-table.query-filters th.rowcontrol, table.query-filters td.rowcontrol {
+table.queries th.rowcontrol, table.queries td.rowcontrol {
     width:10%;
     text-align:right;
 }
 
-a.addfilter, a.runquery, a.savequery {
+a.addquery, a.runquery, a.savequery {
     display:block;
     float:left;
     max-width:10em;

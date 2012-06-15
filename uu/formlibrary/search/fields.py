@@ -10,7 +10,7 @@ from zope.schema import getFieldNamesInOrder
 from uu.retrieval.schema import schema_index_types
 
 from uu.formlibrary.interfaces import IFormDefinition
-from interfaces import IFilters
+from interfaces import ISearchableFields
 
 
 _u = lambda v: v if isinstance(v, unicode) else str(v).decode('utf-8')
@@ -73,9 +73,9 @@ class FieldInfo(object):
         return self, ()
 
 
-class Filters(object):
+class SearchableFields(object):
     
-    implements(IBrowserPublisher, IFilters)
+    implements(IBrowserPublisher, ISearchableFields)
      
     def __init__(self, context, request=None):
         ## context should be context of API view, not API view

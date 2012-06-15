@@ -19,12 +19,12 @@
   <h2>Form Search</h2>
   <hr />
   <h1>Define your filter</h1>
-  <form class="record-filters" action="">
-    <table class="query-filters">
+  <form class="record-queries" action="">
+    <table class="queries">
       <tr><th>Field</th><th>Comparison</th><th>Value</th><th class="rowcontrol">&nbsp; <!-- row control --></th></tr>
     </table>
   </form>
-  <a class="addfilter"><span>Add filter</span></a>
+  <a class="addquery"><span>Add field query</span></a>
   <a class="runquery"><span>Run query</span></a>
   <a class="savequery"><span>Save query</span></a>
   <div style="clear:both"></div>

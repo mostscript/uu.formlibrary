@@ -69,7 +69,7 @@ class IComparators(ISearchAPICapability, IIterableMapping):
 
 
 
-class IFilters(ISearchAPICapability, IIterableMapping):
+class ISearchableFields(ISearchAPICapability, IIterableMapping):
     """
     Mapping interface for obtaining field names, comparators and
     metadata for a field, and widget and/or vocabularies.
@@ -100,19 +100,17 @@ class ISearchAPI(IIterableMapping, IPublishTraverse):
         schema=IComparators,
         )
     
-    filters = schema.Object(
-        title=u'Filters',
-        description=u'Filters information metadata capability, '\
-                    u'dependent on context for schema information; '\
-                    u'the enumeration of filters is a one-to-one '\
-                    u'mapping to the enumeration of schema fields.',
-        schema=IFilters,
+    fields = schema.Object(
+        title=u'Searchable fields',
+        description=u'Field information metadata capability, '\
+                    u'dependent on context for schema information.',
+        schema=ISearchableFields,
         )
     
     def __call__(*args, **kwargs):
         """
         Return text string 'Form search API' plus version, along
         with a human-readable listing of capability names 
-        ('comparators', 'filters', etc).
+        ('comparators', 'fields', etc).
         """
 

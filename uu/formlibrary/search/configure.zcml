@@ -20,7 +20,7 @@
     class=".api.SearchAPI"
     permission="zope2.View"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    allowed_attributes="filters comparators"
+    allowed_attributes="fields comparators"
     />
   
   <browser:page
@@ -29,7 +29,7 @@
     class=".api.SearchAPI"
     permission="zope2.View"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    allowed_attributes="filters comparators"
+    allowed_attributes="fields comparators"
     />
 
 

@@ -36,7 +36,6 @@ uu.formlibrary.searchform.add_value_radio = function(row, fieldname, vocabulary)
         input.attr('id', input_id);
         input.attr('value', term);
         jq('<label>'+term+'</label>').attr('for', input_id).appendTo(idiv);
-        console.log(term);
     }
 }
 
@@ -138,6 +137,26 @@ uu.formlibrary.searchform.deselect_field = function(row) {
     jq('td.value', row).empty();
 };
 
+
+uu.formlibrary.searchform.field_in_use = function(fieldname) {
+    var table = jq('table.queries');
+    var rows = jq('tr', table.queries).not('tr.headings');
+    if (rows.length > 0) {
+        match = jq('td.fieldspec select option:selected', rows);
+        var use_count = 0;
+        for (var i=0; i<match.length; i++) {
+            var opt = jq(match[i]);
+            if (opt.val() == fieldname) {
+                use_count += 1;
+            }
+        }
+        if (use_count > 1) {
+            return true;
+        }
+    }
+    return false;
+};
+
 uu.formlibrary.searchform.handle_field_selection = function(e) {
     var dropdown = jq(this);
     var selected_value = jq('option:selected', dropdown).val();
@@ -145,6 +164,11 @@ uu.formlibrary.searchform.handle_field_selection = function(e) {
     uu.formlibrary.searchform.deselect_field(row);
     if (selected_value != 'EMPTY') {
         uu.formlibrary.searchform.deselect_field(row);
+        if (uu.formlibrary.searchform.field_in_use(selected_value)) {
+            alert('This field (' + selected_value + ') is already in use; please select another.');
+            row.remove();
+            return;
+        }
         var detail_url = jq('base').attr('href') + '/@@searchapi/fields/' + selected_value;
         jq.ajax({
             url: detail_url,

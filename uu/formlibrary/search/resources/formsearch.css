@@ -14,7 +14,7 @@ table.queries tr.even td {
 }
 
 table.queries th, table.queries td {
-    width:30%;
+    width:28%;
     color:#889;
     padding:0.3em 0.1em;
 }
@@ -24,21 +24,41 @@ table.queries th {
     color:#eee;
 }
 
+table.queries th.display-queryop, table.queries td.display-queryop {
+    max-width:7%;
+    font-size:60%;
+    font-weight:bold;
+    padding-right:0.2em;
+    text-align:right;
+}
+
 table.queries th.rowcontrol, table.queries td.rowcontrol {
-    width:10%;
+    width:7%;
     text-align:right;
 }
 
 a.addquery {
     display:block;
-    float:left;
     max-width:15em;
     border:1px solid #999;
     background-color:#eee;
     padding:0.2em;
+    margin:0.5em;
     margin-right:1em;
     cursor:pointer;
     color:#072;
+}
+
+a.savequery {
+    display:block;
+    max-width:15em;
+    border:1px solid #999;
+    background-color:#eee;
+    padding:0.2em;
+    margin:0.5em;
+    margin-right:1em;
+    cursor:pointer;
+    color:black;
 }
 
 p.helptext {
@@ -46,3 +66,17 @@ p.helptext {
     font-size:80%;
     font-style:italic;
 }
+
+div.queryop-selection {
+    clear:both;
+    font-size:85%;
+    margin-top:1.0em !important;
+    margin-left:1.0em;
+    padding:0.3em 1em;
+    border-left:0.5em solid #009;
+}
+
+form.record-queries div.queryop-selection {
+    display:none; /* initially hidden */
+}
+

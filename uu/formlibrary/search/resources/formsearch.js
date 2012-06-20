@@ -6,8 +6,7 @@ if (!uu.formlibrary.searchform) uu.formlibrary.searchform = new Object();
 
 uu.formlibrary.searchform.add_row = function() {
     var table = jq('table.queries');
-    table.append('<tr><td class="fieldspec"></td><td class="compare"></td><td class="value"></td><td class="rowcontrol"><a class="removerow" title="Remove query row"><img src="./delete_icon.png" alt="delete"/></a></td></tr>');
-    var row = jq('tr:last', table);
+    var row = jq('<tr><td class="display-queryop">&nbsp;</td><td class="fieldspec"></td><td class="compare"></td><td class="value"></td><td class="rowcontrol"><a class="removerow" title="Remove query row"><img src="./delete_icon.png" alt="delete"/></a></td></tr>').appendTo(table);
     jq('a.removerow', row).click(function(e) {
         jq(this).parents('table.queries tr').remove();
         uu.formlibrary.searchform.toggle_placeholder();
@@ -97,7 +96,7 @@ uu.formlibrary.searchform.handle_select_comparator = function(e) {
     }
     if (fieldinfo.value_type == 'Choice') {
         vocabulary = fieldinfo.vocabulary;
-        if ((value == 'Any') | (value == 'All')) {
+        if ((value == 'Any') || (value == 'All')) {
             uu.formlibrary.searchform.add_value_selections(row, fieldname, vocabulary);
         } else {
             uu.formlibrary.searchform.add_value_selection(row, fieldname, vocabulary);
@@ -115,7 +114,7 @@ uu.formlibrary.searchform.load_comparator_list = function(row, index_types) {
     jq('<option>').appendTo(select).attr('value', 'EMPTY').text('-- Choose comparison --');
     var comparators_url = jq('base').attr('href') + '/@@searchapi/comparators';
     comparators_url += '?byindex=' + index_types.join('+') + '&symbols';
-    if ((fieldinfo.value_type == 'Choice') | (fieldinfo.fieldtype == 'Choice')) {
+    if ((fieldinfo.value_type == 'Choice') || (fieldinfo.fieldtype == 'Choice')) {
         comparators_url += '&choice';
     }
     jq.ajax({
@@ -201,17 +200,32 @@ uu.formlibrary.searchform.handle_query_data = function(fieldspec, data) {
 };
 
 uu.formlibrary.searchform.toggle_placeholder = function() {
-    var placeholder = jq('table.queries td.noqueries');
-    var rowcount = jq('table.queries td').length - placeholder.length;
-    if ((rowcount == 0) & (placeholder.length == 0)) {
-        /* no placeholder, but no rows, there should be a placeholder */
-        var html = '<tr><td class="noqueries" colspan="4"><em>There are no queries defined for this filter.</em><!--placeholder--></td></tr>';
+    var placeholder = jq('table.queries td.noqueries').parent('tr');
+    var rowcount = jq('table.queries td').parent('tr').length - placeholder.length;
+    /* if >2 rows, show operator radio buttons below table */
+    var opbuttons = jq('form.record-queries div.queryop-selection');
+    var v_rows = jq('table.queries tr').not('.headings');
+    if (rowcount >= 2) {
+        opbuttons.show();
+        var operator = jq('input:checked').val();
+        jq('td.display-queryop', v_rows).not(':first').text('-- ' + operator + ' --');
+    } else {
+        opbuttons.hide();
+        jq('td.display-queryop', v_rows).html('&nbsp;');
+    }
+    /* placeholder text: */
+    if ((rowcount == 0) && (placeholder.length == 0)) {
+        /* no placeholder, but no rows, there should be a placeholder;
+           placeholder uses content, not CSS toggle to make rowcount
+           sane
+         */
+        var html = '<tr><td class="noqueries" colspan="5"><em>There are no queries defined for this filter.</em><!--placeholder--></td></tr>';
         jq(html).appendTo(jq('table.queries'));
-    } else if ((rowcount == 0) & (placeholder.length == 1)) {
+    } else if ((rowcount == 0) && (placeholder.length == 1)) {
         return; // no rows, placeholder already in place
     } else if (placeholder.length > 0) {
         /* positive rowcount, should never have placeholder; remove if found */
-        placeholder.parent('tr').remove(); 
+        placeholder.remove(); 
     }
 }
 
@@ -237,6 +251,8 @@ uu.formlibrary.searchform.handle_add_click = function(e) {
 uu.formlibrary.searchform.initbuttons = function() {
     var add_query_button = jq('a.addquery');
     add_query_button.click(uu.formlibrary.searchform.handle_add_click);
+    var operator_buttons = jq('form.record-queries div.queryop-selection input');
+    operator_buttons.change(uu.formlibrary.searchform.toggle_placeholder);
 };
 
 uu.formlibrary.searchform.init = function() {

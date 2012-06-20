@@ -159,13 +159,14 @@ uu.formlibrary.searchform.field_in_use = function(fieldname) {
 
 uu.formlibrary.searchform.handle_field_selection = function(e) {
     var dropdown = jq(this);
-    var selected_value = jq('option:selected', dropdown).val();
+    var selected = jq('option:selected', dropdown);
+    var selected_value = selected.val(); 
     var row = dropdown.parents('table.queries tr');
     uu.formlibrary.searchform.deselect_field(row);
     if (selected_value != 'EMPTY') {
         uu.formlibrary.searchform.deselect_field(row);
         if (uu.formlibrary.searchform.field_in_use(selected_value)) {
-            alert('This field (' + selected_value + ') is already in use; please select another.');
+            alert('This field (' + selected.text() + ') is already in use; please select another.');
             row.remove();
             return;
         }

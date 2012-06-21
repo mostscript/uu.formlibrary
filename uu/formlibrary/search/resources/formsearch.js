@@ -16,10 +16,13 @@ uu.formlibrary.searchform.add_row = function() {
 };
 
 
+uu.formlibrary.searchform.datarows = function() {
+    var table = jq('table.queries');
+    return jq('tr', table).not('tr.headings');
+}
+
 uu.formlibrary.searchform.rowno = function(row) {
-    var table = jq(row).parents('table.queries');
-    var rows = jq('tr').not('tr.headings');
-    return rows.index(row);
+    return uu.formlibrary.searchform.datarows().index(row);
 }
 
 uu.formlibrary.searchform.add_value_radio = function(row, fieldname, vocabulary) {
@@ -138,8 +141,7 @@ uu.formlibrary.searchform.deselect_field = function(row) {
 
 
 uu.formlibrary.searchform.field_in_use = function(fieldname) {
-    var table = jq('table.queries');
-    var rows = jq('tr', table.queries).not('tr.headings');
+    var rows = uu.formlibrary.searchform.datarows();
     if (rows.length > 0) {
         match = jq('td.fieldspec select option:selected', rows);
         var use_count = 0;
@@ -200,18 +202,18 @@ uu.formlibrary.searchform.handle_query_data = function(fieldspec, data) {
 };
 
 uu.formlibrary.searchform.toggle_placeholder = function() {
+    var rows = uu.formlibrary.searchform.datarows();
+    var rowcount = rows.length;
     var placeholder = jq('table.queries td.noqueries').parent('tr');
-    var rowcount = jq('table.queries td').parent('tr').length - placeholder.length;
     /* if >2 rows, show operator radio buttons below table */
     var opbuttons = jq('form.record-queries div.queryop-selection');
-    var v_rows = jq('table.queries tr').not('.headings');
     if (rowcount >= 2) {
         opbuttons.show();
-        var operator = jq('input:checked').val();
-        jq('td.display-queryop', v_rows).not(':first').text('-- ' + operator + ' --');
+        var operator = jq('input:checked', opbuttons).val();
+        jq('td.display-queryop', rows).not(':first').text('-- ' + operator + ' --');
     } else {
         opbuttons.hide();
-        jq('td.display-queryop', v_rows).html('&nbsp;');
+        jq('td.display-queryop', rows).html('&nbsp;');
     }
     /* placeholder text: */
     if ((rowcount == 0) && (placeholder.length == 0)) {
@@ -248,11 +250,53 @@ uu.formlibrary.searchform.handle_add_click = function(e) {
     }
 };
 
+uu.formlibrary.searchform.queryvalue = function(row) {
+    var rv = null;
+    var td = jq('td.value', row);
+    // first try select/multi-select value:
+    rv = jq('select', td).val();
+    // else, try radio button value:
+    if (!rv) rv = jq('input:radio:checked', td).val();
+    // last, try normal input:
+    if (!rv) rv = jq('input', td).val();
+    return rv;
+};
+
+uu.formlibrary.searchform.rowdata = function(row) {
+    row = jq(row);
+    var r = new Object();
+    r.fieldname = jq('td.fieldspec option:checked', row).val();
+    r.comparator = jq('td.compare option:checked', row).val();
+    r.value = uu.formlibrary.searchform.queryvalue(row);
+    return r;
+};
+
+uu.formlibrary.searchform.formdata = function() {
+    var formdata = new Object();
+    formdata.rows = new Array();
+    uu.formlibrary.searchform.datarows().each(function(idx, row) {
+        formdata.rows.push(uu.formlibrary.searchform.rowdata(row));
+    });
+    var _op = jq('form.record-queries div.queryop-selection input:checked');
+    formdata.operator = _op.val();
+    return formdata;
+};
+
+uu.formlibrary.searchform.handle_save = function(e) {
+    var bundle = JSON.stringify(uu.formlibrary.searchform.formdata());
+    var payload_form_input = jq('#payload');
+    if (payload_form_input.length > 0) {
+        payload_form_input.val(bundle);
+    }
+}
+
 uu.formlibrary.searchform.initbuttons = function() {
     var add_query_button = jq('a.addquery');
     add_query_button.click(uu.formlibrary.searchform.handle_add_click);
     var operator_buttons = jq('form.record-queries div.queryop-selection input');
     operator_buttons.change(uu.formlibrary.searchform.toggle_placeholder);
+    var save_query_button = jq('a.addquery');
+    save_query_button.click(uu.formlibrary.searchform.handle_save);
 };
 
 uu.formlibrary.searchform.init = function() {

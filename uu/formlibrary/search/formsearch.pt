@@ -34,6 +34,7 @@
       <label for="queryop-OR">OR</label>
     </div>
     <a class="savequery"><span><strong>&#x2713;</strong> Save these filter query criteria.</span></a>
+    <input type="hidden" name="payload" id="payload" value="" />
   </form>
   <div style="clear:both"></div>
  </div>

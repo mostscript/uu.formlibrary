@@ -37,6 +37,16 @@ table.queries th.rowcontrol, table.queries td.rowcontrol {
     text-align:right;
 }
 
+table.queries td.value div.error:before {
+    content:">>> ";
+}
+
+table.queries td.value div.error {
+    background-color:#f73;
+    color:black;
+    font-weight:bold;
+}
+
 a.addquery {
     display:block;
     max-width:15em;

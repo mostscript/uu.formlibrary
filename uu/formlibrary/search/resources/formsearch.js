@@ -3,6 +3,7 @@ jq = jQuery;
 if (!uu) var uu = new Object();  // namespaces
 if (!uu.formlibrary) uu.formlibrary = new Object();
 if (!uu.formlibrary.searchform) uu.formlibrary.searchform = new Object();
+uu.formlibrary.searchform.errors = new Array();  // arr of [fieldname, msg] pairs
 
 uu.formlibrary.searchform.add_row = function() {
     var table = jq('table.queries');
@@ -15,14 +16,31 @@ uu.formlibrary.searchform.add_row = function() {
     return row;
 };
 
-
 uu.formlibrary.searchform.datarows = function() {
     var table = jq('table.queries');
-    return jq('tr', table).not('tr.headings');
-}
+    return jq('tr', table).not('tr.headings').not('tr.placeholder');
+};
 
 uu.formlibrary.searchform.rowno = function(row) {
     return uu.formlibrary.searchform.datarows().index(row);
+};
+
+uu.formlibrary.searchform.clear_errors = function(context) {
+    var errors = uu.formlibrary.searchform.errors;
+    if ((context) && (context.handler)) {
+        /* context is event object, redefine as row */
+        context = jq(this).parents('td.value').parent('tr');
+        var fieldname = jq('td.fieldspec select option:selected', context).val();
+        for (var i=0; i < errors.length; i++) {
+            var elm = errors[i];
+            if (elm[0] == fieldname) errors.splice(errors.indexOf(elm), 1);
+        }
+    } else {
+        context = jq('table.queries');
+        uu.formlibrary.searchform.errors = [];  // reset all errors
+    }
+    var e = jq('td.value div.error', context);
+    if (e) e.remove();
 }
 
 uu.formlibrary.searchform.add_value_radio = function(row, fieldname, vocabulary) {
@@ -38,13 +56,14 @@ uu.formlibrary.searchform.add_value_radio = function(row, fieldname, vocabulary)
         input.attr('id', input_id);
         input.attr('value', term);
         jq('<label>'+term+'</label>').attr('for', input_id).appendTo(idiv);
+        input.change(uu.formlibrary.searchform.clear_errors);
     }
-}
+};
 
 uu.formlibrary.searchform.add_value_input = function(row, fieldinfo) {
     var td = jq('td.value', row);
     td.empty();
-    var fieldname = fieldinfo.fieldname;
+    var fieldname = fieldinfo.name;
     var input_name = fieldname + '-' + uu.formlibrary.searchform.rowno(row);
     if (fieldinfo.fieldtype == 'Date') {
         /* date input, use smartdate.js enhanced input */
@@ -54,7 +73,8 @@ uu.formlibrary.searchform.add_value_input = function(row, fieldinfo) {
         /* default input */
         jq('<input type="text" />').appendTo(td).attr('name', input_name);
     }
-}
+    jq('input', td).change(uu.formlibrary.searchform.clear_errors);
+};
 
 uu.formlibrary.searchform.add_value_selection = function(row, fieldname, vocabulary) {
     if (vocabulary.length <= 3) {
@@ -68,6 +88,7 @@ uu.formlibrary.searchform.add_value_selection = function(row, fieldname, vocabul
         var term = vocabulary[i];
         jq('<option>').appendTo(select).val(term).text(term);
     }
+    select.change(uu.formlibrary.searchform.clear_errors);
 };
 
 uu.formlibrary.searchform.add_value_selections = function(row, fieldname, vocabulary) {
@@ -78,6 +99,7 @@ uu.formlibrary.searchform.add_value_selections = function(row, fieldname, vocabu
         var term = vocabulary[i];
         jq('<option>').appendTo(select).val(term).text(term);
     }
+    select.change(uu.formlibrary.searchform.clear_errors);
 };
 
 uu.formlibrary.searchform.handle_select_comparator = function(e) {
@@ -139,10 +161,9 @@ uu.formlibrary.searchform.deselect_field = function(row) {
     jq('td.value', row).empty();
 };
 
-
 uu.formlibrary.searchform.field_in_use = function(fieldname) {
     var rows = uu.formlibrary.searchform.datarows();
-    if (rows.length > 0) {
+    if (rows.length) {
         match = jq('td.fieldspec select option:selected', rows);
         var use_count = 0;
         for (var i=0; i<match.length; i++) {
@@ -182,7 +203,6 @@ uu.formlibrary.searchform.handle_field_selection = function(e) {
     }
 };
 
-
 uu.formlibrary.searchform.handle_query_data = function(fieldspec, data) {
     var fieldnames = new Object();
     for (key in data) {
@@ -191,7 +211,7 @@ uu.formlibrary.searchform.handle_query_data = function(fieldspec, data) {
     }
     //create widget:
     var select = jq('<select class="field-choice" />').appendTo(fieldspec);
-    select.attr('name', 'fieldspec');  // TODO: prefix/suffix
+    select.attr('name', 'fieldspec');
     jq('<option>').appendTo(select).attr('value', 'EMPTY').text('-- Choose field --');
     //populate options:
     for (name in fieldnames) {
@@ -210,7 +230,7 @@ uu.formlibrary.searchform.toggle_placeholder = function() {
     if (rowcount >= 2) {
         opbuttons.show();
         var operator = jq('input:checked', opbuttons).val();
-        jq('td.display-queryop', rows).not(':first').text('-- ' + operator + ' --');
+        jq('td.display-queryop', rows).not(':first').text('(' + operator + ')');
     } else {
         opbuttons.hide();
         jq('td.display-queryop', rows).html('&nbsp;');
@@ -221,15 +241,15 @@ uu.formlibrary.searchform.toggle_placeholder = function() {
            placeholder uses content, not CSS toggle to make rowcount
            sane
          */
-        var html = '<tr><td class="noqueries" colspan="5"><em>There are no queries defined for this filter.</em><!--placeholder--></td></tr>';
+        var html = '<tr class="placeholder"><td class="noqueries" colspan="5"><em>There are no queries defined for this filter.</em><!--placeholder--></td></tr>';
         jq(html).appendTo(jq('table.queries'));
     } else if ((rowcount == 0) && (placeholder.length == 1)) {
         return; // no rows, placeholder already in place
-    } else if (placeholder.length > 0) {
+    } else if (placeholder.length) {
         /* positive rowcount, should never have placeholder; remove if found */
         placeholder.remove(); 
     }
-}
+};
 
 uu.formlibrary.searchform.handle_add_click = function(e) {
     var new_row = uu.formlibrary.searchform.add_row();
@@ -250,15 +270,70 @@ uu.formlibrary.searchform.handle_add_click = function(e) {
     }
 };
 
+
+
+uu.formlibrary.searchform.highlight_errors = function() {
+    /**
+         highlight_errors(): given global error state array,
+         highlight all errors
+     */
+    var errors = uu.formlibrary.searchform.errors;
+    for (var i=0; i<errors.length; i++) {
+        var e = errors[i];
+        var e_fieldname = e[0]; 
+        var e_msg = e[1];
+        var q = 'table.queries td.fieldspec option:checked[value="'+e_fieldname+'"]';
+        var e_opt = jq('table.queries td.fieldspec option:checked[value="'+e_fieldname+'"]');
+        var e_row = jq(e_opt.parents('tr')[0]);
+        if (jq('div.error', e_row).length == 0) {
+            jq('td.value', e_row).append(jq('<div class="error" />').text(e_msg));
+        }
+    }
+}
+
 uu.formlibrary.searchform.queryvalue = function(row) {
+    var errors = uu.formlibrary.searchform.errors;  // array
     var rv = null;
     var td = jq('td.value', row);
+    var fieldname = jq('td.fieldspec option:checked', row).val();
+    var fieldinfo = uu.formlibrary.searchform.query_data[fieldname];
+    var _type = fieldinfo.fieldtype;
     // first try select/multi-select value:
     rv = jq('select', td).val();
     // else, try radio button value:
+    var radio = jq('input:radio', td);
     if (!rv) rv = jq('input:radio:checked', td).val();
+    if ((!rv) && (radio.length)) {
+        errors.push([fieldname, 'Required input or choice missing']);
+        uu.formlibrary.searchform.highlight_errors();
+        return null;
+    }
     // last, try normal input:
-    if (!rv) rv = jq('input', td).val();
+    if (!rv) {
+        // notes: value is always required, numeric fields attempt cast
+        rv = jq('input', td).val();
+        if ((!rv) || (rv.length == 0)) {
+            errors.push([fieldname, 'Required input or choice missing']);
+            uu.formlibrary.searchform.highlight_errors();
+            return null;
+        }
+        if (_type == 'Int') {
+            rv = parseInt(rv, 10);
+            if (rv == NaN) {
+                errors.push([fieldname, 'Invalid input, value not a number']);
+                uu.formlibrary.searchform.highlight_errors();
+                return null;
+            }
+        }
+        if (_type == 'Float') {
+            rv = parseFloat(rv);
+            if (rv == NaN) {
+                errors.push([fieldname, 'Invalid input, value not a number']);
+                uu.formlibrary.searchform.highlight_errors();
+                return null;
+            }
+        }
+    }
     return rv;
 };
 
@@ -283,9 +358,16 @@ uu.formlibrary.searchform.formdata = function() {
 };
 
 uu.formlibrary.searchform.handle_save = function(e) {
-    var bundle = JSON.stringify(uu.formlibrary.searchform.formdata());
+    uu.formlibrary.searchform.clear_errors();
+    var formdata = uu.formlibrary.searchform.formdata();
+    if (uu.formlibrary.searchform.errors.length) {
+        /* there were some validation errors */
+        alert('There were some errors in input; see messages on highlighted fields.');
+        return;
+    }
+    var bundle = JSON.stringify(formdata);
     var payload_form_input = jq('#payload');
-    if (payload_form_input.length > 0) {
+    if (payload_form_input.length) {
         payload_form_input.val(bundle);
     }
 }
@@ -295,7 +377,7 @@ uu.formlibrary.searchform.initbuttons = function() {
     add_query_button.click(uu.formlibrary.searchform.handle_add_click);
     var operator_buttons = jq('form.record-queries div.queryop-selection input');
     operator_buttons.change(uu.formlibrary.searchform.toggle_placeholder);
-    var save_query_button = jq('a.addquery');
+    var save_query_button = jq('a.savequery');
     save_query_button.click(uu.formlibrary.searchform.handle_save);
 };
 

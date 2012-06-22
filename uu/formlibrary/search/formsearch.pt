@@ -23,7 +23,7 @@
   <form class="record-queries" action="">
     <table class="queries">
       <tr class="headings"><th class="display-queryop">&nbsp;</th><th>Field</th><th>Comparison</th><th>Value</th><th class="rowcontrol">&nbsp; <!-- row control --></th></tr>
-      <td class="noqueries" colspan="4"><em>There are no queries defined for this filter.</em><!--placeholder--></td> 
+      <tr class="placeholder"><td class="noqueries" colspan="4"><em>There are no queries defined for this filter.</em><!--placeholder--></td></tr> 
     </table>
     <a class="addquery"><span><strong>&#x2b;</strong> Add a field query to this filter</span></a>
     <div class="queryop-selection">

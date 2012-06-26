@@ -1,6 +1,9 @@
-SFDEBUG = true;
+if (!this.SFDEBUG) SFDEBUG = true;
 if (!this.console) console = function () { this.log = function () {}; return this }();
 
+SF_MOCK_JSON = '{"rows":[{"fieldname":"tests","comparator":"Eq","value":"No"},{"fieldname":"report_back","comparator":"Eq","value":"6/26/2012"},{"fieldname":"_referral_reason","comparator":"Any","value":["Diagnosis / Diagnostic work up","Surgery / Opinion about need for surgery"]},{"fieldname":"referral_type","comparator":"Eq","value":"Verbal via Message Log"}],"operator":"AND"}';
+
+SF_MOCK = JSON.parse(SF_MOCK_JSON);
 
 /** searchform namespace, global functions: */
 if (!searchform) {
@@ -37,14 +40,16 @@ if (!searchform) {
         var opbuttons = jq('form.record-queries div.queryop-selection');
         searchform.control.operator = jq('input:checked', opbuttons).val();
         searchform.toggle_placeholder();
-    }
+    };
     
     searchform.toggle_placeholder = function (evt) {
         var rows = searchform.datarows();
+        console.log(rows.length);
         var rowcount = rows.length;
         var placeholder = jq('table.queries td.noqueries').parent('tr');
         var opbuttons = jq('form.record-queries div.queryop-selection');
         var td_queryop = jq('td.display-queryop', rows);
+        td_queryop.filter(':first').html('&nbsp;');
         // if >2 rows, show operator radio buttons below table:
         if (rowcount >= 2) {
             opbuttons.show();
@@ -52,7 +57,6 @@ if (!searchform) {
             td_queryop.not(':first').text('(' + operator + ')');
         } else {
             opbuttons.hide();
-            td_queryop.html('&nbsp;');
         }
         // placeholder text:
         if ((rowcount == 0) && (placeholder.length == 0)) {
@@ -67,6 +71,13 @@ if (!searchform) {
         }        
     };
     
+    searchform.reset_zebra = function () {
+        //reset zebra-striping "even" classnames when row count changes
+        // visual: zebra-striping, works across browsers by marking class
+        jq('table.queries tr:nth-child(1n)').removeClass('even');
+        jq('table.queries tr:nth-child(2n)').addClass('even');
+    };
+
     searchform.add_row = function () {
         var table = jq('table.queries');
         var row = jq(searchform.snippets.NEWROW).appendTo(table);
@@ -74,22 +85,22 @@ if (!searchform) {
         jq('a.removerow', row).click(function(e) {
             jq(this).parents('table.queries tr').remove();
             searchform.toggle_placeholder();
+            searchform.reset_zebra();
         });
-        // visual: zebra-striping, works across browsers by marking class
-        jq('table.queries tr:nth-child(2n)').addClass('even');
+        searchform.reset_zebra();
         return row;
     };
     
     searchform.prep_row_for_field_change = function (row) {
         jq('td.compare', row).empty();
         jq('td.value', row).empty();
-    }
+    };
     
     searchform.row_field = function (row) {
         //given row, get field
         var fieldname = jq('td.fieldspec select option:selected', row).val();
         return searchform.control.fields[fieldname];
-    }
+    };
 
     searchform.highlight_errors = function() {
         /**
@@ -173,9 +184,9 @@ if (!searchform) {
         }
         var e = jq('td.value div.error', context);
         if (e) e.remove();
-    }
-
-    searchform.add_value_radio = function(row, fieldname, vocabulary) {
+    };
+    
+    searchform.add_value_radio = function(row, fieldname, vocabulary, value) {
         var td = jq('td.value', row);
         td.empty();
         for (var i=0; i<vocabulary.length; i++) {
@@ -190,9 +201,12 @@ if (!searchform) {
             jq('<label>'+term+'</label>').attr('for', input_id).appendTo(idiv);
             input.change(searchform.clear_errors);
         }
+        if (typeof value === 'string') {
+            jq('input:radio', td).filter('[value='+value+']').attr('checked', true);
+        }
     };
-
-    searchform.add_value_input = function(row, fieldinfo) {
+    
+    searchform.add_value_input = function(row, fieldinfo, value) {
         var td = jq('td.value', row);
         td.empty();
         var fieldname = fieldinfo.name;
@@ -205,12 +219,15 @@ if (!searchform) {
             /* default input */
             jq('<input type="text" />').appendTo(td).attr('name', input_name);
         }
+        if (typeof value === 'string') {
+            jq('input', td).val(value);
+        }
         jq('input', td).change(searchform.clear_errors);
     };
 
-    searchform.add_value_selection = function(row, fieldname, vocabulary) {
+    searchform.add_value_selection = function(row, fieldname, vocabulary, value) {
         if (vocabulary.length <= 3) {
-            return searchform.add_value_radio(row, fieldname, vocabulary);
+            return searchform.add_value_radio(row, fieldname, vocabulary, value);
         }
         var td = jq('td.value', row);
         td.empty();
@@ -220,10 +237,13 @@ if (!searchform) {
             var term = vocabulary[i];
             jq('<option>').appendTo(select).val(term).text(term);
         }
+        if (typeof value === 'string') {
+            select.val(value);
+        }
         select.change(searchform.clear_errors);
     };
 
-    searchform.add_value_selections = function(row, fieldname, vocabulary) {
+    searchform.add_value_selections = function(row, fieldname, vocabulary, value) {
         var td = jq('td.value', row);
         td.empty();
         var select = jq('<select multiple="multiple">').appendTo(td);
@@ -231,40 +251,64 @@ if (!searchform) {
             var term = vocabulary[i];
             jq('<option>').appendTo(select).val(term).text(term);
         }
+        console.log(value);
+        if ( (Array.isArray(value)) && (typeof value[0] === 'string') ) {
+            select.val(value);
+        }
         select.change(searchform.clear_errors);
     };
-     
-    searchform.handle_select_comparator = function (evt) {
-        var vocabulary;
-        var select = jq(this);
-        var selected = jq('option:selected', select);
-        var value = selected.val();
-        var row = select.parents('table.queries tr');
+    
+    searchform.row_select_comparator = function (row, comparator, value) {
+        var v_sel, v_input;
         var field = searchform.row_field(row);
         var fieldname = field.name;
         if (field.fieldtype == 'Choice') {
             vocabulary = field.vocabulary;
-            if (value == 'Any') {
-                searchform.add_value_selections(row, fieldname, vocabulary);
+            if (comparator == 'Any') {
+                searchform.add_value_selections(row, fieldname, vocabulary, value);
             } else {
-                searchform.add_value_selection(row, fieldname, vocabulary);
+                searchform.add_value_selection(row, fieldname, vocabulary, value);
             }
             return;
         }
         if (field.value_type == 'Choice') {
             vocabulary = field.vocabulary;
-            if ((value == 'Any') || (value == 'All')) {
-                searchform.add_value_selections(row, fieldname, vocabulary);
+            if ((comparator == 'Any') || (comparator == 'All')) {
+                searchform.add_value_selections(row, fieldname, vocabulary, value);
             } else {
-                searchform.add_value_selection(row, fieldname, vocabulary);
+                searchform.add_value_selection(row, fieldname, vocabulary, value);
             }
         } else {
             //assume input
-            searchform.add_value_input(row, field);
+            searchform.add_value_input(row, field, value);
         }
-    }
+        /*
+        if (typeof value === 'string') {
+            v_sel = jq('td.value select', row);
+            if (v_sel.length) {
+                console.log('>>>>>' + field.name);
+                console.log(value);
+                v_sel.val(value);
+            } else {
+                v_input = jq('td.value input', row);
+                if (v_input.length) {
+                    v_input.val(value);
+                }
+            }
+        }
+        */
+    };
+
+    searchform.handle_select_comparator = function (evt) {
+        var vocabulary;
+        var select = jq(this);
+        var selected = jq('option:selected', select);
+        var comparator = selected.val();
+        var row = select.parents('table.queries tr');
+        searchform.row_select_comparator(row, comparator);
+    };
     
-    searchform.load_comparator_list = function(row, index_types) {
+    searchform.load_comparator_list = function(row, index_types, comparator) {
         var field = searchform.row_field(row);
         var select = jq('<select class="comparator">').appendTo(
             jq('td.compare', row));
@@ -286,6 +330,9 @@ if (!searchform) {
                     jq('<option>').appendTo(select).attr('value', name).text(
                         label);
                     });
+                    if (typeof comparator === 'string') {
+                        select.val(comparator);
+                    }
                 }
             });
         select.change(searchform.handle_select_comparator);
@@ -329,12 +376,12 @@ if (!searchform) {
             select.val(fieldname);
         }
         select.change(searchform.handle_field_selection);
-    }
+    };
     
     searchform.handle_add_click = function (evt) {
         var row = searchform.add_row();
         searchform.init_fieldspec(row);
-    }
+    };
     
     searchform.rowdata = function(row) {
         var fieldname = searchform.row_field(row).name,
@@ -369,7 +416,7 @@ if (!searchform) {
         if (payload_form_input.length) {
             payload_form_input.val(bundle);
         }
-    }
+    };
 
 }
 
@@ -388,7 +435,7 @@ if (!searchform) {
             }
         }
         return this;
-    }
+    };
     
     searchform.Field.prototype.rows = function() {
         var fieldname, opt, result = [];
@@ -402,15 +449,15 @@ if (!searchform) {
             }
         });
         return jq(result);
-    }
+    };
     
     searchform.Field.prototype.getRow = function () {
         return jq(this.rows()[0]);
-    }
+    };
     
     searchform.Field.prototype.useCount = function() {
         return this.rows().length;
-    }
+    };
     
     /* FieldQuery type */
     searchform.FieldQuery = function (field, comparator, value, row) {
@@ -426,7 +473,7 @@ if (!searchform) {
             null or empty, this.initrow() should set it at later time.
          */
         this.row = row;
-    }
+    };
     
     searchform.FieldQuery.prototype.toRecord = function () {
         // returns simple object with properties only: fieldname, comparator, value
@@ -435,7 +482,7 @@ if (!searchform) {
         r.comparator = this.comparator;
         r.value = this.value;
         return r;
-    }
+    };
     
     searchform.FieldQuery.prototype.initrow = function () {
         /* sync field with row, only if this.row is initially null */
@@ -448,18 +495,24 @@ if (!searchform) {
         }
         fields = searchform.control.fields;
         new_row = searchform.add_row();
-        searchform.init_fieldspec(row, this.field.name);
-    }
+        searchform.init_fieldspec(new_row, this.field.name);
+        searchform.load_comparator_list(
+            new_row,
+            this.field.index_types,
+            this.comparator
+            );
+        searchform.row_select_comparator(new_row, this.comparator, this.value);
+    };
     
     searchform.FieldQuery.prototype.remove = function () {
         /* remove a row, disconnect the query instance from row, field */
         
-    }
+    };
     
     searchform.FieldQuery.prototype.isComplete = function () {
         // completeness is defined as the 3 primary fields being defined
         return ((!!this.field) && (!!this.comparator) && (this.value != null));
-    }
+    };
     
     /* form control */
     searchform.FormControl = function () {
@@ -478,7 +531,7 @@ if (!searchform) {
         // cache of ready state for form control:
         this.marked_ready = false;
         return this;
-    }
+    };
     
     searchform.FormControl.prototype.loadFields = function () {
         var fieldinfo;
@@ -505,7 +558,7 @@ if (!searchform) {
                 }
             });
         }
-    }
+    };
     
     searchform.FormControl.prototype.check_ready = function () {
         if (!this.ready_callbacks.length) {
@@ -517,7 +570,7 @@ if (!searchform) {
             if (SFDEBUG) console.log('check_ready(): ready, callbacks waiting');
             return true;
         }
-    }
+    };
     
     searchform.FormControl.prototype.runqueue = function () {
         /** run all callbacks FIFO in self.ready_callbacks queue */
@@ -532,7 +585,7 @@ if (!searchform) {
                 }
             cb();
         }
-    }
+    };
     
     searchform.FormControl.prototype.ready = function (callback) {
         if (callback) {
@@ -543,17 +596,31 @@ if (!searchform) {
             if (SFDEBUG) console.log('FormControl.ready(): ready state found');
             this.runqueue();
         }
-    }
+    };
 
     searchform.FormControl.prototype.toggle_operator = function () {
         var opbuttons = jq('form.record-queries div.queryop-selection');
         this.operator = jq('input:checked', opbuttons).val();
         searchform.toggle_placeholder();
-    }
+    };
     
     searchform.FormControl.prototype.loadSaved = function () {
-        //TODO: load saved state from JSON
-    }
+        var saved, i=0, rowdata, q;
+        var saved = SF_MOCK; // TODO: replace with real data loading
+        if ((saved.operator === 'AND') || (saved.operator === 'OR')) {
+            this.operator = saved.operator;
+        }
+        for ( ; i<saved.rows.length; i++) {
+            rowdata = saved.rows[i];
+            q = new searchform.FieldQuery(
+                rowdata.fieldname,
+                rowdata.comparator,
+                rowdata.value
+                );
+            q.initrow();
+        }
+    };
+
     
     searchform.FormControl.prototype.initUI = function () {
         var add_query_button, operator_buttons, save_query_button, ctl = this;
@@ -564,7 +631,7 @@ if (!searchform) {
         operator_buttons.change(function() { ctl.toggle_operator() });
         save_query_button = jq('a.savequery');
         save_query_button.click(searchform.handle_save);
-    }
+    };
     
     // unenforced singleton instance of form control
     searchform.control = new searchform.FormControl();

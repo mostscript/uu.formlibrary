@@ -41,7 +41,7 @@ GE = ComparatorInfo(u'Ge', u'is greater than or equal to', symbol=u'\u2264')
 GT = ComparatorInfo(u'Gt', u'is greater than', symbol=u'>')
 INRANGE = ComparatorInfo(u'InRange', u'is between', symbol=u'(\u2026)')
 LE = ComparatorInfo(u'Le', u'is less than or equal to', symbol=u'\u2265')
-LT = ComparatorInfo(u'Ge', u'is less than', symbol=u'<')
+LT = ComparatorInfo(u'Lt', u'is less than', symbol=u'<')
 NOTEQ = ComparatorInfo(u'NotEq', u'is not', symbol=u'\u2260')
 NOTINRANGE = ComparatorInfo(u'NotInRange', u'is not between', symbol=u'\u2209')
 

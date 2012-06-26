@@ -8,7 +8,7 @@
   <metal:block fill-slot="javascript_head_slot">
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.js"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/searchform.js"></script>
   </metal:block>
   <metal:block fill-slot="style_slot">
 <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />

@@ -139,10 +139,11 @@ class ISearchAPI(IIterableMapping, IPublishTraverse):
 class IFieldQuery(Interface):
     """Represent query of a single field"""
     
-    fieldname = schema.BytesLine(
-        title=u'Field name',
-        description=u'Name of field on schema for some context.',
+    field = schema.Object(
+        title=u'Field',
+        description=u'Field on schema for some context.',
         required=True,
+        schema=schema.interfaces.IField,
         )
     
     comparator = schema.Choice(
@@ -156,18 +157,6 @@ class IFieldQuery(Interface):
         schema=Interface,
         required=True,
         )  # arbitrary, duck-typed value
-    
-    fieldtype = schema.InterfaceField(
-        title=u'Field type',
-        description=u'Field type interface',
-        required=True,
-        )  # zope.schema.interfaces.*
-    
-    value_type = schema.InterfaceField(
-        title=u'Value type',
-        description=u'Optional, only used for List/sequence fields.',
-        required=False,
-        )
     
     def validate(iface):
         """
@@ -271,4 +260,30 @@ class ICompositeFilter(IBaseFilter):
         if data.filter_a and data.filter_b:
             if data.filter_a == data.filter_b:
                 raise Invalid('Filters A and B must be distinct, not same.')
+
+
+class IJSONFilterRepresentation(Interface):
+    """
+    Adapter interface for updating/serializing context from JSON matching:
+
+          ________________
+         |      DATA      |
+         |----------------+
+         | operator : str | 1  * ___________________
+         | rows : list    |<>---|   Row             |
+          ----------------      +-------------------+
+                                | fieldname : str   |
+                                | comparator : str  |
+                                | value             |
+                                 -------------------
+    """
+    
+    def update(data):
+        """Given JSON or dict matching above format, update context"""
+    
+    def serialize(json=True):
+        """
+        Output JSON representation (or if json is False, a dict) of
+        the filter queries for context.
+        """
 

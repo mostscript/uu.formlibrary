@@ -1,0 +1,145 @@
+<model xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema>
+    <field name="referral_type" type="zope.schema.Choice">
+      <description>Choose which type of referral is was: fax, verbal via message log, or inpatient referral or consult.</description>
+      <required>False</required>
+      <title>Referral Type</title>
+      <values>
+        <element>Scanned Fax</element>
+        <element>Verbal via Message Log</element>
+        <element>Inpatient referral or consult</element>
+        <element>Phone</element>
+        <element>Unknown</element>
+      </values>
+    </field>
+    <field name="_referral_reason" type="zope.schema.List">
+      <description>What is the reason for the referral? Choose all that apply.</description>
+      <required>False</required>
+      <title> Referral Reason</title>
+      <value_type type="zope.schema.Choice">
+        <values>
+          <element>Diagnosis / Diagnostic work up</element>
+          <element>Second opinion about diagnosis</element>
+          <element>Surgery / Opinion about need for surgery</element>
+          <element>Other procedure / Opinion about need for procedure</element>
+          <element>Patient / Family Request</element>
+          <element>Follow Up</element>
+          <element>No reason for referral documented</element>
+          <element>No evidence of referral in the system</element>
+        </values>
+      </value_type>
+    </field>
+    <field name="expectation__s_" type="zope.schema.List">
+      <description>What is the referring clinician's expectation (s) from the specialist? Choose all that apply.</description>
+      <required>False</required>
+      <title>Expectation (s)</title>
+      <value_type type="zope.schema.Choice">
+        <values>
+          <element>Develop treatment / Management plan</element>
+          <element>Treat - NOS</element>
+          <element>Opinion only</element>
+          <element>Take over care</element>
+          <element>Collaborative care</element>
+          <element>No expectation documented</element>
+          <element>No evidence of referral in the system</element>
+        </values>
+      </value_type>
+    </field>
+    <field name="specific_concern" type="zope.schema.Choice">
+      <description>Did the referral identify a specific concern or question that needed to be addressed?</description>
+      <required>False</required>
+      <title>Specific Concern</title>
+      <values>
+        <element>Yes </element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="history" type="zope.schema.Choice">
+      <description>Was the relevant history/exam of the condition included in the report from the referring clinician to the referred-to clinician?</description>
+      <required>False</required>
+      <title>History</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="referral_date" type="zope.schema.Date">
+      <description>Enter the date the referring clinician made the referral.</description>
+      <required>False</required>
+      <title>Referral Date</title>
+    </field>
+    <field name="appt__made" type="zope.schema.Date">
+      <description>Enter the date the appointment was made?</description>
+      <required>False</required>
+      <title>Appt. Made</title>
+    </field>
+    <field name="appt__date" type="zope.schema.Date">
+      <description>Enter the date of the appointment.</description>
+      <required>False</required>
+      <title>Appt. Date</title>
+    </field>
+    <field name="medications" type="zope.schema.Choice">
+      <description>Did the referral report indicate medication status?</description>
+      <required>False</required>
+      <title>Medications</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="tests" type="zope.schema.Choice">
+      <description>Was there evidence in the referral report that there were any relevant tests done?</description>
+      <required>False</required>
+      <title>Tests</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="report_back" type="zope.schema.Date">
+      <description>Enter the date the referred-to clinician sent the report/ recommendation (s) back to the referring clinician.</description>
+      <required>False</required>
+      <title>Report Back</title>
+    </field>
+    <field name="management" type="zope.schema.Choice">
+      <description>Was a description of immediate management included in the report back to the referring clinician?</description>
+      <title>Management</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="longer___term_plan" type="zope.schema.Choice">
+      <description>Was a description of a longer - term plan included in the report back to the referring clinician?</description>
+      <title>Longer - Term Plan</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="education" type="zope.schema.Choice">
+      <description>Was education about the condition given in the report back to the referring clinician?</description>
+      <title>Education</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="care_sharing" type="zope.schema.Choice">
+      <description>Was there evidence of a discussion of sharing of care with the referring clinician?</description>
+      <title>Care Sharing</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+    <field name="contact" type="zope.schema.Choice">
+      <description>Was there evidence of communication with any other specialist involved in care in the report back to the referring clinician?</description>
+      <title>Contact</title>
+      <values>
+        <element>Yes</element>
+        <element>No</element>
+      </values>
+    </field>
+  </schema>
+</model>

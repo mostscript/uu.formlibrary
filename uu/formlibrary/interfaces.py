@@ -42,6 +42,8 @@ MULTI_FORM_TYPE = 'uu.formlibrary.multiform'
 FORM_SET_TYPE = 'uu.formlibrary.setspecifier'
 FIELD_GROUP_TYPE = 'uu.formlibrary.fieldgroup'
 SERIES_TYPE = 'uu.formlibrary.series'
+FILTER_TYPE = 'uu.formlibrary.recordfilter'
+COMPOSITE_FILTER_TYPE = 'uu.formlibrary.compositefilter'
 FORM_TYPE_NAMES = {
     MULTI_FORM_TYPE     : u'Multi-record form',
     SIMPLE_FORM_TYPE    : u'Flex form', 

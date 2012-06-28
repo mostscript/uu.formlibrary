@@ -1,28 +1,24 @@
 <?xml version="1.0"?>
-<object name="uu.formlibrary.definition"
+<object name="uu.formlibrary.recordfilter"
         meta_type="Dexterity FTI"
         i18n:domain="uu.formlibrary"
         xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
   <!-- Basic metadata -->
-  <property name="title" i18n:translate="">Form definition</property>
-  <property name="description" i18n:translate="">A re-usable form definition.</property>
-  <property name="content_icon">++resource++uu.formlibrary.icons/formdef.png</property>
+  <property name="title" i18n:translate="">Record filter</property>
+  <property name="description" i18n:translate="">Specification of a set of queries on records for the schema of the containing definition.</property>
+  <property name="content_icon">search_icon.png</property>
   <property name="allow_discussion">False</property>
   <property name="global_allow">False</property>
   <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
-    <element value="uu.formlibrary.fieldgroup" /> 
-    <element value="uu.formlibrary.setspecifier" /> 
-    <element value="uu.formlibrary.recordfilter" /> 
-    <element value="uu.formlibrary.compositefilter" /> 
   </property>
   
   <!-- schema interface -->
-  <property name="schema">uu.formlibrary.interfaces.IFormDefinition</property> 
+  <property name="schema">uu.formlibrary.search.interfaces.IRecordFilter</property> 
   
   <!-- class used for content items -->
-  <property name="klass">uu.formlibrary.definition.FormDefinition</property>
+  <property name="klass">uu.formlibrary.search.filters.RecordFilter</property>
   
   <!-- add permission -->
   <property name="add_permission">cmf.AddPortalContent</property>
@@ -42,10 +38,10 @@
   </property>
 
   <!-- Method aliases -->
-  <alias from="(Default)" to="@@form_view"/>
+  <alias from="(Default)" to="(dynamic view)"/>
   <alias from="edit" to="@@edit"/>
   <alias from="sharing" to="@@sharing"/>
-  <alias from="view" to="@@form_view"/>
+  <alias from="view" to="(selected layout)"/>
  
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
@@ -60,15 +56,6 @@
          condition_expr="" url_expr="string:${object_url}/edit_schema"
          visible="True">
     <permission value="Modify portal content"/>
-  </action>
-  <!-- conditional action: "In Use" tab only shows up when
-        definition is actually in use (via reference) by a
-        form instance elsewhere in the site. -->
-  <action title="In Use (by)" action_id="in_use" category="object"
-    condition_expr="context/@@definition_forms/in_use" icon_expr=""
-    link_target="" url_expr="string:${object_url}/@@definition_forms"
-    visible="True">
-    <permission value="View"/>
   </action>
 
 </object>

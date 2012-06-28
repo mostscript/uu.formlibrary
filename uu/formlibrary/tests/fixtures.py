@@ -2,6 +2,23 @@
 # one or more test cases, for all else, build your common fixtures in the
 # layer(s) (see layers.py), not the test cases.
 
+import os
+
+from plone.uuid.interfaces import IUUID
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
+from zope.lifecycleevent import ObjectCreatedEvent
+
+import uu.formlibrary.tests as THIS_PKG
+
+
+TESTS_DIR = os.path.dirname(THIS_PKG.__file__)
+CHART_AUDIT_SCHEMA_FILE = os.path.join(
+    TESTS_DIR,
+    'sample_chart_audit_schema.xml',
+    )
+CHART_AUDIT_SCHEMA = open(CHART_AUDIT_SCHEMA_FILE).read().strip()
+
 
 class CreateContentFixtures(object):
     """
@@ -104,5 +121,54 @@ class CreateContentFixtures(object):
             cls=forms.MultiForm,
             parent=self.portal,
             )
+        # fixtures for chart-audit used to test filters:
+        from uu.formlibrary import search
+        ca_defn = self._add_check(
+            typename=interfaces.DEFINITION_TYPE,
+            id='ca_defn',
+            iface=interfaces.IFormDefinition,
+            cls=definition.FormDefinition,
+            parent=library,
+            )
+        ca_defn.entry_schema = CHART_AUDIT_SCHEMA
+        notify(ObjectCreatedEvent(ca_defn))
+        assert IUUID(ca_defn, None) is not None
+        notify(ObjectModifiedEvent(ca_defn))
+        ca_form = self._add_check(
+            typename=interfaces.MULTI_FORM_TYPE,
+            id='chartaudit',
+            iface=interfaces.IMultiForm,
+            cls=forms.MultiForm,
+            parent=self.portal,
+            )
+        ca_form.definition = IUUID(ca_defn)
+        filter1 = self._add_check(
+            typename=interfaces.FILTER_TYPE,
+            id='filter1',
+            iface=search.interfaces.IRecordFilter,
+            cls=search.filters.RecordFilter,
+            parent=ca_defn,
+            )
+        notify(ObjectCreatedEvent(filter1))
+        filter2 = self._add_check(
+            typename=interfaces.FILTER_TYPE,
+            id='filter2',
+            iface=search.interfaces.IRecordFilter,
+            cls=search.filters.RecordFilter,
+            parent=ca_defn,
+            )
+        notify(ObjectCreatedEvent(filter2))
+        comp_filter = self._add_check(
+            typename=interfaces.COMPOSITE_FILTER_TYPE,
+            id='composite',
+            iface=search.interfaces.ICompositeFilter,
+            cls=search.filters.CompositeFilter,
+            parent=ca_defn,
+            )
+        notify(ObjectCreatedEvent(comp_filter))
+        comp_filter.filter_a = IUUID(filter1)
+        comp_filter.filter_b = IUUID(filter2)
+        comp_filter.set_operator = 'difference'
+        # finally mark, don't build fixtures more than once
         self.fixtures_completed = True # run once
 

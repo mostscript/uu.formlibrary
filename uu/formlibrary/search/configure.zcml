@@ -2,12 +2,23 @@
   xmlns="http://namespaces.zope.org/zope"
   xmlns:browser="http://namespaces.zope.org/browser"
   i18n_domain="uu.formlibrary">
+
+
+  <!-- adapters -->
+  
+  <adapter 
+    factory=".filters.filter_definition"
+    provides="uu.formlibrary.interfaces.IFormDefinition"
+    for=".interfaces.IRecordFilter"
+    /> 
+
+  <!-- filter definition/criteria form (consumer for API) -->
   
   <browser:page
-    name="form_search"
-    for="uu.formlibrary.interfaces.IMultiForm"
-    class=".formsearch.FormSearchView"
-    template="formsearch.pt"
+    name="filter_criteria"
+    for="uu.formlibrary.search.interfaces.IRecordFilter"
+    class=".criteria.FilterCriteriaView"
+    template="criteria.pt"
     permission="zope2.View"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
@@ -16,24 +27,14 @@
   
   <browser:page
     name="searchapi"
-    for="uu.formlibrary.interfaces.IFormDefinition"
+    for="uu.formlibrary.search.interfaces.IRecordFilter"
     class=".api.SearchAPI"
     permission="zope2.View"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     allowed_attributes="fields comparators"
     />
   
-  <browser:page
-    name="searchapi"
-    for="uu.formlibrary.interfaces.IMultiForm"
-    class=".api.SearchAPI"
-    permission="zope2.View"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    allowed_attributes="fields comparators"
-    />
-
-
-  <!-- resources -->
+  <!-- resources: js, css, images -->
 
   <browser:resourceDirectory
     name="uu.formlibrary.search"

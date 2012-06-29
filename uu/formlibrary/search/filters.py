@@ -2,8 +2,8 @@ from datetime import date
 import json
 
 from Acquisition import aq_inner, aq_parent
-from zope.component import adapts
-from zope.interface import implements
+from zope.component import adapts, adapter
+from zope.interface import implements, implementer
 from plone.dexterity.content import Item
 from persistent import Persistent
 from persistent.dict import PersistentDict
@@ -12,6 +12,7 @@ from zope import schema
 
 from uu.retrieval.utils import identify_interface
 
+from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
 from uu.formlibrary.search.interfaces import IRecordFilter, ICompositeFilter
@@ -60,6 +61,13 @@ class FieldQuery(Persistent):
         return (self._get_field().interface is iface)
 
 
+@implementer(IFormDefinition)
+@adapter(IRecordFilter)
+def filter_definition(filter):
+    """Given filter, get definition (assumed parent)"""
+    return aq_parent(aq_inner(filter))
+
+
 class RecordFilter(Item):
     implements(IRecordFilter)
     
@@ -78,7 +86,7 @@ class RecordFilter(Item):
         Assume parent/container of RecordFilter always provides schema
         at attribute name of 'schema'.
         """
-        definition = aq_parent(aq_inner(self))
+        definition = IFormDefinition(self)
         return definition.schema
     
     def validate(self):

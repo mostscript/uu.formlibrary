@@ -188,10 +188,13 @@ class IBaseFilter(form.Schema):
         """
 
 
-class IRecordFilter(IBaseFilter):
+class IRecordFilter(IBaseFilter, IIterableMapping):
     """
     A record filter is a named item that stores a set of field queries
-    for use on a search context.
+    for use on a search context -- this component represents queries as
+    a read-only mapping of fieldname keys and IFieldQuery object values,
+    meaning only one field per filter is supported.  Adding and removal
+    of queries is possible via methods below.
     """
     
     operator = schema.Choice(
@@ -202,16 +205,31 @@ class IRecordFilter(IBaseFilter):
         default='AND',
         )
     
-    # query is not maintained in edit form of record filter, needs own 
-    # view for editing, because the three primary fields of IFieldQuery
-    # are sequentially defined (contingent) and a JavaScript implementation
-    # using the filters/comparators APIs is more sensible.
-    form.omitted('queries')
-    queries = schema.List(
-        title=u'Queries',
-        description=u'List of IFieldQuery objects, one or more per field.',
-        value_type=schema.Object(schema=IFieldQuery),
-        )
+    def add(query=None, **kwargs):
+        """
+        Given any of the following, add query to this container:
+        
+          * IFieldQuery object as first positional or query argument.
+          * keyword arguments of field, value, comparator
+          * keyword arguments of field name, value, and comparator.
+        
+        In the case of keyword arguments, construct a field query object,
+        and persist in this container/mapping component as an additional
+        criterion for this filter.
+        """
+    
+    def remove(query):
+        """
+        Given query/criterion as IFieldQuery object, or a field name,
+        remove said query from containment within this filter.
+        """
+    
+    def __contains__(name):
+        """
+        Given name/key (field name) or field query object, return
+        True if key or value is contained in this container/mapping,
+        otherwise return False.
+        """
     
     def validate():
         """

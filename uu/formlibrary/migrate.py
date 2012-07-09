@@ -28,8 +28,10 @@ from zope.schema import getFieldNamesInOrder
 from AccessControl.SecurityManagement import newSecurityManager
 from Products.CMFCore.utils import getToolByName
 
-from uu.qiforms.interfaces import IFormSeries, IChartAudit
+from uu.qiforms.interfaces import IChartAudit
+from uu.qiforms.interfaces import IFormSeries as OLDIFormSeries
 from uu.formlibrary.interfaces import IMultiForm, IFormDefinition
+from uu.formlibrary.interfaces import IFormSeries
 from uu.formlibrary.record import FormEntry
 from uu.dynamicschema.interfaces import ISchemaSaver
 
@@ -62,7 +64,7 @@ def local_query(context, query, portal_type=None):
 
 def migrate_series_schema_to_definition(series, library):
     global _logger
-    if not IFormSeries.providedBy(series):
+    if not OLDIFormSeries.providedBy(series):
         raise ValueError(
             'series does not provided uu.qiforms.interfaces.IFormSeries'
             )
@@ -99,27 +101,32 @@ def migrate_series_schema_to_definition(series, library):
     return definition, defn_uid
 
 
-def migrate_series_chartaudit_to_multiforms(series, library):
+def migrate_series_chartaudit_to_multiforms(source_series, target_series, library):
     global _logger
     _logger.info(
-        'Starting migration for series: %s' % (
-            '/'.join(series.getPhysicalPath()),
+        'Starting migration for series: %s to %s' % (
+            '/'.join(source_series.getPhysicalPath()),
+            '/'.join(target_series.getPhysicalPath()),
             )
         )
-    defn, defn_uid = migrate_series_schema_to_definition(series, library)
+    defn, defn_uid = migrate_series_schema_to_definition(source_series, library)
     _multiform_prefix = 'multi-'
     _multiform_title_suffix = ' (multi-record form)'
     _formtype = 'uu.formlibrary.multiform'
     _is_ca = lambda o: IChartAudit.providedBy(o)
-    chartaudit_forms = filter(_is_ca, series.objectValues())
+    chartaudit_forms = filter(_is_ca, source_series.objectValues())
     for form in chartaudit_forms:
         formid = form.getId()
         newid = '%s%s' % (_multiform_prefix, formid)
-        if newid in series.objectIds():
+        if newid in target_series.objectIds():
             continue   # already created
         newtitle = '%s%s' % (form.Title(), _multiform_title_suffix)
-        series.invokeFactory(id=newid, title=newtitle, type_name=_formtype)
-        multi = series.get(newid)
+        target_series.invokeFactory(
+            id=newid,
+            title=newtitle,
+            type_name=_formtype,
+            )
+        multi = target_series.get(newid)
         notify(ObjectCreatedEvent(multi))
         assert IUUID(multi, None) is not None
         # bind form definition:
@@ -156,6 +163,33 @@ def migrate_series_chartaudit_to_multiforms(series, library):
                 )
 
 
+def get_target_series(series):
+    oldid = series.getId()
+    newid = '%s-new' % oldid
+    parent_folder = aq_parent(aq_inner(series))
+    if newid in parent_folder.objectIds():
+        series = parent_folder[newid]
+        _logger.info('New series found for: %s' % repr(series))
+        return series
+    parent_folder.invokeFactory(
+        id=newid,
+        type_name='uu.formlibrary.series',
+        )
+    new_series = parent_folder[newid]
+    copyattrs = getFieldNamesInOrder(IFormSeries)
+    for name in copyattrs:
+        default = IFormSeries[name].default
+        setattr(new_series, name, getattr(series, name, default))
+    notify(ObjectCreatedEvent(new_series))  # -> assign UUID
+    notify(ObjectModifiedEvent(new_series))
+    _logger.info('Created new series: %s based on %s' % (
+            repr(series),
+            repr(series),
+            )
+        )
+    return new_series
+
+
 def migrate_project_forms(project, catalog):
     global _get, _logger
     _logger.info('Migrate project forms: %s' % project.getId())
@@ -182,18 +216,28 @@ def migrate_project_forms(project, catalog):
     all_series = map(_get, catalog.search(q))
     _logger.info('Found %s form series in project' % len(all_series))
     for series in all_series:
-        contents = filter(
+        target = get_target_series(series)  # get or make target sibling
+        contents = series.contentValues()
+        copyids = []
+        for o in contents:
+            if o.portal_type != 'uu.qiforms.chartaudit':
+                copyids.append(o.getId())
+        if copyids:
+            cp = series.manage_copyObjects(ids=copyids)
+            target.manage_pasteObjects(cb_copy_data=cp)
+            _logger.info('Copied forms to new series: %s' % repr(copyids))
+        ca_contents = filter(
             lambda o: o.portal_type=='uu.qiforms.chartaudit',
             series.contentValues()
             )
-        if len(contents) == 0:
+        if len(ca_contents) == 0:
             _logger.info(
-                'Skipping series %s -- no chart audit forms within' % (
+                'series %s -- no chart audit forms to migrate within' % (
                     series.getId(),
                     )
                 )
         else:
-            migrate_series_chartaudit_to_multiforms(series, library)
+            migrate_series_chartaudit_to_multiforms(series, target, library)
 
 
 def migrate_site_forms(site):

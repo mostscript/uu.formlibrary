@@ -226,3 +226,6 @@ def migration_wrapper(app, sitename='qiteamspace', username='admin'):
     txn.commit()
 
 
+if 'app' in locals():
+    migration_wrapper(app)
+

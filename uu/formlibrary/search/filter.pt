@@ -24,7 +24,7 @@ table.queries td {
  <div metal:fill-slot="header">
   <h5>RECORD FILTER</h5>
  </div>
- <div metal:fill-slot="content-core">
+ <div metal:fill-slot="content-core" tal:define="operator context/operator">
   <hr />
   <table class="queries">
    <tr tal:repeat="query view/queries">
@@ -33,13 +33,16 @@ table.queries td {
     <td tal:content="query/value">VALUE</td>
    </tr>
   </table>
-  <div><label>Operator used across fields: </label><span tal:content="context/operator">OP</span></div>
+  <div><label>Operator used across fields: </label><span tal:content="operator">OP</span></div>
   <tal:block define="used_by view/used_by">
    <div tal:condition="used_by">
     <h4>This filter is also used by:</h4>
     <ul>
       <li tal:repeat="brain used_by">
-        <a href="" tal:content="brain/Title" tal:attributes="href brain/getURL" target="_blank">TITLE</a>
+        <img src="" tal:attributes="src brain/getIcon; alt brain/Type" />
+        <a href="" tal:attributes="href brain/getURL" target="_blank">
+          <span tal:content="string:${brain/Title} (${brain/Type})">TITLE</span> 
+        </a>
       </li>
     </ul>
    </div>

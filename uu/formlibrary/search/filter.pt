@@ -1,0 +1,39 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<style>
+table.queries {
+    border:1px solid #000;
+}
+
+table.queries td {
+    border:1px solid #aaa;
+}
+
+</style>
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="header">
+  <h5>RECORD FILTER</h5>
+ </div>
+ <div metal:fill-slot="content-core">
+  <hr />
+  <table class="queries">
+   <tr tal:repeat="query view/queries">
+    <td tal:content="query/field/title">FIELDNAME</td>
+    <td tal:content="python: view.comparator_title(query.comparator)">COMPARE</td>
+    <td tal:content="query/value">VALUE</td>
+   </tr>
+  </table>
+  <div><label>Operator used across fields: </label><span tal:content="context/operator">OP</span></div>
+ </div>
+</body>
+</html>

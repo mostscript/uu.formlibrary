@@ -1,9 +1,6 @@
 if (!this.SFDEBUG) SFDEBUG = true;
 if (!this.console) console = function () { this.log = function () {}; return this }();
 
-SF_MOCK_JSON = '{"rows":[{"fieldname":"tests","comparator":"Eq","value":"No"},{"fieldname":"report_back","comparator":"Eq","value":"6/26/2012"},{"fieldname":"_referral_reason","comparator":"Any","value":["Diagnosis / Diagnostic work up","Surgery / Opinion about need for surgery"]},{"fieldname":"referral_type","comparator":"Eq","value":"Verbal via Message Log"}],"operator":"AND"}';
-
-SF_MOCK = JSON.parse(SF_MOCK_JSON);
 
 /** searchform namespace, global functions: */
 if (!searchform) {
@@ -415,6 +412,7 @@ if (!searchform) {
         var payload_form_input = jq('#payload');
         if (payload_form_input.length) {
             payload_form_input.val(bundle);
+            jq('form.record-queries').submit();
         }
     };
 
@@ -605,20 +603,24 @@ if (!searchform) {
     };
     
     searchform.FormControl.prototype.loadSaved = function () {
-        var saved, i=0, rowdata, q;
-        var saved = SF_MOCK; // TODO: replace with real data loading
-        if ((saved.operator === 'AND') || (saved.operator === 'OR')) {
-            this.operator = saved.operator;
-        }
-        for ( ; i<saved.rows.length; i++) {
-            rowdata = saved.rows[i];
-            q = new searchform.FieldQuery(
-                rowdata.fieldname,
-                rowdata.comparator,
-                rowdata.value
-                );
-            q.initrow();
-        }
+        var i=0, rowdata, q;
+        var queries_url = jq('base').attr('href') + '/@@searchapi/criteria';
+        var ctl = this;
+        jq.ajax({
+            url: queries_url,
+            success: function(data) {
+                ctl.operator = data.operator;
+                for ( ; i<data.rows.length; i++) {
+                    rowdata = data.rows[i];
+                    q = new searchform.FieldQuery(
+                        rowdata.fieldname,
+                        rowdata.comparator,
+                        rowdata.value
+                        );
+                    q.initrow();
+                    }
+                }
+            });
     };
 
     

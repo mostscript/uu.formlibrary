@@ -12,6 +12,23 @@
     for=".interfaces.IRecordFilter"
     /> 
 
+  <!-- indexer adapter -->
+  <adapter
+    name="getRawRelatedItems"
+    factory=".filters.directly_related_uids"
+    />
+
+  <!-- summary views -->
+  
+  <browser:page
+    name="filter_view"
+    for="uu.formlibrary.search.interfaces.IRecordFilter"
+    class=".criteria.FilterView"
+    template="filter.pt"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+  
   <!-- filter definition/criteria form (consumer for API) -->
   
   <browser:page

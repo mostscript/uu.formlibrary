@@ -36,12 +36,12 @@
   <property name="view_methods">
     <element value="view"/>
   </property>
-
+  
   <!-- Method aliases -->
-  <alias from="(Default)" to="(dynamic view)"/>
+  <alias from="(Default)" to="@@filter_view"/>
   <alias from="edit" to="@@edit"/>
   <alias from="sharing" to="@@sharing"/>
-  <alias from="view" to="(selected layout)"/>
+  <alias from="view" to="@@filter_view"/>
  
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""
@@ -52,8 +52,8 @@
           url_expr="string:${object_url}/edit" visible="True">
     <permission value="Modify portal content"/>
   </action>
-  <action title="Form schema" action_id="edit_schema" category="object"
-         condition_expr="" url_expr="string:${object_url}/edit_schema"
+  <action title="Criteria" action_id="filter_criteria" category="object"
+         condition_expr="" url_expr="string:${object_url}/@@filter_criteria"
          visible="True">
     <permission value="Modify portal content"/>
   </action>

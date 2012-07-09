@@ -34,6 +34,16 @@ table.queries td {
    </tr>
   </table>
   <div><label>Operator used across fields: </label><span tal:content="context/operator">OP</span></div>
+  <tal:block define="used_by view/used_by">
+   <div tal:condition="used_by">
+    <h4>This filter is also used by:</h4>
+    <ul>
+      <li tal:repeat="brain used_by">
+        <a href="" tal:content="brain/Title" tal:attributes="href brain/getURL" target="_blank">TITLE</a>
+      </li>
+    </ul>
+   </div>
+  </tal:block>
  </div>
 </body>
 </html>

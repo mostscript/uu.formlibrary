@@ -1,5 +1,7 @@
 from Products.statusmessages.interfaces import IStatusMessage
+from Products.CMFCore.utils import getToolByName
 from zope.component.hooks import getSite
+from plone.uuid.interfaces import IUUID
 
 from uu.formlibrary.search.interfaces import IRecordFilter
 from uu.formlibrary.search.filters import FilterJSONAdapter
@@ -24,6 +26,22 @@ class FilterView(object):
     
     def comparator_title(self, comparator):
         return self.comparators.get(comparator).label
+    
+    def used_by(self):
+        """
+        returns sequence of catalog brains for all content
+        (esp. composite filters) referencing/using this filter.
+        Uses the getRawRelatedItems index rather than a
+        purpose-specific index.
+        """
+        catalog = getToolByName(self.context, 'portal_catalog')
+        uid = IUUID(self.context, None)
+        if not uid:
+            return ()
+        q = {
+            'getRawRelatedItems' : uid,
+            }
+        return tuple(catalog.search(q))
 
 
 class FilterCriteriaView(object):

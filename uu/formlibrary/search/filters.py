@@ -161,6 +161,10 @@ class RecordFilter(Item):
     
     def items(self):
         return list(self.iteritems())
+    
+    @property
+    def externalEditorEnabled(self):
+        return False
 
 
 class FilterJSONAdapter(object):
@@ -279,12 +283,18 @@ class CriteriaJSONCapability(object):
 
 class CompositeFilter(Item):
     implements(ICompositeFilter)
+    
+    @property
+    def externalEditorEnabled(self):
+        return False
+
 
 @indexer(ICompositeFilter)
 def directly_related_uids(context):
     r = []
     for name in ('filter_a', 'filter_b'):
-        if len(getattr(context, name, None) or '') >= 32:
-            r.append(context.filter_a)
+        v = getattr(context, name, None) or ''
+        if len(v) >= 32:
+            r.append(v)
     return r
  

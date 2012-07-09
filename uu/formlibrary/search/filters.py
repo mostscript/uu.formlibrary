@@ -1,16 +1,21 @@
-from datetime import date
+import itertools
 import json
+from datetime import date
 
 from Acquisition import aq_inner, aq_parent
 from zope.component import adapts, adapter
+from zope.dottedname.resolve import resolve
 from zope.interface import implements, implementer
+from zope.publisher.interfaces.browser import IBrowserPublisher
 from plone.dexterity.content import Item
+from plone.indexer import indexer
 from persistent import Persistent
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
 from zope import schema
 
 from uu.retrieval.utils import identify_interface
+from uu.smartdate.converter import normalize_usa_date
 
 from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.search.interfaces import IFieldQuery
@@ -63,9 +68,9 @@ class FieldQuery(Persistent):
 
 @implementer(IFormDefinition)
 @adapter(IRecordFilter)
-def filter_definition(filter):
+def filter_definition(context):
     """Given filter, get definition (assumed parent)"""
-    return aq_parent(aq_inner(filter))
+    return aq_parent(aq_inner(context))
 
 
 class RecordFilter(Item):
@@ -80,7 +85,6 @@ class RecordFilter(Item):
         self._queries = PersistentDict()
         self._order = PersistentList()
     
-    @property
     def schema(self):
         """
         Assume parent/container of RecordFilter always provides schema
@@ -90,7 +94,7 @@ class RecordFilter(Item):
         return definition.schema
     
     def validate(self):
-        schema = self.schema
+        schema = self.schema()
         for query in self._queries.values():
             query.validate(schema)
     
@@ -103,13 +107,13 @@ class RecordFilter(Item):
             if not (field or fieldname):
                 raise ValueError('Field missing for query construction')
             if field is None and fieldname:
-                field = self.schema[fieldname]
+                field = self.schema()[fieldname]
             comparator = kwargs.get('comparator', None)
             value = kwargs.get('value', None)
             if not (value and comparator):
                 raise ValueError('Missing value or comparator')
             query = FieldQuery(field, comparator, value)
-        query.validate(self.schema)
+        query.validate(self.schema())
         fieldname = query.field.__name__
         self._queries[fieldname] = query
         self._order.append(fieldname)
@@ -147,10 +151,10 @@ class RecordFilter(Item):
         return self._order.__iter__()
     
     def itervalues(self):
-        return itertools.imap(lambda k: self.get(k), self.itekeys())
+        return itertools.imap(lambda k: self.get(k), self.iterkeys())
     
     def iteritems(self):
-        return itertools.imap(lambda k: (k, self.get(k)), self.itekeys())
+        return itertools.imap(lambda k: (k, self.get(k)), self.iterkeys())
     
     def values(self):
         return list(self.itervalues())
@@ -186,7 +190,10 @@ class FilterJSONAdapter(object):
     def normalize_value(self, field, value):
         if schema.interfaces.IDate.providedBy(field):
             if isinstance(value, basestring):
-                return date(*(map(lambda v: int(v), value.split('-'))))
+                usa_date = normalize_usa_date(value)
+                if usa_date is not None:
+                    return usa_date  # M/D/YYYY -> date
+                return date(*(map(lambda v: int(v), value.split('-'))))  # ISO
         if schema.interfaces.IInt.providedBy(field):
             return int(value)
         if schema.interfaces.IFloat.providedBy(field):
@@ -203,7 +210,7 @@ class FilterJSONAdapter(object):
         for query_row in data.get('rows', []):
             fieldname = query_row.get('fieldname')
             comparator = query_row.get('comparator')
-            field = self.schema[fieldname]
+            field = self.context.schema()[fieldname]
             value = self.normalize_value(
                 field,
                 query_row.get('value'),
@@ -223,20 +230,61 @@ class FilterJSONAdapter(object):
         row['fieldname'] = query.field.__name__
         row['value'] = self._serialize_value(query.field, query.value)
         row['comparator'] = query.comparator
+        return row
     
-    def serialize(self, json=True):
+    def serialize(self, use_json=True):
         """
-        Serialze queries of context to JSON, or if JSON is False, to an
+        Serialze queries of context to JSON, or if use_json is False, to an
         equivalent dict of data.
         """
         data = {}
         data['operator'] = self.context.operator
-        data['rows'] = [_mkrow(q) for q in self.context.queries]
-        if json:
+        data['rows'] = [self._mkrow(q) for q in self.context.values()]
+        if use_json:
             return json.dumps(data, indent=4)
         return data
+
+
+class CriteriaJSONCapability(object):
+    """API capability for JSON output"""
+    
+    implements(IBrowserPublisher)
+
+    def __init__(self, context, request=None):
+        self.context = context
+        self.request = getRequest() if request is None else request
+    
+    def __call__(self, *args, **kwargs):
+        return FilterJSONAdapter(self.context).serialize(use_json=False)
+
+    def publish_json(self):
+        msg = FilterJSONAdapter(self.context).serialize()
+        if self.request is not None:
+            self.request.response.setHeader('Content-type', 'application/json')
+            self.request.response.setHeader('Content-length', str(len(msg)))
+        return msg 
+    
+    def publishTraverse(self, request, name):
+        if name == 'publish_json':
+            if self.request is not request:
+                self.request = request
+            return self.publish_json  # callable method
+        raise NotFound(self, name, request)
+    
+    def browserDefault(self, request):
+        if request:
+            return self, ('publish_json',)
+        return self, ()        
 
 
 class CompositeFilter(Item):
     implements(ICompositeFilter)
 
+@indexer(ICompositeFilter)
+def directly_related_uids(context):
+    r = []
+    for name in ('filter_a', 'filter_b'):
+        if len(getattr(context, name, None) or '') >= 32:
+            r.append(context.filter_a)
+    return r
+ 

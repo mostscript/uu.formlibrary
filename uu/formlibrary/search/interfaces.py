@@ -246,7 +246,7 @@ class ICompositeFilter(IBaseFilter):
     filter_a = schema.Choice(
         title=u'Filter A',
         description=u'The first filter to consider for set operations.',
-        source=UUIDSourceBinder(object_provides=IRecordFilter.__identifier__),
+        source=UUIDSourceBinder(object_provides=IBaseFilter.__identifier__),
         required=True,
         )
     
@@ -254,7 +254,7 @@ class ICompositeFilter(IBaseFilter):
     filter_b = schema.Choice(
         title=u'Filter B',
         description=u'The first filter to consider for set operations.',
-        source=UUIDSourceBinder(object_provides=IRecordFilter.__identifier__),
+        source=UUIDSourceBinder(object_provides=IBaseFilter.__identifier__),
         required=True,
         )
     

@@ -395,6 +395,8 @@ class EveryTwoMonthsInfo(PeriodInfo):
     def id(self):
         v = self.title
         return v.replace(' ','').replace('(','-').replace(')','').lower()
+
+
 def local_query(context, query, types=None, depth=2):
     """ 
     Given a catalog search query dict and a context, restrict
@@ -403,6 +405,7 @@ def local_query(context, query, types=None, depth=2):
 
     Returns modified query dict for use with catalog search.
     """
+    query = dict(query.items())  # cheap copy
     path = '/'.join(context.getPhysicalPath())
     query['path'] = { 
         'query' : path,

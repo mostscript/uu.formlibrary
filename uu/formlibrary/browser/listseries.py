@@ -4,26 +4,7 @@ from DateTime import DateTime
 from zope.schema import getFieldsInOrder
 
 from uu.formlibrary.interfaces import IFormSeries, FORM_TYPES
-
-
-def local_query(context, query):
-    """
-    Given a catalog search query dict and a context, restrict
-    search to items contained in the context path or subfolders,
-    and particularly only items of a form type.
-
-    Returns modified query dict for use with catalog search.
-    """
-    path = '/'.join(context.getPhysicalPath())
-    query['path'] = {
-        'query' : path,
-        'depth' : 2,
-        }
-    query['portal_type'] = {
-        'query' : FORM_TYPES,
-        'operator' : 'or', 
-        }
-    return query
+from uu.formlibrary.utils import local_query
 
 
 class FormSeriesListing(object):
@@ -69,7 +50,8 @@ class FormSeriesListing(object):
                         },
                         'sort_on'       : 'end',
                         'sort_order'    : 'ascending',
-                    }
+                    },
+                    types=FORM_TYPES,
                     )
                 ),
             ('Upcoming forms',
@@ -82,7 +64,8 @@ class FormSeriesListing(object):
                         },
                         'sort_on'       : 'start',
                         'sort_order'    : 'ascending',
-                    }
+                    },
+                    types=FORM_TYPES,
                     )
                 ),
             ('Submitted recently',
@@ -95,7 +78,8 @@ class FormSeriesListing(object):
                         },
                         'sort_on'       : 'modified',
                         'sort_order'    : 'descending',
-                    }
+                    },
+                    types=FORM_TYPES,
                     )
                 ),
             )

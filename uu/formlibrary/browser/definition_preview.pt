@@ -1,0 +1,118 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  <meta name="form-type" content="" tal:attributes="content context/portal_type" />
+  <script type="text/javascript">
+  //<![CDATA[
+  jq = jQuery;
+  jq(document).ready(function(){
+    var formtype = jq('meta[name="form-type"]').attr('content');
+    if (formtype == 'uu.formlibrary.definition') {
+        //change label, we don't save
+        jq('input.submit-widget#form-buttons-save').val('Test form input');
+    }
+  });
+  //]]>
+  </script>
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<style>
+  .configuration-summary { border:1px solid #ccc; background-color:#eee; padding-left:3em; }
+  .configuration-summary h5 { padding-left:0.5em; }  
+  .configuration-summary div.fieldgroups,
+  .configuration-summary div.filters,
+  .configuration-summary div.formsets { float:left; width:31%; margin-right:0.2em; }
+  #content fieldset { border-top:none !Important; background-color:#e9edfa !Important; border-bottom:1px solid #bbb; padding 0 1em 0 0; }
+  #content fieldset legend {width: 100%; display: block; background-color:#ddd; color:#444; font-size:110% !Important; font-weight:bold; line-height:120%; margin-left:-1em; }
+  #content #fieldset-default legend { display:none; } /* hide the heading for default fieldset */
+  table.datagridwidget-table-view input.smartdate-widget { width:8em !important; }
+  table.datagridwidget-table-view input { margin-bottom:0.4em; width:95% !Important; }
+  table.datagridwidget-table-view div.smartdate { width: 10em; display:block; padding-top:0.6em; }
+</style>
+<style tal:condition="python:view.definition.form_css and view.definition.form_css.strip()"
+       tal:content="structure view/definition/form_css">
+</style>  
+  </metal:block>
+</head>
+<body>
+  <div metal:fill-slot="main">
+  <h1 tal:content="structure string:${context/Title} <em>(Form preview)</em>">TITLE</h1>
+  <div tal:content="context/Description">Description</div>
+  <div class="configuration-summary">
+
+    <!-- fieldgroups -->
+    <div class="fieldgroups" tal:condition="view/fieldgroups">
+     <h5>Field groups</h5>
+     <ul>
+       <li tal:repeat="group python:[b.getObject() for b in view.fieldgroups()]">
+        <a href="" tal:attributes="href group/getId">
+          <img src="" 
+             tal:condition="python:group.group_usage==u'grid'"
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/multiform.png" />
+          <img src="" 
+             tal:condition="python:group.group_usage==u'group'"
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/form_icon.png" />
+          <span tal:content="group/Title">FIELD GROUP</span>
+        </a>
+        <em tal:condition="python:group.group_usage==u'grid'">(grid)</em>
+       </li>
+     </ul>
+     <div class="more-contents" tal:condition="python: 'fieldgroups' in view.showmore">
+      <a href="" 
+         alt="More field groups"
+         target="_blank"
+         tal:attributes="href python:view.more_contents_url('fieldgroups')">More</a>
+     </div>
+    </div>
+    
+    <!-- form sets -->
+    <div class="formsets" tal:condition="view/formsets">
+     <h5>Form sets</h5>
+     <ul>
+       <li tal:repeat="brain view/formsets">
+        <a href="" tal:attributes="href brain/getId">
+          <img src="" 
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/${brain/getIcon}" />
+          <span tal:content="brain/Title">FORM SET</span>
+        </a>
+       </li>
+     </ul>     
+     <div class="more-contents" tal:condition="python: 'formsets' in view.showmore">
+      <a href="" 
+         alt="More formsets"
+         target="_blank"
+         tal:attributes="href python:view.more_contents_url('formsets')">More</a>
+     </div>
+    </div>
+    
+    <!-- record filters -->
+    <div class="filters" tal:condition="view/filters">
+     <h5>Record filters</h5>
+     <ul>
+       <li tal:repeat="brain view/filters">
+        <a href="" tal:attributes="href brain/getId">
+          <img src="" 
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/${brain/getIcon}" />
+          <span tal:content="brain/Title">FILTER TITLE</span>
+        </a>
+       </li>
+     </ul>     
+     <div class="more-contents" tal:condition="python: 'filters' in view.showmore">
+      <a href="" 
+         alt="More filters"
+         target="_blank"
+         tal:attributes="href python:view.more_contents_url('filters')">More</a>
+     </div>
+    </div>
+     
+  </div>
+  <hr style="clear:both" />
+    <form tal:replace="structure view/render_form">DATA FORM HERE</form>
+  </div>
+</body>
+</html>

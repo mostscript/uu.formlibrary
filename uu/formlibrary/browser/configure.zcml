@@ -10,8 +10,8 @@
   <browser:page
     name="form_view"
     for="uu.formlibrary.interfaces.IFormDefinition"
-    class=".definition.FormInputView"
-    template="form_view.pt"
+    class=".definition.DefinitionPreview"
+    template="definition_preview.pt"
     permission="zope2.View"
     />
 

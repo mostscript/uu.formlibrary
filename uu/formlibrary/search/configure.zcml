@@ -50,7 +50,33 @@
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     allowed_attributes="fields comparators"
     />
-  
+ 
+  <!-- templated SVG views for composite filter -->
+
+  <browser:page
+    name="intersection.svg"
+    for="uu.formlibrary.search.interfaces.ICompositeFilter"
+    template="intersection.svg.pt"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+   
+  <browser:page
+    name="union.svg"
+    for="uu.formlibrary.search.interfaces.ICompositeFilter"
+    template="union.svg.pt"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+   
+  <browser:page
+    name="difference.svg"
+    for="uu.formlibrary.search.interfaces.ICompositeFilter"
+    template="difference.svg.pt"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+   
   <!-- resources: js, css, images -->
 
   <browser:resourceDirectory

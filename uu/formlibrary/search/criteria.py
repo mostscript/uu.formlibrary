@@ -19,6 +19,7 @@ class FilterView(object):
             raise ValueError('Context must be a record filter')
         self.context = context
         self.request = request
+        self.portal = getSite()
         self.comparators = Comparators(request)
     
     def queries(self):
@@ -27,6 +28,9 @@ class FilterView(object):
     def comparator_title(self, comparator):
         return self.comparators.get(comparator).label
     
+    def comparator_symbol(self, comparator):
+        return self.comparators.get(comparator).symbol
+     
     def used_by(self):
         """
         returns sequence of catalog brains for all content
@@ -42,6 +46,9 @@ class FilterView(object):
             'getRawRelatedItems' : uid,
             }
         return tuple(catalog.search(q))
+    
+    def portalurl(self):
+        return self.portal.absolute_url()
 
 
 class FilterCriteriaView(object):

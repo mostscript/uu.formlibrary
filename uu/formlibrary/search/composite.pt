@@ -10,16 +10,13 @@
   <metal:block fill-slot="style_slot">
 <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
 <style>
-table.queries td { color: #666; }
-table.queries td.display-queryop { font-size:100%; color:#68b; text-align:left; padding-right:0.1em; }
-table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
-.comparator-symbol { color:#ccc; display:block; float:left; margin-right:0.1em; width:1.2em; font-size:130%; font-weight:bold; }
-.venn { float:left; }
+.venn { float:left; margin-right:1em; }
 div.basic-info {clear:none;}
 div.basic-info div { margin-top:0.5em; }
 div.basic-info p { margin-top:1em; background-color:#eee; border:#999; color:#666; margin-left:2em !Important; }
 div.setop label {display:block; clear:none;}
 div.setop span { padding-left:1em; }
+
 </style>
   </metal:block>
 </head>
@@ -33,6 +30,7 @@ div.setop span { padding-left:1em; }
          alt="Set operation image"
          class="venn"
          type="image/svg+xml"
+         width="260"
          tal:attributes="src string:${context/absolute_url}/${operator}.svg"
          />
   <div class="basic-info" tal:define="redirect_base string:${context/@@plone_portal_state/navigation_root_url}/@@redirect-to-uuid/">

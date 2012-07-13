@@ -1,0 +1,75 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
+<style>
+table.queries td { color: #666; }
+table.queries td.display-queryop { font-size:100%; color:#68b; text-align:left; padding-right:0.1em; }
+table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
+.comparator-symbol { color:#ccc; display:block; float:left; margin-right:0.1em; width:1.2em; font-size:130%; font-weight:bold; }
+.venn { float:left; }
+div.basic-info {clear:none;}
+div.basic-info div { margin-top:0.5em; }
+div.basic-info p { margin-top:1em; background-color:#eee; border:#999; color:#666; margin-left:2em !Important; }
+div.setop label {display:block; clear:none;}
+div.setop span { padding-left:1em; }
+</style>
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="header">
+  <h5>COMPOSITE FILTER</h5>
+ </div>
+ <div metal:fill-slot="content-core" tal:define="operator context/set_operator">
+  <hr />
+  <embed src=""
+         alt="Set operation image"
+         class="venn"
+         type="image/svg+xml"
+         tal:attributes="src string:${context/absolute_url}/${operator}.svg"
+         />
+  <div class="basic-info" tal:define="redirect_base string:${context/@@plone_portal_state/navigation_root_url}/@@redirect-to-uuid/">
+   <div class="setop">
+    <label>Set combination operator:</label> <span tal:content="python:view.setop_title(context.set_operator)">OP</span>
+   </div>
+   <div tal:define="title python:context.portal_catalog.search({'UID':context.filter_a})[0].Title">
+    <label>Filter A:</label>
+    <a href=""
+       target="_blank"
+       tal:attributes="href string:${redirect_base}${context/filter_a}">
+        <span tal:content="title">FILTER A TITLE</span>
+    </a>
+   </div>
+   <div tal:define="title python:context.portal_catalog.search({'UID':context.filter_b})[0].Title">
+    <label>Filter B:</label>
+    <a href=""
+       target="_blank"
+       tal:attributes="href string:${redirect_base}${context/filter_b}">
+        <span tal:content="title">FILTER B TITLE</span>
+    </a>
+   </div>
+   <p class="help">This is a filter composed of a (<span tal:replace="context/set_operator" />) combination of two other filters.</p>
+  </div> 
+  <tal:block define="used_by view/used_by">
+   <div tal:condition="used_by">
+    <h4>This filter is also used by:</h4>
+    <ul>
+      <li tal:repeat="brain used_by">
+        <img src="" tal:attributes="src brain/getIcon; alt brain/Type" />
+        <a href="" tal:attributes="href brain/getURL" target="_blank">
+          <span tal:content="string:${brain/Title} (${brain/Type})">TITLE</span> 
+        </a>
+      </li>
+    </ul>
+   </div>
+  </tal:block>
+ </div>
+</body>
+</html>

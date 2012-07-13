@@ -3,34 +3,19 @@ from Products.CMFCore.utils import getToolByName
 from zope.component.hooks import getSite
 from plone.uuid.interfaces import IUUID
 
-from uu.formlibrary.search.interfaces import IRecordFilter
+from uu.formlibrary.search.interfaces import IRecordFilter, ICompositeFilter
 from uu.formlibrary.search.filters import FilterJSONAdapter
 
 from comparators import Comparators
 
 
-class FilterView(object):
-    """
-    Summary view for IRecordFilter.
-    """
+class BaseFilterView(object):
     
     def __init__(self, context, request):
-        if not IRecordFilter.providedBy(context):
-            raise ValueError('Context must be a record filter')
         self.context = context
         self.request = request
         self.portal = getSite()
-        self.comparators = Comparators(request)
     
-    def queries(self):
-        return self.context.values()
-    
-    def comparator_title(self, comparator):
-        return self.comparators.get(comparator).label
-    
-    def comparator_symbol(self, comparator):
-        return self.comparators.get(comparator).symbol
-     
     def used_by(self):
         """
         returns sequence of catalog brains for all content
@@ -46,9 +31,39 @@ class FilterView(object):
             'getRawRelatedItems' : uid,
             }
         return tuple(catalog.search(q))
-    
+     
     def portalurl(self):
         return self.portal.absolute_url()
+
+
+class FilterView(BaseFilterView):
+    """
+    Summary view for IRecordFilter.
+    """
+    
+    def __init__(self, context, request):
+        if not IRecordFilter.providedBy(context):
+            raise ValueError('Context must be a record filter')
+        super(FilterView, self).__init__(context, request)
+        self.comparators = Comparators(request)
+    
+    def queries(self):
+        return self.context.values()
+    
+    def comparator_title(self, comparator):
+        return self.comparators.get(comparator).label
+    
+    def comparator_symbol(self, comparator):
+        return self.comparators.get(comparator).symbol
+
+
+class CompositeFilterView(BaseFilterView):
+    def __init__(self, context, request):
+        super(CompositeFilterView, self).__init__(context, request)
+    
+    def setop_title(self, op):
+        field = ICompositeFilter['set_operator']
+        return [term.title for term in field.vocabulary if term.value==op][0]
 
 
 class FilterCriteriaView(object):

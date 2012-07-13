@@ -51,8 +51,17 @@
     allowed_attributes="fields comparators"
     />
  
-  <!-- templated SVG views for composite filter -->
+  <!-- view and templated SVG views for composite filter -->
 
+  <browser:page
+    name="composite_filter_view"
+    for="uu.formlibrary.search.interfaces.ICompositeFilter"
+    class=".criteria.CompositeFilterView"
+    template="composite.pt"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+  
   <browser:page
     name="intersection.svg"
     for="uu.formlibrary.search.interfaces.ICompositeFilter"

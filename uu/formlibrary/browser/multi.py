@@ -128,6 +128,8 @@ class MultiFormEntry(object):
                     if state == 'visible':
                         wftool.doActionFor(self.context, 'submit')
                         msg += ' (form submitted for review)'
+                        url = self.context.absolute_url()
+                        self.request.RESPONSE.redirect(url)
         if msg:
            self._status.addStatusMessage(msg, type='info')
     

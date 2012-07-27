@@ -9,6 +9,7 @@ from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import getFieldsInOrder, getFieldNamesInOrder
 from zope.schema.interfaces import IChoice, IList, IDate
 from zope.app.component.hooks import getSite
+from Products.CMFCore.utils import getToolByName
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.schema import parse_schema
@@ -17,6 +18,7 @@ from uu.workflows.utils import history_log
 from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
 
 from uu.smartdate.browser.widget import SmartdateFieldWidget
+
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
 DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
@@ -116,6 +118,9 @@ class MultiFormEntry(object):
                 if count_new or count_updated or count_removed:
                     self._user_message += ')'
                 history_log(self.context, self._user_message)
+                if 'save_submit' in self.request.form:
+                    wftool = getToolByName(self.context, 'portal_workflow')
+                    wftool.doActionFor(self.context, 'submit')
     
     @property
     def schema(self):

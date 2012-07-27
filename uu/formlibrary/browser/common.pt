@@ -12,9 +12,6 @@
  <tal:globals define="series view/seriesinfo">
   <div metal:define-macro="formseries_headmeta"
        tal:define="is_series python:getattr(view, 'SERIES', False)">
-    <div class="user-message" tal:condition="view/user_message">
-        <span tal:content="view/user_message">Optional message to user</span>
-    </div>
     
     <div id="form-metadata" class="form-meta">
      <div class="wrapper">

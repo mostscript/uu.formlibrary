@@ -254,9 +254,11 @@ uu.formlibrary.multiform.submit = function() {
     }
     if (int_validates && float_validates && date_validates) {
         uu.formlibrary.multiform.copybundle(); /* serialize JSON to hidden 'payload' input */
-        jq('form#coredata').submit(); /* submit the form containing the payload */
+        //jq('form#coredata').submit(); /* submit the form containing the payload */
+        return true;
     } else {
         alert('Please correct input errors and then try saving again.');
+        return false;
     }
 }
 
@@ -297,7 +299,7 @@ jq(document).ready(function(){
         }
     jq('input#btn-addrow').click(uu.formlibrary.multiform.handle_new_row);
     uu.formlibrary.multiform.rowhandlers();
-    jq('input#btn-saveform').click(uu.formlibrary.multiform.submit);
+    jq('#coredata').submit(uu.formlibrary.multiform.submit);
     jq('textarea.entry_notes').focus(function() {
         var defval = "Enter any notes pertaining to this period.";
         if (jq(this).val() == defval) {

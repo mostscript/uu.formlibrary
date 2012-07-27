@@ -9,6 +9,8 @@ from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import getFieldsInOrder, getFieldNamesInOrder
 from zope.schema.interfaces import IChoice, IList, IDate
 from zope.app.component.hooks import getSite
+from Products.CMFCore.utils import getToolByName
+from Products.statusmessages.interfaces import IStatusMessage
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.schema import parse_schema
@@ -17,6 +19,7 @@ from uu.workflows.utils import history_log
 from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
 
 from uu.smartdate.browser.widget import SmartdateFieldWidget
+
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
 DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
@@ -86,13 +89,14 @@ class MultiFormEntry(object):
                 if v is not None and k in getFieldNamesInOrder(IFormSeries)])
         self.title = '%s: %s' % (self.series.Title().strip(), context.Title())
         self._fields = []
-        self._user_message = ''
+        self._status = IStatusMessage(self.request)
     
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)  #index() via Five/framework magic
    
     def update(self, *args, **kwargs):
+        msg = ''
         if 'payload' in self.request.form:
             json = self.request.form.get('payload').strip()
             if json:
@@ -102,20 +106,32 @@ class MultiFormEntry(object):
                 count_new = len(set(newkeys) - set(oldkeys))
                 count_updated = len(set(oldkeys) & set(newkeys))
                 count_removed = len(set(oldkeys) - set(newkeys))
-                self._user_message = 'Data has been saved.'
+                msg = 'Data has been saved.'
                 if count_new or count_updated or count_removed:
-                    self._user_message += '('
+                    msg += '('
                 if count_new:
-                    self._user_message += ' %s new entries. ' % count_new
+                    msg += ' %s new entries. ' % count_new
                 if count_updated:
-                    self._user_message += ' %s updated entries. ' % (
+                    msg += ' %s updated entries. ' % (
                         count_updated,)
                 if count_removed:
-                    self._user_message += ' %s removed entries. ' % (
+                    msg += ' %s removed entries. ' % (
                         count_removed,)
                 if count_new or count_updated or count_removed:
-                    self._user_message += ')'
-                history_log(self.context, self._user_message)
+                    msg += ')'
+                history_log(self.context, msg)
+                if 'save_submit' in self.request.form:
+                    wftool = getToolByName(self.context, 'portal_workflow')
+                    chain = wftool.getChainFor(self.context)[0]
+                    state = wftool.getStatusOf(chain,
+                                               self.context)['review_state']
+                    if state == 'visible':
+                        wftool.doActionFor(self.context, 'submit')
+                        msg += ' (form submitted for review)'
+                        url = self.context.absolute_url()
+                        self.request.RESPONSE.redirect(url)
+        if msg:
+           self._status.addStatusMessage(msg, type='info')
     
     @property
     def schema(self):
@@ -123,9 +139,6 @@ class MultiFormEntry(object):
         if not entry_uids:
             return self.definition.schema
         return self.context[entry_uids[0]].schema # of first contained record
-    
-    def user_message(self):
-        return self._user_message
     
     def fields(self):
         if not self._fields:

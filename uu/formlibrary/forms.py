@@ -19,6 +19,7 @@ from zope.schema import getFieldsInOrder
 from zope.schema.interfaces import IDate
 from DateTime import DateTime
 from Products.CMFPlone.utils import getToolByName
+from Products.statusmessages.interfaces import IStatusMessage
 
 from uu.dynamicschema.schema import new_schema
 from uu.dynamicschema.interfaces import DEFAULT_SIGNATURE, DEFAULT_MODEL_XML
@@ -133,6 +134,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         form.Form.__init__(self, context, request)
         self.saved = False #initial value: no duplication of save...
         self.save_attempt = False # flag for save attempt, success or not
+        self._status = IStatusMessage(self.request)
     
     def _group_schemas(self):
         result = []
@@ -203,8 +205,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                 for fieldname, value in values.items():
                     setattr(group_record, fieldname, value)
     
-    @button.buttonAndHandler(u'Save', condition=lambda form: form.mode=='input')
-    def handleSave(self, action):
+    def _handleSave(self, action):
         self.save_attempt = True
         data, errors = self.extractData()
         if errors or IFormDefinition.providedBy(self.context) or self.saved:
@@ -228,6 +229,30 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             self.context.setModificationDate(DateTime())  # modified==now
             self.saved = True
             transaction.get().note('Saved form data')
+        self._status.addStatusMessage('Saved form data', type='info')
+    
+    @button.buttonAndHandler(
+        u'\u2714 Save draft',
+        condition=lambda form: form.mode=='input'
+        )
+    def handleSave(self, action):
+        self._handleSave(action)
+    
+    @button.buttonAndHandler(
+        u'\u21E5 Save and submit',
+        condition=lambda form: form.mode=='input'
+        )
+    def handleSaveSubmit(self, action):
+        self._handleSave(action)
+        wftool = getToolByName(self.context, 'portal_workflow')
+        chain = wftool.getChainFor(self.context)[0]
+        state = wftool.getStatusOf(chain,
+                                   self.context)['review_state']
+        if state == 'visible':
+            wftool.doActionFor(self.context, 'submit')
+            self._status.addStatusMessage('Form submitted for review', type='info')
+            url = self.context.absolute_url()
+            self.request.RESPONSE.redirect(url)
 
 
 ## content-type implementations for form instances:

@@ -12,9 +12,6 @@
  <tal:globals define="series view/seriesinfo">
   <div metal:define-macro="formseries_headmeta"
        tal:define="is_series python:getattr(view, 'SERIES', False)">
-    <div class="user-message" tal:condition="view/user_message">
-        <span tal:content="view/user_message">Optional message to user</span>
-    </div>
     
     <div id="form-metadata" class="form-meta">
      <div class="wrapper">
@@ -66,7 +63,7 @@
   </div>
 
   <div metal:define-macro="formseries_footer" class="form-footer">
-    <tal:block condition="python: 'contact' in series and series['contact']">
+    <tal:block condition="python: 'contact' in series and getattr(series['contact'], 'output', None)">
      <h4>Contact Info:</h4>
      <div tal:condition="python:hasattr(series['contact'], 'output')" tal:content="structure series/contact/output">Rich-text contact info here</div>
      <div tal:condition="python:not hasattr(series['contact'], 'output')" tal:content="series/contact">Plain text backward-compatible contact information.</div>

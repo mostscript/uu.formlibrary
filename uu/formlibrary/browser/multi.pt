@@ -136,12 +136,13 @@
     </div>
   </div>
 
- <div metal:use-macro="context/@@formcommon/macros/formseries_footer"></div>
-
 <form tal:condition="python: view.VIEWNAME=='edit'" id="coredata" method="POST">
   <input type="hidden" name="payload" id="payload" value="" />
-  <input id="btn-saveform" name="saveform" type="button" value="&#x2714; Save form" />
+  <input id="btn-saveform" name="saveform" type="submit" value="&#x2714; Save form as draft" />
+  <input id="btn-savesubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
 </form>
+
+ <div metal:use-macro="context/@@formcommon/macros/formseries_footer"></div>
 
   </tal:globals>
   </div>

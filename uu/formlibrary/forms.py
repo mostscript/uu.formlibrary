@@ -250,6 +250,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                                    self.context)['review_state']
         if state == 'visible':
             wftool.doActionFor(self.context, 'submit')
+            self.context.reindexObject()
             self._status.addStatusMessage('Form submitted for review', type='info')
             url = self.context.absolute_url()
             self.request.RESPONSE.redirect(url)

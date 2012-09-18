@@ -1,5 +1,16 @@
 #btn-saveform { font-size:125%; }
 
+ol.formrows li { list-style-position:inside;}
+ol.formrows form.formrow {
+  margin-left:1.5em;
+  margin-top:-1.5em;
+  width:96%;
+}
+ol.formrows { margin-top:0.8em !important; }
+
+table.formheadings { margin-left:3.8em !important; width:91.43% !important; }
+
+
 ol.formrows { margin:0; margin-left:-1em; padding-left:0; display:block; width:auto;}
 ol.formrows li { margin-left:-1.5em; margin-top:-0.8em; }
 ol.formrows li .rowcontrol { margin:0.1em 0 0 0; background-color:#d9d9d9; border-top:0.1em solid #d9d9d9; color:#fff; font-size:85%; font-family:sans-serif; padding:0 0.1em; width:98%; line-height:130%;  }

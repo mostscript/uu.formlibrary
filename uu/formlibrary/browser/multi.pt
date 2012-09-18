@@ -51,6 +51,13 @@
   ol.formrows div.singlerowform div.fielddiv span.option label { display:inline !Important; width:auto; color:#00a; float:none; }
   div.fielddiv .description { font-size:90%; font-style:italic; color:#999; float:none; display:block; margin-left:2em; }
  </style>
+ <style tal:condition="python: view.displaymode == 'Columns'">
+  table.singlerowform, div.rowcontrol { margin-left:1em !important; }
+  table.formheadings { margin-left:2.8em !important; width:93.85% !important; }
+ </style>
+ <style tal:condition="python: view.displaymode == 'Columns' and view.VIEWNAME == 'view'">
+  table.formheadings { margin-left:3em !important; width:91.53% !important; }
+ </style>
 
 </metal:block>
 </head>

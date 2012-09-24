@@ -254,7 +254,7 @@ def migrate_project_forms(project, catalog, delete=False):
         if delete:
             parent = aq_parent(aq_inner(series))
             series_path = '/'.join(series.getPhysicalPath())
-            parent.manage_deleteObjects([series.getId()])
+            parent.manage_delObjects([series.getId()])
             _logger.info('Deleted old form series %s' % series_path)
 
 

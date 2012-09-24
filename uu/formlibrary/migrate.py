@@ -190,7 +190,7 @@ def get_target_series(series):
     return new_series
 
 
-def migrate_project_forms(project, catalog):
+def migrate_project_forms(project, catalog, delete=False):
     global _get, _logger
     _logger.info('Migrate project forms: %s' % project.getId())
     libraries = filter(
@@ -238,18 +238,21 @@ def migrate_project_forms(project, catalog):
                 )
         else:
             migrate_series_chartaudit_to_multiforms(series, target, library)
+        if delete:
+            parent = series.__parent__
+            parent.manage_deleteObjects([series.getId()])
 
 
-def migrate_site_forms(site):
+def migrate_site_forms(site, delete=False):
     global _get, _logger
     catalog = getToolByName(site, 'portal_catalog')
     projects = map(_get, catalog.search({'portal_type': 'qiproject'}))
     _logger.info('Form migration: found %s projects' % len(projects))
     for project in projects:
-        migrate_project_forms(project, catalog)
+        migrate_project_forms(project, catalog, delete)
 
 
-def migration_wrapper(app, sitename='qiteamspace', username='admin'):
+def migration_wrapper(app, sitename, username='admin', delete=False):
     """
     Sets up site for local components, security context, and transaction
     for running migrate_site_forms().
@@ -263,7 +266,7 @@ def migration_wrapper(app, sitename='qiteamspace', username='admin'):
     _logger.info('Migration started for forms on site: %s' % site)
     user = app.acl_users.getUser(username)
     newSecurityManager(None, user)
-    migrate_site_forms(site)
+    migrate_site_forms(site, delete)
     import transaction
     txn = transaction.get()
     txn.note('/'.join(site.getPhysicalPath()[1:]))
@@ -275,5 +278,6 @@ if 'app' in locals():
     sitename = 'qiteamspace'
     if len(sys.argv) > 1:
         sitename = sys.argv[1]
-    migration_wrapper(app, sitename)
+        delete = 'delete' in sys.argv
+    migration_wrapper(app, sitename, delete=delete)
 

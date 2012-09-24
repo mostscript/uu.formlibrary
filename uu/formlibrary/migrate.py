@@ -260,6 +260,7 @@ def migration_wrapper(app, sitename='qiteamspace', username='admin'):
     _logger.setLevel(logging.INFO)
     site = app.get(sitename)
     setSite(site)
+    _logger.info('Migration started for forms on site: %s' % site)
     user = app.acl_users.getUser(username)
     newSecurityManager(None, user)
     migrate_site_forms(site)
@@ -271,5 +272,8 @@ def migration_wrapper(app, sitename='qiteamspace', username='admin'):
 
 
 if 'app' in locals():
-    migration_wrapper(app)
+    sitename = 'qiteamspace'
+    if len(sys.argv) > 1:
+        sitename = sys.argv[1]
+    migration_wrapper(app, sitename)
 

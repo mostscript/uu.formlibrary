@@ -26,6 +26,7 @@ from zope.interface.interfaces import IInterface
 from zope.lifecycleevent import ObjectCreatedEvent, ObjectModifiedEvent
 from zope.schema import getFieldNamesInOrder
 from AccessControl.SecurityManagement import newSecurityManager
+from Acquisition import aq_parent, aq_inner
 from Products.CMFCore.utils import getToolByName
 
 from uu.qiforms.interfaces import IChartAudit
@@ -251,7 +252,7 @@ def migrate_project_forms(project, catalog, delete=False):
         else:
             migrate_series_chartaudit_to_multiforms(series, target, library)
         if delete:
-            parent = series.__parent__
+            parent = aq_parent(aq_inner(series))
             series_path = '/'.join(series.getPhysicalPath())
             parent.manage_deleteObjects([series.getId()])
             _logger.info('Deleted old form series %s' % series_path)

@@ -203,7 +203,7 @@ def migrate_project_forms(project, catalog, delete=False):
     global _get, _logger
     _logger.info('Migrate project forms: %s' % project.getId())
     if skip_project(project, catalog):
-        _logger('Skipping project (no legacy forms): %s' % project.getId())
+        _logger.info('Skipping project (no legacy forms): %s' % project.getId())
         return
     libraries = filter(
         lambda o: o.portal_type=='uu.formlibrary.library',

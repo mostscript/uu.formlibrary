@@ -240,7 +240,9 @@ def migrate_project_forms(project, catalog, delete=False):
             migrate_series_chartaudit_to_multiforms(series, target, library)
         if delete:
             parent = series.__parent__
+            series_path = '/'.join(series.getPhysicalPath())
             parent.manage_deleteObjects([series.getId()])
+            _logger.info('Deleted old form series %s' % series_path)
 
 
 def migrate_site_forms(site, delete=False):

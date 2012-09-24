@@ -197,13 +197,13 @@ def migrate_project_forms(project, catalog, delete=False):
         lambda o: o.portal_type=='uu.formlibrary.library',
         project.contentValues()
         )
+    _lid, _title, _ltype = 'form-library', 'Form library', 'uu.formlibrary.library'
+    if _lid in project.contentIds() and project[_lid].portal_type != _ltype:
+        _lid = 'form-library-chartaudit'
+        _title = 'Form library (chart audit)'
     if not libraries:
-        project.invokeFactory(
-            id='form-library',
-            type_name='uu.formlibrary.library',
-            title='Form library',
-            )
-        library = project.get('form-library')
+        project.invokeFactory(id=_lid, type_name=_ltype, title=_title)
+        library = project.get(_lid)
         notify(ObjectCreatedEvent(library))
         library.reindexObject()
         notify(ObjectModifiedEvent(library))

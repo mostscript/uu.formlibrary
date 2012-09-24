@@ -196,7 +196,7 @@ def skip_project(project, catalog):
     q2 = local_query(project, {}, 'uu.qiforms.progressform')
     all_chartaudit = map(_get, catalog.search(q1))
     all_progress = map(_get, catalog.search(q2))
-    return bool(len(all_chartaudit)+len(all_progress))
+    return not (len(all_chartaudit)+len(all_progress))
 
 
 def migrate_project_forms(project, catalog, delete=False):

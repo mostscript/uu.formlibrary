@@ -190,9 +190,21 @@ def get_target_series(series):
     return new_series
 
 
+def skip_project(project, catalog):
+    global _get
+    q1 = local_query(project, {}, 'uu.qiforms.chartaudit')
+    q2 = local_query(project, {}, 'uu.qiforms.progressform')
+    all_chartaudit = map(_get, catalog.search(q1))
+    all_progress = map(_get, catalog.search(q2))
+    return bool(len(all_chartaudit)+len(all_progress))
+
+
 def migrate_project_forms(project, catalog, delete=False):
     global _get, _logger
     _logger.info('Migrate project forms: %s' % project.getId())
+    if skip_project(project, catalog):
+        _logger('Skipping project (no legacy forms): %s' % project.getId())
+        return
     libraries = filter(
         lambda o: o.portal_type=='uu.formlibrary.library',
         project.contentValues()

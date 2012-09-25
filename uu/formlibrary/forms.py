@@ -8,6 +8,8 @@ from plone.autoform.interfaces import WIDGETS_KEY
 from plone.z3cform.fieldsets.group import GroupFactory
 from z3c.form import form, field, button, converter, widget
 from z3c.form.testing import TestRequest
+from z3c.form.browser.radio import RadioFieldWidget
+from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from zope.component.hooks import getSite
 from zope.component import adapter, queryUtility
 from zope.event import notify
@@ -16,7 +18,7 @@ from zope.globalrequest import getRequest
 from zope.lifecycleevent import ObjectModifiedEvent
 from zope.lifecycleevent import Attributes
 from zope.schema import getFieldsInOrder
-from zope.schema.interfaces import IDate
+from zope.schema.interfaces import IDate, IChoice, ICollection
 from DateTime import DateTime
 from Products.CMFPlone.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
@@ -64,6 +66,42 @@ def is_grid_wrapper_schema(schema):
         if 'data' in widgets and widgets['data'] == GRID_WIDGET:
             return True
     return False
+
+
+def common_widget_updates(context):
+    """
+    Given a context, update field widgets for it.  Context
+    May be any z3c.form instance or a field group contained 
+    within.
+    """
+    # form field filter definition:
+    vtype = lambda formfield: getattr(formfield.field, 'value_type', None)
+    use_vocab = lambda v: hasattr(v, '__len__') and hasattr(v, '__iter__')
+    is_choice = lambda formfield: IChoice.providedBy(formfield.field)
+    v_choice = lambda formfield: IChoice.providedBy(vtype(formfield))
+    is_collection = lambda formfield: ICollection.providedBy(formfield.field)
+    is_multi = lambda formfield: is_collection(formfield) and v_choice(formfield)
+    is_date = lambda formfield: IDate.providedBy(formfield.field)
+    
+    # filtered lists of form fields by type
+    formfields = context.fields.values()
+    choicefields = filter(is_choice, formfields)
+    multifields = filter(is_multi, formfields)
+    datefields = filter(is_date, formfields)
+    
+    for formfield in choicefields:
+        vocab = formfield.field.vocabulary
+        if use_vocab(vocab) and len(vocab) <= 3:
+            formfield.widgetFactory = RadioFieldWidget
+    
+    for formfield in multifields:
+        vocab = formfield.field.value_type.vocabulary
+        if use_vocab(vocab) and len(vocab) <= 16:
+            formfield.widgetFactory = CheckBoxFieldWidget
+    
+    for formfield in datefields:
+        formfield.widgetFactory = SmartdateFieldWidget
+
 
 ## form-related adapters:
 
@@ -161,17 +199,22 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             fieldset_group = GroupFactory(name, field.Fields(), title)
             self.groups.append(fieldset_group)
         super(ComposedForm, self).updateFieldsFromSchemata()
-   
-    def updateWidgets(self):
-        date_fields = [f for f in self.fields.values()
+    
+    def _update_widgets(self, context=None):
+        """
+        For given context (self or field group provided), update
+        which widgets to use for fields.
+        """
+        context = self if context is None else context
+        date_fields = [f for f in context.fields.values()
                         if IDate.providedBy(f.field)]
         for field in date_fields:
             field.widgetFactory = SmartdateFieldWidget
+     
+    def updateWidgets(self):
+        common_widget_updates(self)
         for group in self.groups:
-            date_fields = [f for f in group.fields.values()
-                            if IDate.providedBy(f.field)]
-            for field in date_fields:
-                field.widgetFactory = SmartdateFieldWidget
+            common_widget_updates(group)
         super(ComposedForm, self).updateWidgets()
     
     def datagridInitialise(self, subform, widget):

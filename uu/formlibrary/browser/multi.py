@@ -17,6 +17,7 @@ from uu.dynamicschema.schema import parse_schema
 from uu.workflows.utils import history_log
 
 from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
+from uu.formlibrary.forms import common_widget_updates
 
 from uu.smartdate.browser.widget import SmartdateFieldWidget
 
@@ -35,28 +36,7 @@ class RowForm(form.EditForm):
         super(RowForm, self).__init__(record, request)
     
     def updateWidgets(self):
-        choicefields = [f.field for f in self.fields.values()
-                            if IChoice.providedBy(f.field)]
-        for field in choicefields:
-            vocab = field.vocabulary
-            if hasattr(vocab, '__len__') and hasattr(vocab, '__iter__'):
-                #appears iterable, get number of choices
-                if len(vocab) <= 3:
-                    name = field.__name__
-                    self.fields[name].widgetFactory = RadioFieldWidget
-        multichoice = [f.field for f in self.fields.values()
-                        if IList.providedBy(f.field) and
-                            IChoice.providedBy(f.field.value_type)]
-        for field in multichoice:
-            vocab = field.value_type.vocabulary
-            if hasattr(vocab, '__len__') and hasattr(vocab, '__iter__'):
-                if len(vocab) <= 16:
-                    name = field.__name__
-                    self.fields[name].widgetFactory = CheckBoxFieldWidget
-        datefields = [f.field for f in self.fields.values()
-                        if IDate.providedBy(f.field)]
-        for field in datefields:
-            self.fields[field.__name__].widgetFactory = SmartdateFieldWidget
+        common_widget_updates(self)
         super(RowForm, self).updateWidgets()
 
 

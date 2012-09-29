@@ -488,6 +488,7 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
         value_type=schema.Choice(
             vocabulary=u'plone.app.vocabularies.WorkflowStates', #named vocab
             ),
+        required=False,
         defaultFactory=list, #req zope.schema >= 3.8.0
         )
    
@@ -512,6 +513,7 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
         value_type=schema.Choice(
             source=BoundFormSourceBinder(),
             ),
+        required=False,
         defaultFactory=list, #req zope.schema >= 3.8.0
         )
     

@@ -18,6 +18,7 @@ from uu.workflows.utils import history_log
 
 from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
 from uu.formlibrary.forms import common_widget_updates
+from uu.formlibrary.search.handlers import handle_multiform_savedata
 
 from uu.smartdate.browser.widget import SmartdateFieldWidget
 
@@ -82,6 +83,7 @@ class MultiFormEntry(object):
             if json:
                 oldkeys = self.context.keys()
                 self.context.update_all(json)
+                handle_multiform_savedata(self.context)
                 newkeys = self.context.keys()
                 count_new = len(set(newkeys) - set(oldkeys))
                 count_updated = len(set(oldkeys) & set(newkeys))

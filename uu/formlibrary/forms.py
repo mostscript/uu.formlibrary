@@ -415,6 +415,7 @@ class MultiForm(Item, RecordContainer):
     
     >>> definition.entry_schema = monkey_xml
     >>> from zope.lifecycleevent import ObjectModifiedEvent
+    >>> from zope.lifecycleevent import ObjectCreatedEvent
     >>> from zope.event import notify
     >>> notify(ObjectModifiedEvent(definition))  # => schema load from xml
     >>> assert definition.signature != DEFAULT_SIGNATURE # new schema, sig
@@ -688,6 +689,7 @@ class MultiForm(Item, RecordContainer):
     Now we need a new form to use this definition:
     
     >>> party_form = MultiForm()
+    >>> notify(ObjectCreatedEvent(party_form))
     >>> party_form.definition = IUUID(definition2)
     >>> assert 'birthday' in party_form.schema      # yep, the same schema
     >>> assert party_form.schema is definition2.schema  # just to be sure
@@ -695,6 +697,7 @@ class MultiForm(Item, RecordContainer):
     Now we need a new form to use this definition:
     
     >>> party_form = MultiForm()
+    >>> notify(ObjectCreatedEvent(party_form))
     >>> party_form.definition = IUUID(definition2)
     >>> assert 'birthday' in party_form.schema      # yep, the same schema
     >>> assert party_form.schema is definition2.schema  # just to be sure
@@ -917,6 +920,7 @@ class MultiForm(Item, RecordContainer):
     """
    
     portal_type = MULTI_FORM_TYPE
+    catalog = None  # instances may override, via handler usually
 
     implements(IMultiForm, ISchemaProvider)
     

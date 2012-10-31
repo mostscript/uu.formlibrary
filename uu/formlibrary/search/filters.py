@@ -4,6 +4,7 @@ from datetime import date
 
 from Acquisition import aq_inner, aq_parent
 from zope.component import adapts, adapter
+from zope.component.hooks import getSite
 from zope.dottedname.resolve import resolve
 from zope.interface import implements, implementer
 from zope.publisher.interfaces.browser import IBrowserPublisher
@@ -69,8 +70,16 @@ class FieldQuery(Persistent):
 @implementer(IFormDefinition)
 @adapter(IRecordFilter)
 def filter_definition(context):
-    """Given filter, get definition (assumed parent)"""
-    return aq_parent(aq_inner(context))
+    if not context.definition:
+        return None
+    site = getSite()
+    catalog = site.portal_catalog
+    r = catalog.search({'UID':context.definition})
+    if not r:
+        return None
+    return r[0]._unrestrictedGetObject()
+
+
 
 
 class RecordFilter(Item):
@@ -87,7 +96,7 @@ class RecordFilter(Item):
     
     def schema(self):
         """
-        Assume parent/container of RecordFilter always provides schema
+        Assume definition bound to RecordFilter always provides schema
         at attribute name of 'schema'.
         """
         definition = IFormDefinition(self)

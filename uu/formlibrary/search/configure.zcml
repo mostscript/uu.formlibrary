@@ -18,6 +18,14 @@
     factory=".filters.directly_related_uids"
     />
 
+  <!-- subscribers -->
+
+  <subscriber
+    for="uu.formlibrary.interfaces.IMultiForm
+         zope.lifecycleevent.interfaces.IObjectModifiedEvent"
+    handler=".handlers.handle_multiform_modify"
+    />
+
   <!-- summary views -->
   
   <browser:page

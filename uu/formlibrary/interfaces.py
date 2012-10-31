@@ -28,6 +28,7 @@ from uu.dynamicschema.interfaces import ISchemaSignedEntity
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.dynamicschema.interfaces import valid_xml_schema
 from uu.record.interfaces import IRecordContainer
+from uu.retrieval.interfaces import ISimpleCatalog
 from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 from uu.formlibrary import _
@@ -790,6 +791,14 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
     
     # omit IRecordContainer['factory'] from generated form
     form.omitted('factory')
+    
+    form.omitted('catalog')
+    catalog = schema.Object(
+        title=u'Catalog',
+        description=u'Catalog indexes multi-record form data',
+        schema=ISimpleCatalog,
+        required=False,  # may initially be None
+        )
     
     entry_notes = schema.Text(
         title=_(u'Entry notes'),

@@ -26,6 +26,7 @@ from zope.interface.interfaces import IInterface
 from zope.lifecycleevent import ObjectCreatedEvent, ObjectModifiedEvent
 from zope.schema import getFieldNamesInOrder
 from AccessControl.SecurityManagement import newSecurityManager
+from Acquisition import aq_parent, aq_inner
 from Products.CMFCore.utils import getToolByName
 
 from uu.qiforms.interfaces import IChartAudit
@@ -190,20 +191,32 @@ def get_target_series(series):
     return new_series
 
 
-def migrate_project_forms(project, catalog):
+def skip_project(project, catalog):
+    global _get
+    q1 = local_query(project, {}, 'uu.qiforms.chartaudit')
+    q2 = local_query(project, {}, 'uu.qiforms.progressform')
+    all_chartaudit = map(_get, catalog.search(q1))
+    all_progress = map(_get, catalog.search(q2))
+    return not (len(all_chartaudit)+len(all_progress))
+
+
+def migrate_project_forms(project, catalog, delete=False):
     global _get, _logger
     _logger.info('Migrate project forms: %s' % project.getId())
+    if skip_project(project, catalog):
+        _logger.info('Skipping project (no legacy forms): %s' % project.getId())
+        return
     libraries = filter(
         lambda o: o.portal_type=='uu.formlibrary.library',
         project.contentValues()
         )
+    _lid, _title, _ltype = 'form-library', 'Form library', 'uu.formlibrary.library'
+    if _lid in project.contentIds() and project[_lid].portal_type != _ltype:
+        _lid = 'form-library-chartaudit'
+        _title = 'Form library (chart audit)'
     if not libraries:
-        project.invokeFactory(
-            id='form-library',
-            type_name='uu.formlibrary.library',
-            title='Form library',
-            )
-        library = project.get('form-library')
+        project.invokeFactory(id=_lid, type_name=_ltype, title=_title)
+        library = project.get(_lid)
         notify(ObjectCreatedEvent(library))
         library.reindexObject()
         notify(ObjectModifiedEvent(library))
@@ -238,18 +251,23 @@ def migrate_project_forms(project, catalog):
                 )
         else:
             migrate_series_chartaudit_to_multiforms(series, target, library)
+        if delete:
+            parent = aq_parent(aq_inner(series))
+            series_path = '/'.join(series.getPhysicalPath())
+            parent.manage_delObjects([series.getId()])
+            _logger.info('Deleted old form series %s' % series_path)
 
 
-def migrate_site_forms(site):
+def migrate_site_forms(site, delete=False):
     global _get, _logger
     catalog = getToolByName(site, 'portal_catalog')
     projects = map(_get, catalog.search({'portal_type': 'qiproject'}))
     _logger.info('Form migration: found %s projects' % len(projects))
     for project in projects:
-        migrate_project_forms(project, catalog)
+        migrate_project_forms(project, catalog, delete)
 
 
-def migration_wrapper(app, sitename='qiteamspace', username='admin'):
+def migration_wrapper(app, sitename, username='admin', delete=False):
     """
     Sets up site for local components, security context, and transaction
     for running migrate_site_forms().
@@ -260,9 +278,10 @@ def migration_wrapper(app, sitename='qiteamspace', username='admin'):
     _logger.setLevel(logging.INFO)
     site = app.get(sitename)
     setSite(site)
+    _logger.info('Migration started for forms on site: %s' % site)
     user = app.acl_users.getUser(username)
     newSecurityManager(None, user)
-    migrate_site_forms(site)
+    migrate_site_forms(site, delete)
     import transaction
     txn = transaction.get()
     txn.note('/'.join(site.getPhysicalPath()[1:]))
@@ -271,5 +290,9 @@ def migration_wrapper(app, sitename='qiteamspace', username='admin'):
 
 
 if 'app' in locals():
-    migration_wrapper(app)
+    sitename = 'qiteamspace'
+    if len(sys.argv) > 1:
+        sitename = sys.argv[1]
+        delete = 'delete' in sys.argv
+    migration_wrapper(app, sitename, delete=delete)
 

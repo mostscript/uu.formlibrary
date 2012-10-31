@@ -2,11 +2,16 @@ import calendar
 from datetime import date, datetime, timedelta
 
 from plone.autoform.interfaces import WIDGETS_KEY
+from plone.schemaeditor import schema as se_schema
 from collective.z3cform.datagridfield import DictRow, DataGridFieldFactory
 from zope.schema import List
 from zope.schema.interfaces import ConstraintNotSatisfied
 
 from uu.dynamicschema.schema import new_schema
+
+# workaround for plone.schemaeditor / plone.formwidget.datetime conflict
+def getDateFieldSchema(field):
+    return se_schema.IDate
 
 
 WIDGET = 'collective.z3cform.datagridfield.datagridfield.DataGridFieldFactory'

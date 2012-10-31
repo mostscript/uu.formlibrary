@@ -19,6 +19,9 @@
   <include file="profiles.zcml" />
 
   <!-- adapter registrations -->
+
+  <adapter factory=".record.record_uuid" />  <!-- IUUID for FormEntry -->
+
   <adapter 
     factory=".formsets.DefinitionFormSet"
     provides=".interfaces.IFormSet"

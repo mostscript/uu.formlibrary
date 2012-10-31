@@ -1,4 +1,6 @@
-from zope.interface import implements
+from plone.uuid.interfaces import IUUID
+from zope.interface import implements, implementer
+from zope.component import adapter
 
 from uu.formlibrary.interfaces import IFormEntry
 from uu.dynamicschema.schema import SchemaSignedEntity
@@ -27,4 +29,10 @@ class FormEntry(SchemaSignedEntity):
     def schema(self):
         return SchemaSignedEntity.schema.__get__(self)
 
+
+## IUUID adapter for FormEntry records
+@implementer(IUUID)
+@adapter(IFormEntry)
+def record_uuid(context):
+    return context.record_uid
 

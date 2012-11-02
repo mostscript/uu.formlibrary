@@ -13,12 +13,15 @@ from plone.indexer import indexer
 from persistent import Persistent
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
+from repoze.catalog import query
 from zope import schema
+from zope.schema.interfaces import ITextLine, IBytesLine, ISequence
 
 from uu.retrieval.utils import identify_interface
 from uu.smartdate.converter import normalize_usa_date
 
 from uu.formlibrary.interfaces import IFormDefinition
+from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
 from uu.formlibrary.search.interfaces import IRecordFilter, ICompositeFilter
@@ -26,6 +29,50 @@ from uu.formlibrary.search.interfaces import IRecordFilter, ICompositeFilter
 # field serialization, used by FieldQuery:
 field_id = lambda f: (identify_interface(f.interface), f.__name__)
 resolvefield = lambda t: resolve(t[0])[t[1]]  # (name, fieldname) -> schema
+
+# comparator class resolution from identifier:
+comparator_cls = lambda v: getattr(query, v) if v in COMPARATORS else None
+
+
+# get index type from FieldQuery
+def query_idxtype(q):
+    """Get index type for specific comparator, field combination"""
+    comparator, field = q.comparator, q.field
+    
+    # for text, whether to use text index or field index depends on the
+    # comparator saved on the query:
+    if ITextLine.providedBy(field) or IBytesLine.providedBy(field):
+        if comparator in ('Contains', 'DoesNotContain'):
+            return 'keyword'
+        return 'field'
+    # special-case overlapping comparators used in multiple field types
+    if ISequence.providedBy(field) and comparator == 'Any':
+        return 'keyword'
+    # for all other field types, use 1:1 mapping:
+    idxtypes = {
+        # comparator name key: index type label value
+        'Any': 'field',
+        'All': 'keyword',
+        'DoesNotContain': 'keyword',
+        'Eq': 'field',
+        'Ge': 'field',
+        'Gt': 'field',
+        'InRange': 'field',
+        'Le': 'field',
+        'Lt': 'field',
+        'NotEq': 'field',
+        'NotInRange': 'field',
+    }
+    if comparator in idxtypes:
+        return idxtypes.get(comparator)
+    return 'field'  # fallback default
+
+# get a repoze.catalog query object for a field query, using conventions
+# for index naming from uu.retrieval:
+def query_object(q):
+    idxtype = query_idxtype(q)
+    idxname = '%s_%s' % (idxtype, q.field.__name__)
+    return comparator_cls(q.comparator)(idxname, q.value)
 
 
 class FieldQuery(Persistent):

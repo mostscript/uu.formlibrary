@@ -67,12 +67,28 @@ def query_idxtype(q):
         return idxtypes.get(comparator)
     return 'field'  # fallback default
 
-# get a repoze.catalog query object for a field query, using conventions
-# for index naming from uu.retrieval:
+
 def query_object(q):
+    """
+    Get a repoze.catalog query object for a field query, using
+    contentions for index naming from uu.retrieval.
+    """
     idxtype = query_idxtype(q)
     idxname = '%s_%s' % (idxtype, q.field.__name__)
     return comparator_cls(q.comparator)(idxname, q.value)
+
+
+def filter_query(f):
+    """
+    Given a record filter, get repoze.catalog query object
+    representative of filter and contained field queries.
+    """
+    op = query.Or
+    opname = f.operator
+    if opname == 'OR':
+        op = query.And
+    queries = [query_object(q) for q in f.values()]
+    return op(*queries)
 
 
 class FieldQuery(Persistent):

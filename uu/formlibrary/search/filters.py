@@ -83,9 +83,12 @@ def filter_query(f):
     Given a record filter, get repoze.catalog query object
     representative of filter and contained field queries.
     """
+    if len(f) == 1:
+        # no BoolOp for single field, just comparator query:
+        return query_object(f.values()[0])
     op = query.Or
     opname = f.operator
-    if opname == 'OR':
+    if opname == 'AND':
         op = query.And
     queries = [query_object(q) for q in f.values()]
     return op(*queries)

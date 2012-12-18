@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+    <metal:block fill-slot="javascript_head_slot">
+    </metal:block>
+    <metal:block fill-slot="style_slot">
+     <link rel="stylesheet" media="all" href="./++resource++formlibrary.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++formlibrary.css" type="text/css" />
+    </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="main">
+  <h1>Measure Wizard</h1>
+  <hr />
+  <h2 tal:content="view/step_title">STEP TITLE</h2>
+  <div tal:replace="structure view/formbody" />
+ </div>
+</body>
+</html>

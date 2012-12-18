@@ -1,0 +1,22 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  i18n_domain="uu.formlibrary">
+ 
+  <!-- TODO: change adaptation context for= to measure group --> 
+  <browser:page
+    name="measure_wizard"
+    for="*"
+    class=".wizard.MeasureWizardView"
+    template="wizard.pt"
+    permission="cmf.AddPortalContent"
+    />
+
+  <!-- ++widget++ traversal adapter for wizard view -->
+  <adapter
+    for=".wizard.IMeasureWizardView
+         zope.publisher.interfaces.browser.IBrowserRequest"
+    factory=".wizard.MeasureWizardWidgetTraversal"
+    name="widget" />
+
+</configure>

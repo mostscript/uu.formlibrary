@@ -264,7 +264,7 @@ class ICompositeFilter(IBaseFilter):
     form.widget(filter_b=ContentTreeFieldWidget)
     filter_b = schema.Choice(
         title=u'Filter B',
-        description=u'The first filter to consider for set operations.',
+        description=u'The second filter to consider for set operations.',
         source=UUIDSourceBinder(object_provides=IBaseFilter.__identifier__),
         required=True,
         )

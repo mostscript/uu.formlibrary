@@ -27,6 +27,8 @@ from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import IFormComponents
 
+from interfaces import IMeasureNaming, IMeasureFormDefinition
+from interfaces import IMeasureSourceType, IMeasureCalculation, IMeasureUnits
 from utils import SignedPickleIO
 
 
@@ -34,152 +36,36 @@ class IMeasureWizardSubform(form.Schema):
     """Marker base for a subform of the measure creation wizard"""
 
 
-class IMeasureWizardNaming(IMeasureWizardSubform):
+class IMeasureWizardNaming(IMeasureNaming, IMeasureWizardSubform):
     """Title, description subform"""
-    
-    title = schema.TextLine(
-        title=u'Name (title) of measure',
-        required=True,
-        )
-    
-    description = schema.Text(
-        title=u'Describe your measure (optional)',
-        required=False,
-        )
 
 
-class IMeasureWizardDefinition(IMeasureWizardSubform):
+class IMeasureWizardDefinition(IMeasureFormDefinition, IMeasureWizardSubform):
     """
     Subform schema: choose form definition for use in measure filters or
     field specifiers used for data-binding.
     """
-    
-    form.widget(definition=ContentTreeFieldWidget)
-    definition = schema.Choice(
-        title=u'Select a form definition',
-        description=u'Select a form definition to use for this measure. '\
-                    u'The definition that you choose will control the '\
-                    u'available fields for query by this measure.',
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
-        )
 
 
-FORM_TYPE_CHOICES = SimpleVocabulary([
-    SimpleTerm(SIMPLE_FORM_TYPE, title=u'Flex form'),
-    SimpleTerm(MULTI_FORM_TYPE, title=u'Multi-record form'),
-])
-
-class IMeasureWizardSourceType(IMeasureWizardSubform):
+class IMeasureWizardSourceType(IMeasureSourceType, IMeasureWizardSubform):
     """Choose form data-source type (branch point in wizard decision tree)"""
-    
-    form.widget(form_type=RadioFieldWidget)
-    form_type = schema.Choice(
-        title=u'Form type',
-        description=u'What kind of form data will provide measure values?',
-        vocabulary=FORM_TYPE_CHOICES,
-        default=MULTI_FORM_TYPE,
-        ) 
 
 
-MR_FORM_FILTER_CHOICES = SimpleVocabulary([
-    SimpleTerm('constant', title=u'Constant value (1)'),
-    SimpleTerm('multi_total', title=u'Total records (multi-record form)'),
-    SimpleTerm(
-        'multi_filter',
-        title=u'Value computed by a filter of records',
-        )
-])
-
-
-class IMeasureWizardMRCriteria(IMeasureWizardSubform):
+class IMeasureWizardMRCriteria(IMeasureCalculation, IMeasureWizardSubform):
     """Numerator/denominator selection for measure via multi-record form"""
     
-    form.widget(numerator=RadioFieldWidget)
-    numerator = schema.Choice(
-        title=u'Computed value: numerator',
-        description=u'Choose how the core computed value is obtained.',
-        vocabulary=MR_FORM_FILTER_CHOICES,
-        default='multi_filter',
-        )
-    
-    form.widget(denominator=RadioFieldWidget)
-    denominator = schema.Choice(
-        title=u'(Optional) denominator',
-        description=u'You may choose if and how an optional denominator is '\
-                    u'used to compute this measure.  The default '\
-                    u'denominator is the total of records for a given form, '\
-                    u'which is useful for percentages and ratios, but you '\
-                    u'may also choose a constant denominator if what you '\
-                    u'aim to compute and display is a raw count of matches '\
-                    u'resulting from a numerator computed by filter.',
-        vocabulary=MR_FORM_FILTER_CHOICES,
-        default='multi_total',
-        )
+
+class IMeasureWizardMRUnits(IMeasureUnits, IMeasureWizardSubform):
+    """
+    Marker for automata state for units step via multi-record form data
+    source.
+    """
 
 
-VALUE_TYPE_CHOICES = SimpleVocabulary([
-    SimpleTerm(value=v, title=title)
-        for v, title in (
-            ('count', u'Count of occurrences'),
-            ('decimal', u'Decimal number, including ratio value.'),
-            ('percentage', u'Percentage of total or selected records'),
-            ('rating', u'Rating on a scale'),
-            )
-    ]
-)
-
-
-ROUNDING_CHOICES = SimpleVocabulary([
-    SimpleTerm('', title=u'No rounding'),
-    SimpleTerm('round', title=u'Round (up/down)'),
-    SimpleTerm('ceiling', title=u'Ceiling: always round upward.'),
-    SimpleTerm('floor', title=u'Floor: always round downward.'),
-])
-
-
-class IMeasureWizardMRUnits(IMeasureWizardSubform):
-    """Multi-record value modifiers: units, multiplier, rounding rules"""
-    
-    form.widget(value_type=RadioFieldWidget)
-    value_type = schema.Choice(
-        title=u'Kind of value',
-        description=u'What are the basic units of measure?',
-        vocabulary=VALUE_TYPE_CHOICES,
-        )
-    
-    multiplier = schema.Float(
-        title=u'Value multiplier constant',
-        description=u'What constant numeric (whole or decimal number) '\
-                    u'should the raw computed value be multiplied by?  For '\
-                    u'percentages computed with both a numerator and '\
-                    u'denominator, enter 100.',
-        default=1.0,
-        )
-    
-    units = schema.TextLine(
-        title=u'Units of measure',
-        description=u'Label for units of measure (optional).',
-        required=False,
-        )
-    
-    form.widget(rounding=RadioFieldWidget)
-    rounding = schema.Choice(
-        title=u'(optional) Rounding rule',
-        description=u'You may choose to round decimal values to integer '\
-                    u'(whole or negative non-decimal number) values using '\
-                    u'a rounding rule; be default, no rounding takes place.',
-        vocabulary=ROUNDING_CHOICES,
-        required=False,
-        default=None,
-        )
-    
-    display_precision = schema.Int(
-        title=u'Display precision',
-        description=u'When displaying a decimal value, how many places '\
-                    u'beyond the decimal point should be displayed in '\
-                    u'output?  Default: two digits after the decimal point.',
-        default=2,
-        )
+class IMeasureWizardFlexUnits(IMeasureUnits, IMeasureWizardSubform):
+    """
+    Marker for automata state for units step via Flex form data source.
+    """
 
 
 def _source_definition(context):
@@ -259,35 +145,41 @@ class IMeasureWizardFlexFieldChoice(IMeasureWizardSubform):
         )
 
 
+## Define states and transitions using iterfaces as state identities, and
+## using button tokens as an input alphabet for the finite state machine.
 delta_tables = { 
     IMeasureWizardNaming : {
         'next' : IMeasureWizardDefinition, 
-        },  
+        },
     IMeasureWizardDefinition : {
         'previous' : IMeasureWizardNaming,
         'next' : IMeasureWizardSourceType,
-        },  
+        },
     IMeasureWizardSourceType : {
         'previous' : IMeasureWizardDefinition,
         'branch_flex' : IMeasureWizardFlexFieldsetChoice,
         'branch_mr' : IMeasureWizardMRCriteria,
-        },  
+        },
     IMeasureWizardMRCriteria : {
         'previous' : IMeasureWizardSourceType,
         'next' : IMeasureWizardMRUnits,
-        },  
+        },
     IMeasureWizardMRUnits : {
         'previous' : IMeasureWizardMRCriteria,
         'next' : None,   # final
-        },  
+        },
     IMeasureWizardFlexFieldsetChoice : {
         'previous' : IMeasureWizardSourceType,
         'next' : IMeasureWizardFlexFieldChoice,
-        },  
+        },
     IMeasureWizardFlexFieldChoice : {
         'previous' : IMeasureWizardFlexFieldsetChoice,
+        'next' : IMeasureWizardFlexUnits,
+        },
+    IMeasureWizardFlexUnits : {
+        'previous' : IMeasureWizardFlexFieldChoice,
         'next' : None,   # final
-        },  
+        },
     }
 
 
@@ -297,7 +189,6 @@ BUTTON_LABELS = {
     'cancel' : u'Cancel',
 }
 
-USE_DEFINITION_CONTEXT = (IMeasureWizardFlexFieldChoice,)
 
 STEP_TITLES = {
     IMeasureWizardNaming : u'Name and describe your measure',
@@ -305,6 +196,7 @@ STEP_TITLES = {
     IMeasureWizardSourceType : u'What type of data source?',
     IMeasureWizardMRCriteria : u'How is measure calculated',
     IMeasureWizardMRUnits : 'Describe and configure the units of measure?',
+    IMeasureWizardFlexUnits : 'Describe and configure the units of measure?',
     IMeasureWizardFlexFieldChoice : u'Choose a field as a value source.',
     IMeasureWizardFlexFieldsetChoice : u'Choose a field group from which a '\
                                        u'form field will be chosen.',
@@ -450,8 +342,8 @@ class MeasureWizardView(object):
             current_step = delta_table.get(button_action, current_step)
             if button_action not in delta_table and button_action == 'next':
                 ## a branch
-                if 'form.widgets.form_type' in self.request.form:
-                    form_ftitype = self.request.form.get('form.widgets.form_type')[0]
+                if 'form.widgets.source_type' in self.request.form:
+                    form_ftitype = self.request.form.get('form.widgets.source_type')[0]
                     if form_ftitype == SIMPLE_FORM_TYPE:
                         current_step = delta_table.get('branch_flex', current_step)
                     else:

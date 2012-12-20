@@ -27,6 +27,7 @@ class MeasureLibraryView(object):
         self._brains = {}
         self.definition_type = MEASURE_DEFINITION_TYPE
         self.group_type = GROUP_TYPE
+        self.topic_type = 'Topic'
     
     def recent(self, limit=None, portal_type=None):
         """

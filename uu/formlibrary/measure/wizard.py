@@ -31,6 +31,7 @@ from uu.formlibrary.interfaces import IFormComponents
 from interfaces import IMeasureNaming, IMeasureFormDefinition
 from interfaces import IMeasureSourceType, IMeasureCalculation, IMeasureUnits
 from utils import SignedPickleIO, find_context
+from factory import MRMeasureFactory
 
 
 class IMeasureWizardSubform(form.Schema):
@@ -433,11 +434,22 @@ class MeasureWizardView(object):
         messages = IStatusMessage(self.request)
         messages.add('Please fix highlighted errors', type='error')
     
-    def update_final(self, *args, **kwargs):
+    def update_final(self, data, *args, **kwargs):
         """
         A final state/step of the form has been reached, and
         a 'next' button has been submitted.
         """
+        status = IStatusMessage(self.request)
+        if self.context.source_type == MULTI_FORM_TYPE:
+            factory = MRMeasureFactory(self.context)
+            measure = factory(data)
+            status.addStatusMessage(
+                'Created new measure, please configure criteria by '\
+                'clicking on filters listed below.',
+                type='info',
+                )
+            self.request.response.redirect(measure.absolute_url())
+        
         ## TODO: get previous state submitting to determine handler
         ## TODO: handler map step-interface to handler function
         ## TODO: factory adapters
@@ -491,7 +503,7 @@ class MeasureWizardView(object):
         self.current_step = self.get_current_form_step()
         
         if self.current_step is None:
-            return self.update_final(*args, **kwargs)
+            return self.update_final(saved_formdata, *args, **kwargs)
         
         ## set a cookie for last known step so that ajax/overlay requests
         ## can access ++widget++ traversal:

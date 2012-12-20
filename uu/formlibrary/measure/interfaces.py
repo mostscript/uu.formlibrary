@@ -5,6 +5,7 @@ from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
 from zope.globalrequest import getRequest
+from zope.interface import Interface
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
@@ -242,4 +243,13 @@ class IMeasureLibrary(IOrderedContainer, form.Schema, IAttributeUUID):
     Marker interface for library folder containing measure groups, which
     contain measure definitions (and topic/collections as data sets).
     """
+
+
+## adapter interfaces
+
+class IMultiRecordMeasureFactory(Interface):
+    """Adapter interface for content creation"""
+    
+    def __call__(data):
+        """Create measures based on wizard data, see wizard.py"""
 

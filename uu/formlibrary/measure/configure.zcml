@@ -14,7 +14,7 @@
   <browser:page
     name="group_view"
     for=".interfaces.IMeasureGroup"
-    class=".views.MeasureGroupView"
+    class=".views.MeasureLibraryView"
     template="group.pt"
     permission="zope2.View"
     />

@@ -11,6 +11,9 @@ from uu.formlibrary.interfaces import DEFINITION_TYPE
 
 
 API_VERSION = 1
+
+FILTER_TYPE = 'uu.formlibrary.recordfilter'
+
 COMPARATORS = (
     'All',
     'Any',

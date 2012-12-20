@@ -48,6 +48,12 @@
             <br /><span class="discreet"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; in group <em tal:content="context/Title" /></span>
           </a>
         </li>
+        <li class="create">
+          <a href="" tal:attributes="href string:${context/absolute_url}/createObject?type_name=Topic">
+            <span class="plusicon">&thinsp;&#43;&nbsp;</span> Create a data set
+            <br /><span class="discreet"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (add a collection of forms)</span>
+          </a>
+        </li>
         <li class="browse">
           <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
             <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/measurelib.png" />
@@ -63,7 +69,8 @@
       </ul>
     </div>
     <div id="library-info">
-      <div class="recent" tal:define="recent python:view.recent_definitions(limit=8); count view/definition_count">
+
+      <div class="recent" tal:define="recent python:view.recent(limit=8); count view/count">
         <h3>Most-recently modified measure definitions:</h3>
         <p tal:condition="python: not count">There are no measure definitions contained in this group.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
@@ -83,6 +90,28 @@
           (<span tal:replace="count"></span>).
         </div>
       </div>
+      
+      <div class="recent" tal:define="recent python:view.recent(limit=8, portal_type='Topic'); count python:view.count(portal_type='Topic')">
+        <h3>Most-recently modified data sets (collections):</h3>
+        <p tal:condition="python: not count">There are no collections contained in this group.</p>
+        <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
+            <li tal:repeat="brain recent">
+              <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">
+                <img src="" tal:attributes="src brain/getIcon" alt="(data set)" />
+                <span tal:content="brain/Title">TITLE</span>
+              </a>
+              <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>
+            </li>
+        </ul>
+        <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
+        <div tal:condition="count">
+          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
+            See all items
+          </a>
+          (<span tal:replace="count"></span>).
+        </div>
+      </div>
+
     </div>
     <div style="clear:both;"></div>
   </div>

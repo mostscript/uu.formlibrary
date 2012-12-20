@@ -54,36 +54,3 @@ class MeasureLibraryView(object):
     def searchpath(self):
         return '/'.join(self.context.getPhysicalPath())
 
-
-class MeasureGroupView(object):
-    
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.catalog = getToolByName(context, 'portal_catalog')
-        self._brains = None
-        self.definition_type = MEASURE_DEFINITION_TYPE
-    
-    def recent_definitions(self, limit=None):
-        """
-        Return catalog brains (metadata) of most recent 
-        measure definitions contained within this library.
-        
-        To limit results, pass in an integer value to limit.
-        """
-        if self._brains is None:
-            q = {'portal_type': self.definition_type}
-            q.update({'sort_on':'modified', 'sort_order': 'descending'})
-            q = local_query(self.context, q)
-            r = self.catalog.searchResults(q)
-            self._brains = r
-        if limit is not None:
-            return self._brains[:limit]
-        return self._brains
-    
-    def definition_count(self):
-        return len(self.recent_definitions())
-    
-    def searchpath(self):
-        return '/'.join(self.context.getPhysicalPath())
-

@@ -13,7 +13,8 @@
 </head>
 <body>
  <div metal:fill-slot="main">
-  <h1>Measure Wizard</h1>
+  <h1>Create a measure</h1>
+  <p class="discreet">Answer these questions to help create a measure.</p>
   <hr />
   <h2 tal:content="view/step_title">STEP TITLE</h2>
   <div tal:replace="structure view/formbody" />

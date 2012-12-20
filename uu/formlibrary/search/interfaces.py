@@ -199,15 +199,6 @@ class IRecordFilter(IBaseFilter, IIterableMapping):
     of queries is possible via methods below.
     """
     
-    form.widget(definition=ContentTreeFieldWidget)
-    definition = schema.Choice(
-        title=u'Bound form definition',
-        description=u'Select a form definition to bind to this form. '\
-                    u'The definition that you choose will control the '\
-                    u'available fields and behavior of this form instance.',
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
-        )
-    
     operator = schema.Choice(
         title=u'Cross-field operator',
         description=u'Choose AND (intersection) or OR (union) for combining '\

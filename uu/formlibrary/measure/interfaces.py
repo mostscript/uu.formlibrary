@@ -13,6 +13,10 @@ from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 
 from utils import find_context
 
+## global constants:
+
+MEASURE_DEFINITION_TYPE = 'uu.formlibrary.measure'
+GROUP_TYPE = 'uu.formlibrary.measuregroup'
 
 ## vocabularies:
 

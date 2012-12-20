@@ -15,6 +15,7 @@ from z3c.form.interfaces import HIDDEN_MODE
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.component import queryUtility, adapts
 from zope.component.hooks import getSite
+from zope.globalrequest import getRequest
 from zope.interface import Interface, alsoProvides, implements
 from zope.publisher.interfaces.browser import IBrowserRequest
 from zope import schema
@@ -29,7 +30,7 @@ from uu.formlibrary.interfaces import IFormComponents
 
 from interfaces import IMeasureNaming, IMeasureFormDefinition
 from interfaces import IMeasureSourceType, IMeasureCalculation, IMeasureUnits
-from utils import SignedPickleIO
+from utils import SignedPickleIO, find_context
 
 
 class IMeasureWizardSubform(form.Schema):
@@ -69,11 +70,8 @@ class IMeasureWizardFlexUnits(IMeasureUnits, IMeasureWizardSubform):
 
 
 def _source_definition(context):
-    all_data = context.get('all_data', None)
-    if not all_data:
-        return None
-    definition_data = all_data.get('IMeasureWizardDefinition', None)
-    defn_uid = definition_data.get('definition', None)
+    context = find_context(getRequest())
+    defn_uid = context.definition  # measure group definition UUID
     if defn_uid is None:
         return None
     defn = uuidToObject(defn_uid)
@@ -139,7 +137,7 @@ class IMeasureWizardFlexFieldChoice(IMeasureWizardSubform):
     """
     
     fieldname = schema.Choice(
-        title=u'Choose a fieldname (primary schema)',
+        title=u'Choose a field to obtain a value from',
         source=fieldname_choices,
         required=False,
         )
@@ -182,6 +180,40 @@ delta_tables = {
         },
     }
 
+mr_delta_tables = {
+    IMeasureWizardNaming : {
+        'next' : IMeasureWizardMRCriteria,
+        },
+    IMeasureWizardMRCriteria : {
+        'previous' : IMeasureWizardNaming,
+        'next' : IMeasureWizardMRUnits,
+        },
+    IMeasureWizardMRUnits : {
+        'previous' : IMeasureWizardMRCriteria,
+        'next' : None,   # final
+        },
+}
+
+flex_delta_tables = {
+    IMeasureWizardNaming : {
+        'next' : IMeasureWizardFlexFieldsetChoice,
+        },
+    IMeasureWizardFlexFieldsetChoice : {
+        'previous' : IMeasureWizardNaming,
+        'next' : IMeasureWizardFlexFieldChoice,
+        },
+    IMeasureWizardFlexFieldChoice : {
+        'previous' : IMeasureWizardFlexFieldsetChoice,
+        'next' : IMeasureWizardFlexUnits,
+        },
+    IMeasureWizardFlexUnits : {
+        'previous' : IMeasureWizardFlexFieldChoice,
+        'next' : None,   # final
+        },
+}
+
+
+## labels and titles for buttons and wizard steps:
 
 BUTTON_LABELS = {
     'next' : u'Next >>',
@@ -210,17 +242,6 @@ class IStepState(Interface):
         )
 
 STEP_STATE_KEY = 'form.widgets.IStepState.source_step'
-
-
-def flex_context_hook(context, schema, data):
-    if data is None or schema not in (IMeasureWizardFlexFieldChoice,):
-        return None
-    definition_data = data.get('IMeasureWizardDefinition')
-    defn_uid = definition_data.get('definition')
-    defn = uuidToObject(defn_uid)
-    if defn is None:
-        raise ValueError('Could not obtain definition')
-    return defn
 
 
 class WizardStepForm(AutoExtensibleForm, z3cform.Form):
@@ -286,14 +307,18 @@ class MeasureWizardView(object):
     
     default_step = IMeasureWizardNaming
     
-    context_hooks = (flex_context_hook,)
-    
     def __init__(self, context, request):
-        self.context = context      # context here is folder/container
+        self.context = context      # context here is measure group
         self.__parent__ = context   # zope2 security permission acquisition
         self.request = request
         self.portal = getSite()
         self._secret = queryUtility(IKeyManager).secret()
+    
+    @property
+    def delta(self):
+        if self.context.source_type == MULTI_FORM_TYPE:
+            return mr_delta_tables
+        return flex_delta_tables
     
     def formdata(self):
         encoded_data = self.request.cookies.get(self.data_cookie, None)
@@ -337,7 +362,7 @@ class MeasureWizardView(object):
         if submitted_buttons and source in stepmap:
             ## execute transition to new step/state, return that state
             source_iface = stepmap.get(source)
-            delta_table = delta_tables.get(source_iface)
+            delta_table = self.delta.get(source_iface)
             button_action = submitted_buttons[0]   # transition
             current_step = delta_table.get(button_action, current_step)
             if button_action not in delta_table and button_action == 'next':
@@ -364,7 +389,7 @@ class MeasureWizardView(object):
         Return button.Buttons instance with all buttons to display for
         wizard step, including a 'cancel' button.
         """
-        delta_table = delta_tables[step]
+        delta_table = self.delta[step]
         transition_names = delta_table.keys()
         branches = filter(lambda v: v.startswith('branch_'), transition_names)
         buttons = list(set(transition_names) - set(branches))
@@ -401,22 +426,13 @@ class MeasureWizardView(object):
             if k in self.request.other:
                 del(self.request.other[k])
     
-    def source_context(self, step_schema, data):
-        result = None
-        for hook in self.context_hooks:
-            result = hook(self.context, step_schema, data)
-        return result
-
     def update_next_step_form(self, data=None, current=None):
         ## fallbacks for all data, current step schema, saved data for step
         data = data if data is not None else {}
         current = current if current is not None else self.current_step
         saved_current = data.get(current.__name__, {}) if data else {}
-        ## special cases, pass into saved_current context for sources:
-        source_context = self.source_context(current, data)
+        ## special cases, pass into saved_current all data:
         saved_current['all_data'] = data
-        if source_context:
-            saved_current['source_context'] = source_context
         
         ## create form instance
         form = WizardStepForm(
@@ -470,7 +486,10 @@ class MeasureWizardView(object):
         ## check for cancelation of wizard:
         if 'form.buttons.cancel' in self.request.form:
             self.clear_wizard_cookies()
-            self.request.response.redirect(self.request.URL) # back to start
+            if method == 'GET':
+                self.request.response.redirect(self.context.absolute_url())
+            else:
+                self.request.response.redirect(self.request.URL) # back to start
             return False  # user selected cancel, redirect
         
         ## only GET request to this view is to first step; on such, clear any

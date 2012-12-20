@@ -136,16 +136,17 @@ class FieldQuery(Persistent):
 @implementer(IFormDefinition)
 @adapter(IRecordFilter)
 def filter_definition(context):
-    if not context.definition:
+    measure_definition = aq_parent(aq_inner(context))
+    measure_group = aq_parent(aq_inner(measure_definition))
+    form_definition_uid = measure_group.definition
+    if not form_definition_uid:
         return None
     site = getSite()
     catalog = site.portal_catalog
-    r = catalog.search({'UID':context.definition})
+    r = catalog.search({'UID': form_definition_uid})
     if not r:
         return None
     return r[0]._unrestrictedGetObject()
-
-
 
 
 class RecordFilter(Item):

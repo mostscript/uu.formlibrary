@@ -2,11 +2,26 @@
   xmlns="http://namespaces.zope.org/zope"
   xmlns:browser="http://namespaces.zope.org/browser"
   i18n_domain="uu.formlibrary">
+
+  <browser:page
+    name="library_view"
+    for=".interfaces.IMeasureLibrary"
+    class=".views.MeasureLibraryView"
+    template="library.pt"
+    permission="zope2.View"
+    />
  
-  <!-- TODO: change adaptation context for= to measure group --> 
+  <browser:page
+    name="group_view"
+    for=".interfaces.IMeasureGroup"
+    class=".views.MeasureGroupView"
+    template="group.pt"
+    permission="zope2.View"
+    />
+
   <browser:page
     name="measure_wizard"
-    for="*"
+    for=".interfaces.IMeasureGroup"
     class=".wizard.MeasureWizardView"
     template="wizard.pt"
     permission="cmf.AddPortalContent"

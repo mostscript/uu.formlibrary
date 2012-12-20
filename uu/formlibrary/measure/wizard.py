@@ -145,40 +145,6 @@ class IMeasureWizardFlexFieldChoice(IMeasureWizardSubform):
 
 ## Define states and transitions using iterfaces as state identities, and
 ## using button tokens as an input alphabet for the finite state machine.
-delta_tables = { 
-    IMeasureWizardNaming : {
-        'next' : IMeasureWizardDefinition, 
-        },
-    IMeasureWizardDefinition : {
-        'previous' : IMeasureWizardNaming,
-        'next' : IMeasureWizardSourceType,
-        },
-    IMeasureWizardSourceType : {
-        'previous' : IMeasureWizardDefinition,
-        'branch_flex' : IMeasureWizardFlexFieldsetChoice,
-        'branch_mr' : IMeasureWizardMRCriteria,
-        },
-    IMeasureWizardMRCriteria : {
-        'previous' : IMeasureWizardSourceType,
-        'next' : IMeasureWizardMRUnits,
-        },
-    IMeasureWizardMRUnits : {
-        'previous' : IMeasureWizardMRCriteria,
-        'next' : None,   # final
-        },
-    IMeasureWizardFlexFieldsetChoice : {
-        'previous' : IMeasureWizardSourceType,
-        'next' : IMeasureWizardFlexFieldChoice,
-        },
-    IMeasureWizardFlexFieldChoice : {
-        'previous' : IMeasureWizardFlexFieldsetChoice,
-        'next' : IMeasureWizardFlexUnits,
-        },
-    IMeasureWizardFlexUnits : {
-        'previous' : IMeasureWizardFlexFieldChoice,
-        'next' : None,   # final
-        },
-    }
 
 mr_delta_tables = {
     IMeasureWizardNaming : {

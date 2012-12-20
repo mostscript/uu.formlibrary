@@ -1,12 +1,17 @@
 from plone.directives import form
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree import ContentTreeFieldWidget
+from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.radio import RadioFieldWidget
+from zope.container.interfaces import IOrderedContainer
+from zope.globalrequest import getRequest
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
+
+from utils import find_context
 
 
 ## vocabularies:
@@ -50,6 +55,18 @@ ROUNDING_CHOICES = SimpleVocabulary([
     SimpleTerm('floor', title=u'Floor: always round downward.'),
 ])
 
+## field default (defaultFactory) methods:
+
+def default_definition():
+    context = find_context(getRequest())  # reconstruct context
+    if not context:
+        return None
+    defn_uid = getattr(context, 'definition', None)
+    if defn_uid is None:
+        return ''
+    return defn_uid
+
+
 ## core interfaces (shared by content types and/or forms):
 
 class IMeasureNaming(form.Schema):
@@ -67,16 +84,17 @@ class IMeasureNaming(form.Schema):
 
 
 class IMeasureFormDefinition(form.Schema):
-    """Bound form definition for a measure"""
+    """Bound form definition for a measure or measure group"""
     
     form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Select a form definition',
-        description=u'Select a form definition to use for this measure. '\
+        description=u'Select a form definition to use for measure(s). '\
                     u'The definition that you choose will control the '\
-                    u'available fields for query by this measure.',
+                    u'available fields for query by measure(s).',
         source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         required=True,
+        defaultFactory=default_definition,
         )
 
 
@@ -169,4 +187,55 @@ class IMeasureUnits(form.Schema):
 
 
 ## content type interfaces:
+
+class IMeasureDefinition(form.Schema,
+                         IAttributeUUID,
+                         IMeasureNaming,
+                         IMeasureCalculation,
+                         IMeasureUnits):
+    """
+    Measure definition content interface.
+    
+    Note: measures get their bound form definition and data source
+    type from the measure group containing them.
+    
+    There is a pretty safe assumption that a measure value should
+    be a floating point number.
+    """
+    
+    def value_for(context):
+        """
+        Given an appropriate form context, compute a value, normalize
+        as appropriate (for .
+        """
+    
+    def display_format(value):
+        """
+        Format a value as a string using rules defined on measure
+        definition.
+        """
+
+    def display_value(context):
+        """
+        Return string display value (formatted) for context.
+        """
+
+
+class IMeasureGroup(form.Schema,
+                    IAttributeUUID,
+                    IMeasureFormDefinition,
+                    IMeasureSourceType,
+                    ):
+    """
+    Measure group (folderish) content interface.  Measure groups
+    contain both measure and common topic/collection/dataset items
+    used by all measures contained within.
+    """
+
+
+class IMeasureLibrary(IOrderedContainer, form.Schema, IAttributeUUID):
+    """ 
+    Marker interface for library folder containing measure groups, which
+    contain measure definitions (and topic/collections as data sets).
+    """
 

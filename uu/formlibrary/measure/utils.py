@@ -64,3 +64,22 @@ class SignedPickleIO(object):
             return None
         return pickle.loads(data)
 
+
+def find_context(request):
+    """Find the context from the request; from http://goo.gl/h9d9N"""
+    published = request.get('PUBLISHED', None)
+    context = getattr(published, '__parent__', None)
+    if context is None:
+        context = request.PARENTS[0]
+    return context
+
+
+def content_path(item):
+    """
+    Path to the content item relative to the navigation root of the
+    context.
+    """
+    navroot_path = getNavigationRoot(item).split('/')
+    exclude_count = len(navroot_path)
+    return '/'.join(item.getPhysicalPath()[exclude_count:])  # rel. to root
+

@@ -135,7 +135,7 @@ class MeasureDefinition(Container):
 
     def _dataset_search(self, q):
         catalog_tool = getSite().portal_catalog
-        return catalog_tool.search(q)
+        return catalog_tool.searchResults(q)
 
     def dataset_points(self, dataset):
         """Given a topic/collection object dataset, return point values"""

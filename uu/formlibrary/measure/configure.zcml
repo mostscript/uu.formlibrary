@@ -26,6 +26,14 @@
     template="wizard.pt"
     permission="cmf.AddPortalContent"
     />
+  
+  <browser:page
+    name="data_view"
+    for=".interfaces.IMeasureDefinition"
+    class=".views.MeasureDataView"
+    template="dataview.pt"
+    permission="zope2.View"
+    />
 
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter

@@ -1,3 +1,4 @@
+from Acquisition import aq_parent, aq_inner
 from Products.CMFCore.utils import getToolByName
 
 from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE
@@ -53,4 +54,41 @@ class MeasureLibraryView(object):
     
     def searchpath(self):
         return '/'.join(self.context.getPhysicalPath())
+
+
+class MeasureDataView(object):
+    """
+    View that loads cross-product matrix of filters and collections/topics
+    inside a measure for purpose of enumerating data values.
+    
+    This is available for use as an adapter of a measure for purposes of 
+    data sources for reports or for use by templates outputting HTML tables
+    in a browser view.
+    """
+    index = None  # overridden by Five magic
+
+    def __init__(self, context, request=None):
+        self.context = context
+        self.request = request
+        self.topics = []
+        self.datapoints = {}
+    
+    def use_percent(self):
+        vtype, multiplier = self.context.value_type, self.context.multiplier
+        return vtype == 'percentage' and multiplier == 100
+    
+    def _datasets(self):
+        group = aq_parent(aq_inner(self.context))
+        return [o for o in group.contentValues() if o.portal_type=='Topic']
+    
+    def update(self, *args, **kwargs):
+        ds = self._datasets()
+        self.topics = ds
+        for topic in ds:
+            topic_id = topic.getId()
+            self.datapoints[topic_id] = self.context.dataset_points(topic)
+    
+    def __call__(self, *args, **kwargs):
+        self.update(*args, **kwargs)
+        return self.index(*args, **kwargs)
 

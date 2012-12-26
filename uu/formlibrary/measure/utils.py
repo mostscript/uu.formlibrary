@@ -3,6 +3,8 @@ import hmac
 import base64
 import pickle
 
+from plone.app.layout.navigation.root import getNavigationRoot
+
 
 class SignedDataStreamCodec(object):
     """

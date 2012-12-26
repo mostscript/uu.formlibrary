@@ -1,0 +1,90 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<style>
+table.formcounts {
+    border:1px solid #aaa;
+    width:80%;
+}
+
+table.formcounts th {
+    background-color:black;
+    color:#ddd;
+}
+
+table.formcounts td, table.formcounts th {
+    border:1px solid #aaa;
+    padding:0.2em;
+    vertical-align:top;
+}
+
+table.formcounts td.form_value div.value_detail,
+table.formcounts td.form_identity div.form_where {
+    color:#aaa;
+    font-size:80%;
+}
+
+</style>
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="main">
+
+  <tal:block repeat="topic view/topics">
+   <tal:block define="topic_id topic/getId;
+                      result python:view.datapoints.get(topic_id);">
+    <div tal:condition="python: result is not None">
+        <p class="qualifier">Data-set:</p>
+        <h3 tal:content="topic/Title">COLLECTION TITLE</h3>
+        <table class="formcounts">
+          <thead>
+            <tr>
+                <th>Form</th>
+                <th>Start date</th>
+                <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr tal:repeat="form_info result">      <tal:comment replace="nothing">form info is dict of title, url, start, value</tal:comment>
+                <td class="form_identity">
+                    <h5>
+                        <a href=""
+                           target="_blank"
+                           tal:attributes="href form_info/url"
+                           tal:content="form_info/title">FORM TITLE</a>
+                    </h5>
+                    <div class="form_where">
+                        In: <span tal:content="form_info/path">FORM PATH TEXT like: team_a/here/there/everywhere</span>  <!-- TODO: enhanced path -->
+                    </div>
+                </td>
+                <td class="form_start">
+                    <span tal:content="python:form_info.get('start').isoformat()">FORM START DATE</span>
+                </td>
+                <td class="form_value">
+                    <span tal:content="form_info/display_value">VALUE (Eq Y-Axis value for Plot)</span>
+                    <div class="value_detail">
+                        <div tal:condition="python:'raw_numerator' in form_info and 'raw_denominator' in form_info">
+                            <tal:block replace="form_info/raw_numerator" /> of 
+                            <tal:block replace="form_info/raw_denominator" />
+                                <em tal:condition="python:context.denominator_type == 'multi_filter'">(filtered)</em>
+                            records.
+                        </div>
+                    </div>
+                </td>
+            </tr>
+          </tbody>
+        </table>
+    </div>
+   </tal:block>
+  </tal:block>
+
+ </div>
+</body>
+</html>

@@ -49,10 +49,10 @@ class MeasureDefinition(Container):
             m = context.catalog.rcount(q)   # result count from form's embedded catalog
         return m
     
-    def _mr_value(self, context):
+    def _mr_values(self, context):
         """return (n, m) values for numerator, denominator"""
-        n = self._mr_raw_numerator(self, context)
-        m = self._mr_raw_denominator(self, context)
+        n = self._mr_raw_numerator(context)
+        m = self._mr_raw_denominator(context)
         return (n, m)
 
     def _flex_value(self, context):
@@ -65,11 +65,14 @@ class MeasureDefinition(Container):
         """
         source_type = self._source_type()
         if source_type == MULTI_FORM_TYPE:
-            divide = lambda a,b: float(a) / float(b)
+            nan = float('NaN')
+            divide = lambda a,b: float(a) / float(b) if b else nan
             return divide(*self._mr_value(context))
         return self._flex_form_value(context)
     
     def _normalize(self, v):
+        if math.isnan(v):
+            return v
         ## constant multiplier
         v = self.multiplier * v  # multiplier defaults to 1.0
         ## rounding
@@ -100,9 +103,10 @@ class MeasureDefinition(Container):
     def datapoint(self, context):
         """Returns dict for data point given form context"""
         n = m = None
-        if self._source_type == MULTI_FORM_TYPE and self.denominator_type != 'constant':
-            n, m = self._mr_values()
-            divide = lambda a,b: float(a) / float(b)
+        if self._source_type() == MULTI_FORM_TYPE and self.denominator_type != 'constant':
+            n, m = self._mr_values(context)
+            nan = float('NaN')
+            divide = lambda a,b: float(a) / float(b) if b else nan
             raw = divide(n, m)
             normalized = self._normalize(raw)
         else:
@@ -146,8 +150,10 @@ class MeasureDefinition(Container):
         Format a value as a string using rules defined on measure
         definition.
         """
+        if math.isnan(value):
+            return 'N/A'
         fmt = '%%.%if' % self.display_precision
-        if self.value_type == 'percentage' and self.multipler == 100.0:
+        if self.value_type == 'percentage' and self.multiplier == 100.0:
             fmt += '%%'
         return fmt % value
     

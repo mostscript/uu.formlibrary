@@ -227,7 +227,33 @@ class IMeasureDefinition(form.Schema,
         """
         Return string display value (formatted) for context.
         """
+    
+    def datapoint(context):
+        """
+        Given a form instance as a context, apply measure
+        to get a data point (info dict).
+        """
 
+    def points(seq):
+        """
+        Given a sequence of form instances, get data-point
+        for each by applying measure function, preserving
+        sort order.
+        """
+
+    def dataset_points(dataset):
+        """
+        Given a topic/collection object, get all form instances
+        matching that topic, and get a data-point for each,
+        preserving sort order.
+        """
+
+    def value_note(info):
+        """
+        Given an info dict (data point), construct note text as
+        a unicode object if applicable, or return None.
+        """
+        
 
 class IMeasureGroup(form.Schema,
                     IAttributeUUID,

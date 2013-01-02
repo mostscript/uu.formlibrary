@@ -164,6 +164,22 @@ class MeasureDefinition(Container):
         Return string display value (formatted) for context.
         """
         return self.display_format(self.value_for(context))
+    
+    def value_note(self, info):
+        """
+        Given a datapoint dict, create a textual note as addendum
+        for display adjacent to value.
+        """
+        note = u''
+        if 'raw_numerator' in info and 'raw_denominator' in info:
+            note += u'%s of %s' % (
+                info.get('raw_numerator'),
+                info.get('raw_denominator'),
+                )
+            if self.denominator_type == 'multi_filter':
+                note += u' (filtered)'
+            note += u' records'
+        return note or None  # return None instead of empty note
 
 
 # measure group content type class:

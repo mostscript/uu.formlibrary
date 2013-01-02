@@ -70,12 +70,7 @@ table.formcounts td.form_identity div.form_where {
                 <td class="form_value">
                     <span tal:content="form_info/display_value">VALUE (Eq Y-Axis value for Plot)</span>
                     <div class="value_detail">
-                        <div tal:condition="python:'raw_numerator' in form_info and 'raw_denominator' in form_info">
-                            <tal:block replace="form_info/raw_numerator" /> of 
-                            <tal:block replace="form_info/raw_denominator" />
-                                <em tal:condition="python:context.denominator_type == 'multi_filter'">(filtered)</em>
-                            records.
-                        </div>
+                        <div class="value_note" tal:content="python: context.value_note(form_info)" />
                     </div>
                 </td>
             </tr>

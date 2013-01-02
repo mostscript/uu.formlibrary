@@ -20,9 +20,11 @@ class MeasureDefinition(Container):
      
     portal_type = 'uu.formlibrary.measure'
     
+    def group(self):
+        return aq_parent(aq_inner(self))  # folder containing
+    
     def _source_type(self):
-        group = aq_parent(aq_inner(self))
-        return group.source_type
+        return self.group().source_type
     
     def _mr_raw_numerator(self, context):
         """Get raw value for numerator n"""

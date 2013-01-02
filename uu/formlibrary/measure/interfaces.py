@@ -208,6 +208,9 @@ class IMeasureDefinition(form.Schema,
     be a floating point number.
     """
     
+    def group():
+        """Get parent group containing this measure"""
+
     def value_for(context):
         """
         Given an appropriate form context, compute a value, normalize

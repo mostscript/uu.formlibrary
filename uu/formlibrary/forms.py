@@ -1,17 +1,20 @@
 from datetime import datetime
 
+from collective.z3cform.datagridfield.interfaces import IDataGridField
 import transaction
 from persistent.dict import PersistentDict
 from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
 from plone.autoform.interfaces import WIDGETS_KEY
 from plone.z3cform.fieldsets.group import GroupFactory
+from plone.z3cform.fieldsets.interfaces import IGroupFactory
 from z3c.form import form, field, button, converter, widget
-from z3c.form.testing import TestRequest
 from z3c.form.browser.radio import RadioFieldWidget
 from z3c.form.browser.checkbox import CheckBoxFieldWidget
+from z3c.form.interfaces import IDataConverter
+from z3c.form.testing import TestRequest
 from zope.component.hooks import getSite
-from zope.component import adapter, queryUtility
+from zope.component import adapter, queryUtility, getMultiAdapter
 from zope.event import notify
 from zope.interface import implements, implementer
 from zope.globalrequest import getRequest
@@ -200,22 +203,57 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             self.groups.append(fieldset_group)
         super(ComposedForm, self).updateFieldsFromSchemata()
     
-    def _update_widgets(self, context=None):
-        """
-        For given context (self or field group provided), update
-        which widgets to use for fields.
-        """
-        context = self if context is None else context
-        date_fields = [f for f in context.fields.values()
-                        if IDate.providedBy(f.field)]
-        for field in date_fields:
-            field.widgetFactory = SmartdateFieldWidget
-     
+    def _load_widget_data(self):
+        _marker = object()
+        data = self.context.data
+        groups = dict((g.__name__, g) for g in self.groups)
+        groupnames = [''] + groups.keys()
+        for groupname in groupnames:
+            group_data = data.get(groupname, None)
+            if groupname is '':
+                group = self
+            else:
+                group = groups.get(groupname)
+                fieldgroup = self.definition[groupname]
+                ## plone.autoform binds groups really, really late, so
+                ## we are stuck with a GroupFactory object, we need to
+                ## call it to get the actual group, then replace the 
+                ## group factory with it once we have manipulated
+                ## any widget values:
+                if IGroupFactory.providedBy(group):
+                    idx = self.groups.index(group)
+                    actual_group = group(self.context, self.request, self)
+                    self.groups[idx] = group = actual_group
+                    group.update()  # will populate group.widgets
+                if fieldgroup.group_usage == 'grid':
+                    data_widget = group.widgets.values()[0]
+                    data_widget.value = group_data.data
+                    continue
+
+            if group_data is not None:
+                for formfield in group.fields.values():
+                    schema_field = formfield.field
+                    widgetname = formfield.__name__
+                    fieldname = schema_field.__name__
+                    v = getattr(group_data, fieldname, _marker)
+                    if v is not _marker:
+                        widget = group.widgets.get(widgetname)
+                        converter = getMultiAdapter(
+                            (schema_field, widget),
+                            IDataConverter,
+                        )
+                        if not IDataGridField.providedBy(widget):
+                            v = converter.toWidgetValue(v)
+                        widget.value = v
+    
     def updateWidgets(self):
         common_widget_updates(self)
         for group in self.groups:
             common_widget_updates(group)
         super(ComposedForm, self).updateWidgets()
+        ## finally, if non-defintion context, set widget values via group data
+        if hasattr(self.context, 'data'):
+            self._load_widget_data()
     
     def datagridInitialise(self, subform, widget):
         if not hasattr(self, '_widgets_initialized'):

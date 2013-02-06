@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from Acquisition import aq_base
 from collective.z3cform.datagridfield.interfaces import IDataGridField
 import transaction
 from persistent.dict import PersistentDict
@@ -205,7 +206,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     
     def _load_widget_data(self):
         _marker = object()
-        data = self.context.data
+        data = aq_base(self.context).data
         groups = dict((g.__name__, g) for g in self.groups)
         groupnames = [''] + groups.keys()
         for groupname in groupnames:
@@ -252,7 +253,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             common_widget_updates(group)
         super(ComposedForm, self).updateWidgets()
         ## finally, if non-defintion context, set widget values via group data
-        if hasattr(self.context, 'data'):
+        if not IFormDefinition.providedBy(self.context):
             self._load_widget_data()
     
     def datagridInitialise(self, subform, widget):

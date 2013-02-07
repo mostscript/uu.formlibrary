@@ -5,7 +5,17 @@ def handle_multiform_modify(context, event):
     """Will add or replace catalof for a multiform"""
     context.catalog = SimpleCatalog(context)
     for uid, record in context.items():
-        context.catalog.index(record)
+        try:
+            context.catalog.index(record)
+        except TypeError:
+            import traceback; import sys
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback, file=sys.stdout)
+            print '--------'*5
+            import pdb; pdb.set_trace()
+            print 'Cound not index record for context: %s' % context
+            print 'Record %s' % record.record_uid
+            print record.__dict__
 
 
 def handle_multiform_savedata(context):

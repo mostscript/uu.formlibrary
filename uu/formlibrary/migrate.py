@@ -19,6 +19,7 @@ import sys
 import logging
 
 from plone.uuid.interfaces import IUUID
+import transaction
 from zope.component import queryUtility
 from zope.component.hooks import setSite
 from zope.event import notify
@@ -154,7 +155,7 @@ def migrate_series_chartaudit_to_multiforms(source_series, target_series, librar
         record_count = len(multi)
         assert len(multi) == len(form)  # same number of items
         assert multi.keys() == form.keys()  # same order of records
-        multi.reindexObject()
+        #multi.reindexObject()  # shoudl be handled by modified event
         _logger.info('Migrated chart audit form %s to lookalike '\
                      ' multi-record form %s -- copied %s records.' % (
                     formid,
@@ -195,13 +196,16 @@ def skip_project(project, catalog):
     global _get
     q1 = local_query(project, {}, 'uu.qiforms.chartaudit')
     q2 = local_query(project, {}, 'uu.qiforms.progressform')
+    q3 = local_query(project, {}, 'uu.qiforms.formseries')
     all_chartaudit = map(_get, catalog.search(q1))
     all_progress = map(_get, catalog.search(q2))
-    return not (len(all_chartaudit)+len(all_progress))
+    all_oldseries = map(_get, catalog.search(q3))
+    return not sum(map(len, (all_chartaudit, all_progress, all_oldseries)))
 
 
 def migrate_project_forms(project, catalog, delete=False):
     global _get, _logger
+    uid_catalog = getToolByName(project, 'uid_catalog')
     _logger.info('Migrate project forms: %s' % project.getId())
     if skip_project(project, catalog):
         _logger.info('Skipping project (no legacy forms): %s' % project.getId())
@@ -226,9 +230,9 @@ def migrate_project_forms(project, catalog, delete=False):
         library = libraries[0]
         _logger.info('Found library %s' % library.getId())
     q = local_query(project, {}, 'uu.qiforms.formseries')
-    all_series = map(_get, catalog.search(q))
-    _logger.info('Found %s form series in project' % len(all_series))
-    for series in all_series:
+    all_old_series = map(_get, catalog.search(q))
+    _logger.info('Found %s form series in project' % len(all_old_series))
+    for series in all_old_series:
         target = get_target_series(series)  # get or make target sibling
         contents = series.contentValues()
         copyids = []
@@ -252,10 +256,29 @@ def migrate_project_forms(project, catalog, delete=False):
         else:
             migrate_series_chartaudit_to_multiforms(series, target, library)
         if delete:
+            orig_id = series.getId()
+            target_id = target.getId()
+            old_target_path = '/'.join(target.getPhysicalPath())
             parent = aq_parent(aq_inner(series))
             series_path = '/'.join(series.getPhysicalPath())
-            parent.manage_delObjects([series.getId()])
+            parent.manage_delObjects([orig_id])
             _logger.info('Deleted old form series %s' % series_path)
+            parent.manage_renameObject(target_id, orig_id)
+            # assert id is changed
+            assert target.getId() == orig_id
+            assert target_id not in parent.objectIds()
+            # fixup for UID catalog after renaming the new series to the
+            # old name:
+            target_uid = IUUID(target)
+            brain = uid_catalog.search(dict(UID=target_uid))[0]
+            assert brain.getPath() == old_target_path
+            uid_catalog._catalog.uncatalogObject(old_target_path)
+            uid_catalog.catalog_object(target, series_path)
+            brain = uid_catalog.search(dict(UID=target_uid))[0]
+            assert brain.getPath() == series_path
+            _logger.info('Renamed new form series to %s' % orig_id)
+    q = local_query(project, {}, 'uu.qiforms.formseries')
+    assert(len(catalog.search(q)) == 0)  # no remaining old series
 
 
 def migrate_site_forms(site, delete=False):
@@ -265,7 +288,48 @@ def migrate_site_forms(site, delete=False):
     _logger.info('Form migration: found %s projects' % len(projects))
     for project in projects:
         migrate_project_forms(project, catalog, delete)
+        sp = transaction.savepoint()
 
+
+def site_config_migration(site):
+    profile_formlibrary = 'profile-uu.formlibrary:default'
+    profile_chart = 'profile-uu.chart:default'
+    setuptool = getToolByName(site, 'portal_setup')
+    setuptool.runImportStepFromProfile(profile_formlibrary, 'typeinfo')
+    setuptool.runImportStepFromProfile(profile_chart, 'typeinfo')
+    typestool = getToolByName(site, 'portal_types')
+    assert 'uu.formlibrary.series' in typestool
+    assert 'uu.formlibrary.recordfilter' in typestool
+    assert 'uu.formlibrary.measurelibrary' in typestool
+    assert 'uu.formlibrary.measuregroup' in typestool
+    assert 'uu.chart.data.measureseries' in typestool
+    # legacy progress form support, for now:
+    if 'uu.qiforms.progressform' in typestool:
+        seriesfti = typestool.get('uu.formlibrary.series')
+        series_allowed = list(seriesfti.allowed_content_types)
+        series_allowed.append('uu.qiforms.progressform')
+        seriesfti.allowed_content_types = tuple(sorted(series_allowed))
+        assert 'uu.qiforms.progressform' in seriesfti.allowed_content_types
+    # qi-specific:
+    if 'qiproject' in typestool:
+        # Products.qi type fixups:
+        #  (1) allow uu.formlibrary.series in qiteam/qisubteam
+        #  (2) remove uu.qiforms.formseries from allowed types in qiteam
+        #  (3) allow uu.formlibrary.measurelibrary in qiproject
+        for name in ('qiteam', 'qisubteam'):
+            teamfti = typestool.get(name)
+            team_allowed = list(teamfti.allowed_content_types)
+            if 'uu.qiforms.formseries' in team_allowed:
+                team_allowed.remove('uu.qiforms.formseries')
+            team_allowed.append('uu.formlibrary.series')
+            teamfti.allowed_content_types = tuple(sorted(team_allowed))
+            assert 'uu.qiforms.formseries' not in teamfti.allowed_content_types
+            assert 'uu.formlibrary.series' in teamfti.allowed_content_types
+        projectfti = typestool.get('qiproject')
+        project_allowed = list(projectfti.allowed_content_types)
+        project_allowed.append('uu.formlibrary.measurelibrary')
+        projectfti.allowed_content_types = tuple(sorted(project_allowed))
+        assert 'uu.formlibrary.measurelibrary' in projectfti.allowed_content_types
 
 def migration_wrapper(app, sitename, username='admin', delete=False):
     """
@@ -281,11 +345,11 @@ def migration_wrapper(app, sitename, username='admin', delete=False):
     _logger.info('Migration started for forms on site: %s' % site)
     user = app.acl_users.getUser(username)
     newSecurityManager(None, user)
+    site_config_migration(site)
     migrate_site_forms(site, delete)
-    import transaction
     txn = transaction.get()
     txn.note('/'.join(site.getPhysicalPath()[1:]))
-    txn.note('Migrated forms')
+    txn.note('Form library migration')
     txn.commit()
 
 

@@ -226,7 +226,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                     actual_group = group(self.context, self.request, self)
                     self.groups[idx] = group = actual_group
                     group.update()  # will populate group.widgets
-                if fieldgroup.group_usage == 'grid':
+                if group_data and fieldgroup.group_usage == 'grid':
                     data_widget = group.widgets.values()[0]
                     data_widget.value = group_data.data
                     continue

@@ -69,7 +69,7 @@ class MeasureDefinition(Container):
         if source_type == MULTI_FORM_TYPE:
             nan = float('NaN')
             divide = lambda a,b: float(a) / float(b) if b else nan
-            return divide(*self._mr_value(context))
+            return divide(*self._mr_values(context))
         return self._flex_form_value(context)
     
     def _normalize(self, v):

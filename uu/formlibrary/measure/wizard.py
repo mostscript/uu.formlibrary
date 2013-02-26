@@ -29,7 +29,8 @@ from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import IFormComponents
 
 from interfaces import IMeasureNaming, IMeasureFormDefinition
-from interfaces import IMeasureSourceType, IMeasureCalculation, IMeasureUnits
+from interfaces import IMeasureSourceType, IMeasureCalculation
+from interfaces import IMeasureUnits, IMeasureRounding
 from utils import SignedPickleIO, find_context
 from factory import MRMeasureFactory
 
@@ -57,11 +58,25 @@ class IMeasureWizardMRCriteria(IMeasureCalculation, IMeasureWizardSubform):
     """Numerator/denominator selection for measure via multi-record form"""
     
 
-class IMeasureWizardMRUnits(IMeasureUnits, IMeasureWizardSubform):
+class IMeasureWizardRounding(IMeasureRounding, IMeasureWizardSubform):
     """
-    Marker for automata state for units step via multi-record form data
-    source.
+    Marker for automata state for rounding and percentage calculation
+    step via multi-record form data source.
     """
+    
+    express_as_percentage = schema.Bool(
+        title=u'Express value as percentage',
+        description=u'Should the value be expressed as a percentage? '\
+                    u'If the raw value results from a ratio, and this '\
+                    u'option is selected, the ratio value (usually between '\
+                    u'zero and one) will be multiplied by 100 and values '\
+                    u'will be displayed in percentage notation.  This box '\
+                    u'may be pre-checked for you if the numerator and '\
+                    u'denominator types selected on the previous page '\
+                    u'imply that computed values will be a rate or ratio.',
+        default=False,
+        required=False,
+        )
 
 
 class IMeasureWizardFlexUnits(IMeasureUnits, IMeasureWizardSubform):
@@ -153,9 +168,9 @@ mr_delta_tables = {
         },
     IMeasureWizardMRCriteria : {
         'previous' : IMeasureWizardNaming,
-        'next' : IMeasureWizardMRUnits,
+        'next' : IMeasureWizardRounding,
         },
-    IMeasureWizardMRUnits : {
+    IMeasureWizardRounding : {
         'previous' : IMeasureWizardMRCriteria,
         'next' : None,   # final
         },
@@ -194,7 +209,7 @@ STEP_TITLES = {
     IMeasureWizardDefinition : u'Choose a form definition for the measure',
     IMeasureWizardSourceType : u'What type of data source?',
     IMeasureWizardMRCriteria : u'How is measure calculated',
-    IMeasureWizardMRUnits : 'Describe and configure the units of measure?',
+    IMeasureWizardRounding : 'How should computed values be displayed?',
     IMeasureWizardFlexUnits : 'Describe and configure the units of measure?',
     IMeasureWizardFlexFieldChoice : u'Choose a field as a value source.',
     IMeasureWizardFlexFieldsetChoice : u'Choose a field group from which a '\
@@ -459,6 +474,11 @@ class MeasureWizardView(object):
         ##       (2) MR criteria view
         self.formbody = 'Your measure has been configured'  # TODO: rem
     
+    def data_implies_percentage(self, saved_formdata):
+        d = saved_formdata.get('IMeasureWizardMRCriteria', {})
+        nt, mt = d.get('numerator_type', None), d.get('denominator_type', None)
+        return (nt == 'multi_filter' and mt in ('multi_total', 'multi_filter'))
+
     def update(self, *args, **kwargs):
         method = self.request.get('REQUEST_METHOD', None)
         ## check for cancelation of wizard:
@@ -501,6 +521,14 @@ class MeasureWizardView(object):
         
         ## get current wizard step (state, used by template and methods):
         self.current_step = self.get_current_form_step()
+        
+        ## if rounding step and % implied, set express_as_percentage to True
+        if self.current_step == IMeasureWizardRounding:
+            if self.data_implies_percentage(saved_formdata):
+                if 'IMeasureWizardRounding' not in saved_formdata:
+                    saved_formdata['IMeasureWizardRounding'] = {}
+                d = saved_formdata['IMeasureWizardRounding']
+                d['express_as_percentage'] = True 
         
         if self.current_step is None:
             return self.update_final(saved_formdata, *args, **kwargs)

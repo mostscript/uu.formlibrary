@@ -5,7 +5,7 @@ from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
 from zope.globalrequest import getRequest
-from zope.interface import Interface
+from zope.interface import Interface, Invalid, invariant
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
@@ -31,14 +31,21 @@ SOURCE_TYPE_CHOICES = SimpleVocabulary([
 ])
 
 
-MR_FORM_FILTER_CHOICES = SimpleVocabulary([
-    SimpleTerm('constant', title=u'Constant value (1)'),
+MR_FORM_COMMON_FILTER_CHOICES = [
     SimpleTerm('multi_total', title=u'Total records (multi-record form)'),
     SimpleTerm(
         'multi_filter',
         title=u'Value computed by a filter of records',
         )
-])
+]
+
+MR_FORM_NUMERATOR_CHOICES = SimpleVocabulary(MR_FORM_COMMON_FILTER_CHOICES)
+
+MR_FORM_DENOMINATOR_CHOICES = SimpleVocabulary(
+    [
+        SimpleTerm('constant', 'No denominator (do not divide numerator value)'),
+    ] + MR_FORM_COMMON_FILTER_CHOICES,
+)
 
 
 VALUE_TYPE_CHOICES = SimpleVocabulary([
@@ -54,7 +61,7 @@ VALUE_TYPE_CHOICES = SimpleVocabulary([
 
 
 ROUNDING_CHOICES = SimpleVocabulary([
-    SimpleTerm('', title=u'No rounding'),
+    SimpleTerm('', title=u'No rounding -- do not modify value'),
     SimpleTerm('round', title=u'Round (up/down)'),
     SimpleTerm('ceiling', title=u'Ceiling: always round upward.'),
     SimpleTerm('floor', title=u'Floor: always round downward.'),
@@ -124,7 +131,7 @@ class IMeasureCalculation(form.Schema):
     numerator_type = schema.Choice(
         title=u'Computed value: numerator',
         description=u'Choose how the core computed value is obtained.',
-        vocabulary=MR_FORM_FILTER_CHOICES,
+        vocabulary=MR_FORM_NUMERATOR_CHOICES,
         default='multi_filter',
         required=True,
         )
@@ -139,9 +146,41 @@ class IMeasureCalculation(form.Schema):
                     u'may also choose a constant denominator if what you '\
                     u'aim to compute and display is a raw count of matches '\
                     u'resulting from a numerator computed by filter.',
-        vocabulary=MR_FORM_FILTER_CHOICES,
+        vocabulary=MR_FORM_DENOMINATOR_CHOICES,
         default='multi_total',
         required=True,
+        )
+    
+    @invariant
+    def sensible_nm(data):
+        nt, mt = data.numerator_type, data.denominator_type
+        if (nt == mt) and nt in ('multi_total', 'constant'):
+            # 1/1 == N/N == 1 -- this is nonsense value
+            m = 'Numerator, denominator types selected will always lead '\
+                'to a value equal to one, this is neither useful or allowed.'
+            raise Invalid(m)
+
+class IMeasureRounding(form.Schema):
+    
+    display_precision = schema.Int(
+        title=u'Digits after decimal point (display precision)?',
+        description=u'When displaying a decimal value, how many places '\
+                    u'beyond the decimal point should be displayed in '\
+                    u'output?  Default: two digits after the decimal point.',
+        default=2,
+        )
+    
+    form.widget(rounding=RadioFieldWidget)
+    rounding = schema.Choice(
+        title=u'How should number be optionally rounded?',
+        description=u'You may choose to round decimal values to integer '\
+                    u'(whole or negative non-decimal number) values using '\
+                    u'a rounding rule; be default, no rounding takes '\
+                    u'place.  You may prefer to use display precision '\
+                    u'above in many cases, instead of rounding.',
+        vocabulary=ROUNDING_CHOICES,
+        required=False,
+        default='',
         )
 
 
@@ -171,25 +210,6 @@ class IMeasureUnits(form.Schema):
         required=False,
         )
 
-    form.widget(rounding=RadioFieldWidget)
-    rounding = schema.Choice(
-        title=u'(optional) Rounding rule',
-        description=u'You may choose to round decimal values to integer '\
-                    u'(whole or negative non-decimal number) values using '\
-                    u'a rounding rule; be default, no rounding takes place.',
-        vocabulary=ROUNDING_CHOICES,
-        required=False,
-        default='',
-        )
-
-    display_precision = schema.Int(
-        title=u'Display precision',
-        description=u'When displaying a decimal value, how many places '\
-                    u'beyond the decimal point should be displayed in '\
-                    u'output?  Default: two digits after the decimal point.',
-        default=2,
-        )
-
 
 ## content type interfaces:
 
@@ -197,6 +217,7 @@ class IMeasureDefinition(form.Schema,
                          IAttributeUUID,
                          IMeasureNaming,
                          IMeasureCalculation,
+                         IMeasureRounding,
                          IMeasureUnits):
     """
     Measure definition content interface.

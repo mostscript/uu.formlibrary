@@ -167,7 +167,7 @@ class IMeasureRounding(form.Schema):
         description=u'When displaying a decimal value, how many places '\
                     u'beyond the decimal point should be displayed in '\
                     u'output?  Default: two digits after the decimal point.',
-        default=2,
+        default=1,
         )
     
     form.widget(rounding=RadioFieldWidget)

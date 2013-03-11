@@ -41,7 +41,7 @@
   <alias from="(Default)" to="@@dataset_view"/>
   <alias from="edit" to="@@edit"/>
   <alias from="sharing" to="@@sharing"/>
-  <alias from="view" to="(selected layout)"/>
+  <alias from="view" to="@@dataset_view"/>
  
   <!-- Actions -->
   <action title="View" action_id="view" category="object" condition_expr=""

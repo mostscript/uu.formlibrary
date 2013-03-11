@@ -13,9 +13,6 @@
   <property name="filter_content_types">True</property>
   <property name="allowed_content_types">
     <element value="uu.formlibrary.fieldgroup" /> 
-    <element value="uu.formlibrary.setspecifier" /> 
-    <element value="uu.formlibrary.recordfilter" /> 
-    <element value="uu.formlibrary.compositefilter" /> 
   </property>
   
   <!-- schema interface -->

@@ -17,13 +17,16 @@
   #measure-library-dashboard #library-actions h3 { font-size:95%; margin-bottom:1em; line-height:180%; }
   #measure-library-dashboard #library-actions li { background-color:#ddd; border:1px solid #444; border-radius:0.4em; list-style-type:none; padding:0.3em; }
   #measure-library-dashboard #library-actions li.create { background-color:#75ad0a; }
+  #measure-library-dashboard #library-actions li.create a .discreet { font-size:80% !important; margin-left:1.6em; }
   #measure-library-dashboard #library-actions ul li a { display:block; border-bottom:none !important; text-decoration:none !Important; color:#444 !Important; font-weight:bold; font-size:120%;  }
   #measure-library-dashboard #library-actions ul li a:hover { color:white !Important; }
   #measure-library-dashboard #library-actions ul li:hover { background-color:#444 !Important; }
   #measure-library-dashboard #library-actions li.search form { display:block; width:98%; text-align:center; }
   #measure-library-dashboard #library-actions li.search form button, #measure-library-dashboard #library-actions li.search form input { width:80%; }
-  
+  #measure-library-dashboard #library-actions p.help { margin-left:1em; font-style:italic; font-size:85%; line-height:115%; color:#389;}
+  #measure-library-dashboard #library-info div.recent { margin-bottom:0.7em; }
   span.plusicon { color:white; }
+  
 </style>
   
   </metal:block>
@@ -31,7 +34,7 @@
 <body>
  <div metal:fill-slot="main">
 
-  <p class="discreet">Measure group:</p>
+  <p class="discreet" style="color:#08f">Measure group:</p>
   <h1>
     <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/measureform.png" width="32" height="32" alt="Measure group" />
     <span tal:content="context/Title">TITLE</span>
@@ -41,17 +44,18 @@
   <div id="measure-library-dashboard">
     <div id="library-actions">
       <h3>Measure group actions:</h3>
+      <p class="help">Inside this measure group, you can create measure definitions, which describe how data is extracted from forms for a named measure, and data sets, which describe sources of data to apply those measures to.</p>
       <ul>
         <li class="create">
           <a href="" tal:attributes="href string:${context/absolute_url}/@@measure_wizard">
             <span class="plusicon">&thinsp;&#43;&nbsp;</span> Create measure definition
-            <br /><span class="discreet"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; in group <em tal:content="context/Title" /></span>
+            <div class="discreet">in this group (<em tal:content="context/Title" />)</div>
           </a>
         </li>
-        <li class="create">
-          <a href="" tal:attributes="href string:${context/absolute_url}/createObject?type_name=Topic">
+        <li class="create newdataset">
+          <a href="" tal:attributes="href string:${context/absolute_url}/++add++uu.formlibrary.setspecifier">
             <span class="plusicon">&thinsp;&#43;&nbsp;</span> Create a data set
-            <br /><span class="discreet"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (add a collection of forms)</span>
+            <div class="discreet" style="">Define a new set of forms to apply measures to.</div>
           </a>
         </li>
         <li class="browse">
@@ -82,16 +86,16 @@
               <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>
             </li>
         </ul>
-        <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
         <div tal:condition="count">
           <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
             See all measure definitions. 
           </a>
           (<span tal:replace="count"></span>).
         </div>
+        <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
       </div>
       
-      <div class="recent" tal:define="recent python:view.recent(limit=8, portal_type='Topic'); count python:view.count(portal_type='Topic')">
+      <div class="recent" tal:define="recent python:view.recent(limit=8, portal_type=view.dataset_type); count python:view.count(portal_type=view.dataset_type)">
         <h3>Most-recently modified data sets (collections):</h3>
         <p tal:condition="python: not count">There are no collections contained in this group.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
@@ -103,7 +107,6 @@
               <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>
             </li>
         </ul>
-        <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
         <div tal:condition="count">
           <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
             See all items

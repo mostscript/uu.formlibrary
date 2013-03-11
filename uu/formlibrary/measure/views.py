@@ -1,7 +1,12 @@
 from Acquisition import aq_parent, aq_inner
+from OFS.event import ObjectClonedEvent
+from plone.app.content.namechooser import NormalizingNameChooser
 from Products.CMFCore.utils import getToolByName
+from Products.statusmessages.interfaces import IStatusMessage
+from zope.event import notify
+from zope.lifecycleevent import ObjectCopiedEvent
 
-from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE
+from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
 
 
 def local_query(context, query):
@@ -27,6 +32,7 @@ class MeasureLibraryView(object):
         self.catalog = getToolByName(context, 'portal_catalog')
         self._brains = {}
         self.definition_type = MEASURE_DEFINITION_TYPE
+        self.dataset_type = DATASET_TYPE
         self.group_type = GROUP_TYPE
         self.topic_type = 'Topic'
     
@@ -56,6 +62,69 @@ class MeasureLibraryView(object):
         return '/'.join(self.context.getPhysicalPath())
 
 
+class FormDataSetView(object):
+    """Default view for IFormDataSetSpecification"""
+    
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.forms = []
+    
+    def update(self):
+        req = self.request
+        if req.get('REQUEST_METHOD', 'GET') == 'POST' and 'clone' in req:
+            print 'TODO: cloning'
+        self.forms = self.context.forms()
+    
+    def __call__(self, *args, **kwargs):
+        self.update(*args, **kwargs)
+        return self.index(*args, **kwargs)  # via framework magic
+
+
+class FormDataSetCloningView(object):
+    """View for cloning a dataset, acting as a factory for a copy"""
+    
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.forms = []
+        self.status = IStatusMessage(self.request)
+    
+    def target_id(self, target, parent):
+        """Given a target and parent, generate new id"""
+        generated_id = NormalizingNameChooser(parent).chooseName(
+            None,
+            target,
+            )  ## name from title, incidentally avoids colliding w/ source id
+        return generated_id
+    
+    def update(self):
+        req = self.request
+        if req.get('REQUEST_METHOD', 'GET') == 'POST' and 'makeclone' in req:
+            source = self.context
+            parent = source.__parent__
+            target = source._getCopy(parent)
+            target.title = req.get('clone_title', source.title)
+            target.description = req.get('clone_description', source.description)
+            target_id = self.target_id(target, parent)
+            target._setId(target_id)
+            notify(ObjectCopiedEvent(target, source))
+            parent._setObject(target_id, target)
+            target = parent.get(target_id)
+            target.wl_clearLocks()
+            notify(ObjectClonedEvent(target))
+            self.status.add(
+                u'Created a new data set with title "%s" cloned from '\
+                u'original data set "%s"' % (target.title, source.title),
+                type=u'info',
+                )
+            req.response.redirect(target.absolute_url() + '/edit')
+    
+    def __call__(self, *args, **kwargs):
+        self.update(*args, **kwargs)
+        return self.index(*args, **kwargs)  # via framework magic
+
+
 class MeasureDataView(object):
     """
     View that loads cross-product matrix of filters and collections/topics
@@ -70,7 +139,7 @@ class MeasureDataView(object):
     def __init__(self, context, request=None):
         self.context = context
         self.request = request
-        self.topics = []
+        self.datasets = []
         self.datapoints = {}
     
     def use_percent(self):
@@ -79,14 +148,14 @@ class MeasureDataView(object):
     
     def _datasets(self):
         group = aq_parent(aq_inner(self.context))
-        return [o for o in group.contentValues() if o.portal_type=='Topic']
+        ftiname = DATASET_TYPE
+        return [o for o in group.contentValues() if o.portal_type==ftiname]
     
     def update(self, *args, **kwargs):
-        ds = self._datasets()
-        self.topics = ds
-        for topic in ds:
-            topic_id = topic.getId()
-            self.datapoints[topic_id] = self.context.dataset_points(topic)
+        self.datasets = self._datasets()
+        for dataset in self.datasets:
+            dsid = dataset.getId()
+            self.datapoints[dsid] = self.context.dataset_points(dataset)
     
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)

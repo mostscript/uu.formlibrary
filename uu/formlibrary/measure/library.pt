@@ -22,7 +22,7 @@
   #measure-library-dashboard #library-actions ul li:hover { background-color:#444 !Important; }
   #measure-library-dashboard #library-actions li.search form { display:block; width:98%; text-align:center; }
   #measure-library-dashboard #library-actions li.search form button, #measure-library-dashboard #library-actions li.search form input { width:80%; }
-  
+  #measure-library-dashboard #library-info div.recent { margin-bottom:0.7em; }
   span.plusicon { color:white; }
 </style>
   
@@ -56,7 +56,7 @@
         <li class="browse">
           <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
             <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/measurelib.png" />
-            Browse all measures</a>
+            Browse measure groups</a>
         </li>
         <li class="search">
           <form action="" tal:attributes="action string:${context/@@plone_portal_state/navigation_root_url}/search" method="GET">
@@ -80,7 +80,6 @@
               <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>
             </li>
         </ul>
-        <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
         <div tal:condition="count">
           <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
             See all measure groups 
@@ -89,11 +88,25 @@
         </div>
       </div>
 
-      <hr style="border-top:none; border:2px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
-
+      <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
       <div class="recent" tal:define="recent_def python:view.recent(limit=8, portal_type=view.definition_type); count view/count">
         <h3>Most-recently modified measure definitions:</h3>
         <p tal:condition="python: not count">There are no measure definitions contained in this library.</p>
+        <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
+            <li tal:repeat="brain recent_def">
+              <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">
+                <img src="" tal:attributes="src brain/getIcon" alt="(measure definition)" />
+                <span tal:content="brain/Title">TITLE</span>
+              </a>
+              <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>
+            </li>
+        </ul>
+      </div>
+
+      <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
+      <div class="recent" tal:define="recent_def python:view.recent(limit=8, portal_type=view.dataset_type); count python: view.count(portal_type=view.dataset_type)">
+        <h3>Most-recently modified data sets:</h3>
+        <p tal:condition="python: not count">There are no data sets yet contained in any of the groups within this library.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
             <li tal:repeat="brain recent_def">
               <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">

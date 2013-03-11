@@ -7,36 +7,7 @@ from zope.interface import implements
 from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 
-from uu.formlibrary.interfaces import IFormQuery, IFormSet, IFormDefinition
-from uu.formlibrary.interfaces import FORM_TYPES
-
-
-class FormSetSpecifier(Item):
-    implements(IFormQuery)
-
-    def _query(self):
-        idxmap = {
-            'query_title' : 'Title',
-            'query_subject' : 'Subject',
-            'query_state' : 'review_state',
-            'query_start' : 'start',
-            'query_end' : 'end',
-            }
-        q = {'portal_type': FORM_TYPES}
-        for name in idxmap:
-            idx = idxmap[name]
-            v = getattr(self, name, None)
-            if v:
-                # only non-empty values are considered
-                q[name] = v
-        return q
-    
-    def __iter__(self): 
-        """
-        Return iterator of (key,value) tuples such that
-        an instance of this class can be cast to a dict.
-        """
-        return self._query.items().__iter__()
+from uu.formlibrary.interfaces import IFormSet, IFormDefinition
 
 
 # form set adapters:
@@ -201,38 +172,4 @@ class DefinitionFormSet(BaseFormSet):
         r = self.catalog.search({'definition' : IUUID(self.context)})
         self.contents = set([b.UID for b in r])
 
-
-class QueryFormSet(BaseFormSet):
-    """Adapts Form set specifier / IFormQuery into form set"""
-    
-    implements(IFormSet)
-    adapts(IFormQuery)
-    
-    def __init__(self, context):
-        if not IFormQuery.providedBy(context):
-            raise ValueError('context %s must provide IFormQuery' % context)
-        BaseFormSet.__init__(self, context)
-        self.definition = context.__parent__
-    
-    def _filter_keys(self, keys):
-        """
-        filter keys to only those inside the event_space of definition
-        keys -- use set intersection to guarantee the set of returned
-        keys is a subset of all definition keys.
-        """
-        event_space = DefinitionFormSet(self.definition).contents
-        return list(set(keys) & event_space) #filtered to intersection
-
-    def keys(self):
-        result = []
-        if self.context.target_uids:
-            result += self.context.target_uids or []
-        query = dict(self.context)
-        if not query:
-            return self._filter_keys(result) #no query, return selected
-        r = self.catalog.search(query)
-        if not r:
-            return self._filter_keys(result) #just selected, query was empty
-        combined = result + [b.UID for b in r] #UIDs selected + UIDs queried
-        return self._filter_keys(combined)
 

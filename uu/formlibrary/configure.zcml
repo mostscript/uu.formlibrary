@@ -35,12 +35,6 @@
     for=".interfaces.IFormDefinition"
     />
   
-  <adapter
-    factory=".formsets.QueryFormSet"
-    provides=".interfaces.IFormSet"
-    for=".interfaces.IFormQuery"
-    />
- 
   <adapter 
     factory=".forms.form_definition"
     provides=".interfaces.IFormDefinition"

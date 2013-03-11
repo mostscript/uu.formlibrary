@@ -35,6 +35,22 @@
     permission="zope2.View"
     />
 
+  <browser:page
+    name="dataset_view"
+    for=".interfaces.IFormDataSetSpecification"
+    class=".views.FormDataSetView"
+    template="datasetview.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="clone_dataset"
+    for=".interfaces.IFormDataSetSpecification"
+    class=".views.FormDataSetCloningView"
+    template="cloneds.pt"
+    permission="cmf.AddPortalContent"
+    />
+
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter
     for=".wizard.IMeasureWizardView

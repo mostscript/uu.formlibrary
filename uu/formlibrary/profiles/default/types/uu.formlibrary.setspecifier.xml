@@ -5,7 +5,7 @@
         xmlns:i18n="http://xml.zope.org/namespaces/i18n">
 
   <!-- Basic metadata -->
-  <property name="title" i18n:translate="">Form Set</property>
+  <property name="title" i18n:translate="">Form Data Set</property>
   <property name="description" i18n:translate="">A form set specifier (collection/query of matching forms).</property>
   <property name="content_icon">++resource++uu.formlibrary.icons/formset.png</property>
   <property name="allow_discussion">False</property>
@@ -15,10 +15,10 @@
   </property>
   
   <!-- schema interface -->
-  <property name="schema">uu.formlibrary.interfaces.IFormQuery</property> 
+  <property name="schema">uu.formlibrary.measure.interfaces.IFormDataSetSpecification</property> 
   
   <!-- class used for content items -->
-  <property name="klass">uu.formlibrary.formsets.FormSetSpecifier</property>
+  <property name="klass">uu.formlibrary.measure.content.FormDataSetSpecification</property>
   
   <!-- add permission -->
   <property name="add_permission">cmf.AddPortalContent</property>
@@ -38,7 +38,7 @@
   </property>
 
   <!-- Method aliases -->
-  <alias from="(Default)" to="(dynamic view)"/>
+  <alias from="(Default)" to="@@dataset_view"/>
   <alias from="edit" to="@@edit"/>
   <alias from="sharing" to="@@sharing"/>
   <alias from="view" to="(selected layout)"/>

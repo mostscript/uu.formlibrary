@@ -37,12 +37,12 @@ table.formcounts td.form_identity div.form_where {
 <body>
  <div metal:fill-slot="main">
 
-  <tal:block repeat="topic view/topics">
-   <tal:block define="topic_id topic/getId;
-                      result python:view.datapoints.get(topic_id);">
+  <tal:block repeat="dataset view/datasets">
+   <tal:block define="dsid dataset/getId;
+                      result python:view.datapoints.get(dsid);">
     <div tal:condition="python: result is not None">
         <p class="qualifier">Data-set:</p>
-        <h3 tal:content="topic/Title">COLLECTION TITLE</h3>
+        <h3 tal:content="dataset/Title">DATASET SPECIFICATION TITLE</h3>
         <table class="formcounts">
           <thead>
             <tr>

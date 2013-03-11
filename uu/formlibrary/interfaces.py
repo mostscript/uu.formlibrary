@@ -58,34 +58,6 @@ _terms = lambda s: SimpleVocabulary([SimpleTerm(t) for t in s])
 mkvocab = lambda s: _mkvocab(s) if s and isinstance(s[0], tuple) else _terms(s)
 
 
-class BoundFormSourceBinder(UUIDSourceBinder):
-    """
-    A UUID source binder for use by a IFormQuery object searching for
-    forms related to a definition.  The assumption behind this binder
-    is that the form must have a definition (uuid) matching 
-    IUUID(context.__parent__) -- such a search is carried out in the 
-    catalog (pass UUIDSourceBinder constructor a kwarg with query) via
-    a 'definition' index added by this package.
-    """
-    
-    def __init__(self, navigation_tree_query=None, **kw):
-        super(BoundFormSourceBinder, self).__init__(
-            navigation_tree_query,
-            portal_type=FORM_TYPES,
-            **kw)
-    
-    def __call__(self, context):
-        definition_uid = IUUID(aq_inner(context).__parent__)
-        if definition_uid is None:
-            return super(BoundFormSourceBinder, self).__call__(context)
-        filter = self.selectable_filter.criteria.copy()
-        filter.update({'definition': definition_uid})
-        filter = CustomFilter(**filter)
-        return self.path_source(
-            self._find_page_context(context),
-            selectable_filter=filter,
-            navigation_tree_query=self.navigation_tree_query)
-
 
 class IFormLibraryProductLayer(Interface):
     """Marker for form library product layer"""
@@ -429,32 +401,20 @@ class IFormEntry(ISchemaSignedEntity):
     """
 
 
-class IFormQuery(form.Schema, ILocation, IAttributeUUID):
+class IFormQuery(form.Schema):
     """
-    Query specification for filtering a set of forms.  self.__parent__
-    (from ILocation interface) is always expected to be an object
-    providing IFormDefinition.
+    Query specification for filtering a set of forms.
     """
     
-    form.omitted('__name__') # not for editing
-
     form.fieldset(
-        'formsearch',
-        label=u"Form search",
+        'filters',
+        label=u'Query filters',
         fields=[
             'query_title',
             'query_subject',
             'query_state',
             'query_start',
             'query_end',
-            ]
-        )
-    
-    form.fieldset(
-        'formselect',
-        label=u"Form selection",
-        fields=[
-            'target_uids',
             ]
         )
     
@@ -471,14 +431,40 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
         required=False,
         )
     
+    # locations can be specific forms or series, or parent* folders
+    form.widget(locations=MultiContentTreeFieldWidget)
+    locations = schema.List(
+        title=u'Included locations',
+        description=u'Select locations (specific forms or containing '\
+                    u'folders, including form series and/or parent '\
+                    u'folders) to include.  If you do not choose at '\
+                    u'least one location, all forms will be included and '\
+                    u'optionally filtered. If you choose locations, only '\
+                    u'forms within those locations will be included and '\
+                    u'optionally filtered by any chosen filter criteria.',
+        value_type=schema.Choice(
+            source=UUIDSourceBinder(),
+            ),
+        required=False,
+        defaultFactory=list,
+        )
+    
+    sort_on_start = schema.Bool(
+        title=u'Sort on start date?',
+        description=u'Should resulting forms included be sorted by '\
+                    u'their respective start dates?',
+        required=False,
+        default=True,
+        )
+
     query_title = schema.TextLine(
-        title=u'Title',
+        title=u'Filter: title',
         description=u'Full text search of title of forms.',
         required=False,
         )
     
     query_subject = schema.List(
-        title=u'Tags',
+        title=u'Filter: tags',
         description=u'Query for any forms matching tags or subject.',
         value_type=schema.TextLine(),
         required=False,
@@ -486,8 +472,9 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
         )
     
     query_state = schema.List(
-        title=u'Workflow state(s)',
-        description=u'List of workflow states.',
+        title=u'Filter: workflow state(s)',
+        description=u'List of workflow states. If not specified, items in '
+                    u'any state will be considered.',
         value_type=schema.Choice(
             vocabulary=u'plone.app.vocabularies.WorkflowStates', #named vocab
             ),
@@ -497,37 +484,23 @@ class IFormQuery(form.Schema, ILocation, IAttributeUUID):
    
     form.widget(query_start=SmartdateFieldWidget)
     query_start = schema.Date(
-        title=u'Date range start',
+        title=u'Filter: date range start',
         description=u'Date range inclusion query (start).',
         required=False,
         )
     
     form.widget(query_end=SmartdateFieldWidget)
     query_end = schema.Date(
-        title=u'Date range end',
+        title=u'Filter: date range end',
         description=u'Date range inclusion query (end).',
         required=False,
         )
     
-    form.widget(target_uids=MultiContentTreeFieldWidget)
-    target_uids = schema.List(
-        title=u'Select form instances',
-        description=u'Select form instances',
-        value_type=schema.Choice(
-            source=BoundFormSourceBinder(),
-            ),
-        required=False,
-        defaultFactory=list, #req zope.schema >= 3.8.0
-        )
+    def brains(self):
+        """Return an iterable of catalog brains for forms included."""
     
-    def __iter__(self):
-        """
-        Return iterator over item (key/value) tuples such that
-        an object providing IFormQuery can be cast to a dict or
-        other mapping type.  The purpose of casing a query to
-        a mapping is for use in a search engine / catalog / indexing
-        system expecting such.
-        """
+    def forms(self):
+        """Return an iterable of form objects included."""
 
 
 class IFormSet(Interface):

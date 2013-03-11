@@ -1,0 +1,127 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+<script type="text/javascript">
+jQuery(document).ready(function () {
+    jQuery('div.editlinks .clonebtn').prepOverlay({
+        subtype: 'ajax',
+        filter: '#content>*',
+        closeselector: '[name=cancel]'
+    });
+});
+</script>
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<style>
+
+div.listing-wrapper { border:1px solid #ddd; margin-top:0.5em; }
+
+div.listing-wrapper h4 { margin-bottom:0.6em; color:#476; }
+
+div.summary, div.listing { padding:1em; }
+
+div.summary {
+  background-color:#ddd;
+  width:40%;
+  float:right;
+}
+
+div.listing {
+  width:50%;
+  float:left;
+}
+
+div.listing .note {
+  margin-top:2em;
+  font-size:80%;
+  color:#999;
+}
+
+div.editlinks a {
+    color:#009;
+}
+
+div.editlinks .clonebtn {
+  width:70%;
+}
+
+div.editlinks {
+    margin-top:1em;
+    text-align:center;
+    width:100%;
+    padding:0.3em;
+    background-color:#cdc;
+}
+
+.crumb {
+  font-size:85%;
+  color:#755;
+}
+
+table.quickinfo td:first-child {width:42%; text-align:right; font-size:85%; color:#009; font-weight:normal; line-height: 110%; }
+table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; }
+</style>
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="content-core">
+ <div class="listing-wrapper" tal:define="global hasdirect python:False">
+  <div class="listing">
+   <h4>Resulting forms in this data set:</h4>
+   <ul>
+    <li tal:repeat="form view/forms">
+     <img src="" tal:attributes="src form/getIcon" title="form" />
+     <a href="" tal:attributes="href form/absolute_url">
+       <span tal:content="form/Title" />
+     </a> in 
+       <span class="content_loc" tal:content="python: form.__parent__.Title()" />
+       <span tal:condition="python:context.directly_included(form)">**<tal:block define="global hasdirect python:True" /></span>
+    </li>
+   </ul>
+   <div class="note" tal:condition="hasdirect">** Indicates a form directly included in criteria, not merely included via its parent folder(s) or form series.</div>
+  </div>
+  <div class="summary">
+   <h4>Specified criteria for this data set:</h4>
+   <table class="quickinfo">
+    <tbody>
+     <tr tal:condition="context/query_title"><td>Filter text in title of form:</td><td tal:content="context/query_title" /></tr>
+     <tr tal:condition="context/query_subject"><td>Filter on subject tags::</td><td tal:content="context/query_subject" /></tr>
+     <tr tal:condition="context/query_state"><td>Filter on workflow state of form:</td><td tal:content="context/query_state" /></tr>
+     <tr tal:condition="python: context.query_start or context.query_end">
+      <td>Filter on (start) date range for form:</td>
+      <td>
+       <tal:block condition="python: context.query_start and context.query_end">From</tal:block>
+       <tal:block condition="python: not context.query_start and context.query_end">Before</tal:block>
+       <span tal:condition="context/query_start" tal:content="context/query_start" />
+       <tal:block condition="python: context.query_start and context.query_end">to</tal:block>
+       <tal:block condition="python: context.query_start and not context.query_end">to present</tal:block>
+       <span tal:condition="context/query_end" tal:content="context/query_end" />
+      </td>
+     </tr>
+    </tbody>
+   </table>
+   <tal:block define="locations context/included_locations; navrooturl string:${context/@@plone_portal_state/navigation_root_url}">
+    <div tal:condition="locations">
+      <h5>Locations included:</h5>
+       <ul>
+        <li tal:repeat="loc locations">
+         <a href="" tal:attributes="href loc/getURL" tal:content="loc/Title" />
+         in <span class="crumb" tal:content="python: loc.getURL()[len(navrooturl)+1:]" />
+        </li>
+       </ul>
+    </div>
+   </tal:block>
+   <hr />
+   <div class="editlinks"><a href="./edit">&#x270E; Click here to edit location and filter criteria</a></div>
+   <div class="editlinks"><a class="clonebtn" href="" tal:attributes="href string:${context/absolute_url}/@@clone_dataset">&#x2731; Clone this data set</a></div>
+  </div>
+  <div style="clear:both">&nbsp;</div>
+  </div>
+ </div>
+</body>
+</html>

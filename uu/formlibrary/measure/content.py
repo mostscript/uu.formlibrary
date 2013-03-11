@@ -139,10 +139,6 @@ class MeasureDefinition(Container):
         """
         return [self.datapoint(context) for context in seq]
 
-    #def _dataset_search(self, q):
-    #    catalog_tool = getSite().portal_catalog
-    #    return catalog_tool.searchResults(q)
-
     def dataset_points(self, dataset):
         """
         Given an data set specification object providing the interface
@@ -150,10 +146,6 @@ class MeasureDefinition(Container):
         included in the set.
         """
         forms = dataset.forms()
-        #topic_q = dataset.buildQuery()
-        #forms = [
-        #    b._unrestrictedGetObject() for b in self._dataset_search(topic_q)
-        #    ]
         return self.points(forms)
     
     def display_format(self, value):

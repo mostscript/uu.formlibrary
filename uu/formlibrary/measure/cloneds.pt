@@ -1,0 +1,40 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<style>
+</style>
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="main">
+
+<form method="post" action="" tal:attributes="action string:${context/absolute_url}/@@clone_dataset">
+ <h3>Clone this data set
+  (<span tal:replace="context/Title" />)
+  to a new data set in the measure group
+  "<span tal:content="python:context.__parent__.Title()" />":
+ </h3>
+ <label for="clone_title">Title</label>
+ <br />
+ <input id="clone_title" name="clone_title" tal:attributes="value context/Title" />
+ <br />
+ <br />
+ <label for="clone_description">Description</label>
+ <br />
+ <textarea id="clone_description" name="clone_description" tal:content="context/Description"></textarea>
+ <br />
+ <br />
+ <input type="submit" name="makeclone" value="Make clone/copy and go to it" />
+ <input type="submit" name="cancel" value="Cancel" />
+</form>
+
+ </div>
+</body>
+</html>

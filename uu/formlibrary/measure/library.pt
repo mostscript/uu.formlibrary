@@ -43,7 +43,7 @@
       <h3>Measure library actions:</h3>
       <ul>
         <li class="create">
-          <a href="" tal:attributes="href string:${context/absolute_url}/@@measure_wizard">
+          <a href="" tal:attributes="href string:${context/absolute_url}/++add++uu.formlibrary.measuregroup">
             <span class="plusicon">&thinsp;&#43;&nbsp;</span>Create a Measure Group
             <div class="discreet">Add a group of related measures and data sets.</div>
           </a>

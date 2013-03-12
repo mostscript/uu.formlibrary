@@ -208,7 +208,7 @@ STEP_TITLES = {
     IMeasureWizardNaming : u'Name and describe your measure',
     IMeasureWizardDefinition : u'Choose a form definition for the measure',
     IMeasureWizardSourceType : u'What type of data source?',
-    IMeasureWizardMRCriteria : u'How is measure calculated',
+    IMeasureWizardMRCriteria : u'How is measure calculated?',
     IMeasureWizardRounding : 'How should computed values be displayed?',
     IMeasureWizardFlexUnits : 'Describe and configure the units of measure?',
     IMeasureWizardFlexFieldChoice : u'Choose a field as a value source.',

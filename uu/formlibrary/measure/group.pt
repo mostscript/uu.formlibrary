@@ -96,8 +96,8 @@
       </div>
       
       <div class="recent" tal:define="recent python:view.recent(limit=8, portal_type=view.dataset_type); count python:view.count(portal_type=view.dataset_type)">
-        <h3>Most-recently modified data sets (collections):</h3>
-        <p tal:condition="python: not count">There are no collections contained in this group.</p>
+        <h3>Most-recently modified data sets:</h3>
+        <p tal:condition="python: not count">There are no data sets contained in this group.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
             <li tal:repeat="brain recent">
               <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">

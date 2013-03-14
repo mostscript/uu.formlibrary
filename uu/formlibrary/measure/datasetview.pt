@@ -118,7 +118,7 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
    </tal:block>
    <hr />
    <div class="editlinks"><a href="./edit">&#x270E; Click here to edit location and filter criteria</a></div>
-   <div class="editlinks"><a class="clonebtn" href="" tal:attributes="href string:${context/absolute_url}/@@clone_dataset">&#x2731; Clone this data set</a></div>
+   <div class="editlinks"><a class="clonebtn" href="" tal:attributes="href string:${context/absolute_url}/@@clone_dataset">&#x2731;Create a copy of this data set</a></div>
   </div>
   <div style="clear:both">&nbsp;</div>
   </div>

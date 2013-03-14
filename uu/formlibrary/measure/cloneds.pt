@@ -16,9 +16,9 @@
  <div metal:fill-slot="main">
 
 <form method="post" action="" tal:attributes="action string:${context/absolute_url}/@@clone_dataset">
- <h3>Clone this data set
+ <h3>Create a copy of this data set
   (<span tal:replace="context/Title" />)
-  to a new data set in the measure group
+  as a new data set in the measure group
   "<span tal:content="python:context.__parent__.Title()" />":
  </h3>
  <label for="clone_title">Title</label>

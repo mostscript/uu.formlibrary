@@ -49,10 +49,12 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
 
 .measuredetail table.fieldinfo td {
     padding:0.1em 0.5em 0 0.5em;
+    font-size:90%;
 }
+
 .measuredetail table.fieldinfo td.fieldlabel {
     width:10em;
-    font-size:90%;
+    font-size:86%;
     color:#264;
     text-align:right;
     border-left:1px dotted green;
@@ -96,28 +98,44 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
 }
 
 #content h1.documentFirstHeading {
-    font-size:145%;
+    font-size:135%;
     color:#009;
     line-height:90%;
     margin-top:0.5em;
     float:left;
+    padding:0.2em 1em 0.2em 0.4em;
+    border:1px solid #ccc;
+    background-color:#eee;
+    border-top-left-radius:0.3em;
+    border-top-right-radius:0.8em;
+    border-bottom:none;
+    max-width:48%;
+}
+
+#content div.documentByLine #content-history {
+    display:block !important;
+    margin-bottom:-1.8em;
+    color:#ddd;
+    font-style:italic;
+    font-weight:bold;
 }
 
 #content div.documentByLine {
     float:right;
-    width:50%;
+    width:46%;
     margin-top:1em;
+    margin-right:0.5em;
     text-align:right;
 }
 
 #content div.documentDescription.description {
-    border-top:1px solid #aaa;
-    border-bottom:1px solid #aaa;
+    border:1px solid #aaa;
     color:#579;
     font-size:90%;
     clear:both;
     border-left:1.5em solid #aaa;
     padding-left:0.5em;
+    width:84%;
 }
 
 div.filterview table.queries {
@@ -232,7 +250,7 @@ div.filterview div.oplabel {
         </div>
     </div>
   </div>
-  <div class="measuredetail">
+  <div class="measuredetail measuredisplay">
     <h3>Measure display and value adjustment</h3>
     <table class="fieldinfo">
      <tbody>

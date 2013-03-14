@@ -17,6 +17,7 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
 .comparator-symbol { color:#ccc; display:block; float:left; margin-right:0.1em; width:1.2em; font-size:130%; font-weight:bold; }
 
 .measureinfo {
+    clear:both;
     border:1px solid #999;
     margin-top:1em;
 }
@@ -95,13 +96,16 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
 }
 
 #content h1.documentFirstHeading {
-    font-size:160%;
+    font-size:145%;
+    color:#009;
+    line-height:90%;
+    margin-top:0.5em;
     float:left;
 }
 
 #content div.documentByLine {
     float:right;
-    width:40%;
+    width:50%;
     margin-top:1em;
     text-align:right;
 }

@@ -28,6 +28,14 @@
     />
   
   <browser:page
+    name="measure_view"
+    for=".interfaces.IMeasureDefinition"
+    class=".views.MeasureBaseView"
+    template="measure.pt"
+    permission="zope2.View"
+    />
+  
+  <browser:page
     name="data_view"
     for=".interfaces.IMeasureDefinition"
     class=".views.MeasureDataView"

@@ -3,9 +3,11 @@ from OFS.event import ObjectClonedEvent
 from plone.app.content.namechooser import NormalizingNameChooser
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
+from zope.component import getMultiAdapter
 from zope.event import notify
 from zope.lifecycleevent import ObjectCopiedEvent
 
+from interfaces import IMeasureDefinition
 from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
 
 
@@ -125,15 +127,10 @@ class FormDataSetCloningView(object):
         return self.index(*args, **kwargs)  # via framework magic
 
 
-class MeasureDataView(object):
-    """
-    View that loads cross-product matrix of filters and collections/topics
-    inside a measure for purpose of enumerating data values.
+
+class MeasureBaseView(object):
+    """Shared view capabilities for data view and core view of measure"""
     
-    This is available for use as an adapter of a measure for purposes of 
-    data sources for reports or for use by templates outputting HTML tables
-    in a browser view.
-    """
     index = None  # overridden by Five magic
 
     def __init__(self, context, request=None):
@@ -146,6 +143,17 @@ class MeasureDataView(object):
         vtype, multiplier = self.context.value_type, self.context.multiplier
         return vtype == 'percentage' and multiplier == 100
     
+    def choice_label(self, fieldname):
+        field = IMeasureDefinition[fieldname]
+        vocab = field.vocabulary
+        v = getattr(self.context, fieldname, field.default)
+        if v is None:
+            return ''
+        return vocab.getTerm(v).title
+    
+    def filter_view(self, filter):
+        return getMultiAdapter((filter, self.request), name="filter_view")
+    
     def _datasets(self):
         group = aq_parent(aq_inner(self.context))
         ftiname = DATASET_TYPE
@@ -153,11 +161,25 @@ class MeasureDataView(object):
     
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()
-        for dataset in self.datasets:
-            dsid = dataset.getId()
-            self.datapoints[dsid] = self.context.dataset_points(dataset)
     
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
+
+
+class MeasureDataView(MeasureBaseView):
+    """
+    View that loads cross-product matrix of filters and collections/topics
+    inside a measure for purpose of enumerating data values.
+    
+    This is available for use as an adapter of a measure for purposes of 
+    data sources for reports or for use by templates outputting HTML tables
+    in a browser view.
+    """
+    
+    def update(self, *args, **kwargs):
+        self.datasets = self._datasets()
+        for dataset in self.datasets:
+            dsid = dataset.getId()
+            self.datapoints[dsid] = self.context.dataset_points(dataset)
 

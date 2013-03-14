@@ -31,18 +31,23 @@ table.formcounts td.form_identity div.form_where {
     font-size:80%;
 }
 
+#content .documentDescription, #content .documentByLine { display:none !important; }
+
 </style>
   </metal:block>
 </head>
 <body>
- <div metal:fill-slot="main">
+<div metal:fill-slot="content-core">
+  <h4>Measure data, for each data set</h4>
+  <p>Below are tables containing data for this measure applied to each data set in the measure group containing this measure.</p>
+  <hr />
 
-  <tal:block repeat="dataset view/datasets">
+  <!-- data tables -->
+  <div tal:repeat="dataset view/datasets">
    <tal:block define="dsid dataset/getId;
                       result python:view.datapoints.get(dsid);">
     <div tal:condition="python: result is not None">
-        <p class="qualifier">Data-set:</p>
-        <h3 tal:content="dataset/Title">DATASET SPECIFICATION TITLE</h3>
+        <h3>For: <span tal:content="dataset/Title">DATASET SPECIFICATION TITLE</span></h3>
         <table class="formcounts">
           <thead>
             <tr>
@@ -78,8 +83,8 @@ table.formcounts td.form_identity div.form_where {
         </table>
     </div>
    </tal:block>
-  </tal:block>
-
+  </div>
  </div>
+
 </body>
 </html>

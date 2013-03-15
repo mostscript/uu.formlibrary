@@ -12,7 +12,6 @@ def handle_multiform_modify(context, event):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_tb(exc_traceback, file=sys.stdout)
             print '--------'*5
-            import pdb; pdb.set_trace()
             print 'Cound not index record for context: %s' % context
             print 'Record %s' % record.record_uid
             print record.__dict__

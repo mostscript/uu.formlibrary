@@ -1,7 +1,7 @@
 import datetime
 import math
 
-from Acquisition import aq_parent, aq_inner
+from Acquisition import aq_parent, aq_inner, aq_base
 from DateTime import DateTime
 from plone.dexterity.content import Container, Item
 from plone.uuid.interfaces import IUUID
@@ -10,6 +10,8 @@ from zope.interface import implements
 
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.search.filters import filter_query
+from uu.formlibrary.search.interfaces import IRecordFilter
+
 from interfaces import IMeasureDefinition, IMeasureGroup, IMeasureLibrary
 from interfaces import IFormDataSetSpecification
 from utils import content_path
@@ -29,36 +31,30 @@ class MeasureDefinition(Container):
     
     def _source_type(self):
         return self.group().source_type
-    
-    def _mr_raw_numerator(self, context):
-        """Get raw value for numerator n"""
-        if self.numerator_type == 'constant':
-            n = 1
-        if self.numerator_type == 'multi_total':
-            n = len(context)
-        if self.numerator_type == 'multi_filter':
-            rfilter = self['numerator']     # get contained filter
-            q = filter_query(rfilter)       # repoze.catalog query object
-            n = context.catalog.rcount(q)   # result count from form's embedded catalog
-        return n
-    
-    def _mr_raw_denominator(self, context):
-        """Get raw value for denominator m"""
-        # denominator m:
-        if self.denominator_type == 'constant':
-            m = 1
-        if self.denominator_type == 'multi_total':
-            m = len(context)
-        if self.denominator_type == 'multi_filter':
-            rfilter = self['denominator']   # get contained filter
-            q = filter_query(rfilter)       # repoze.catalog query object
-            m = context.catalog.rcount(q)   # result count from form's embedded catalog
-        return m
-    
+
+    def _mr_get_value(self, context, name):
+        """Get raw value for numerator or denominator"""
+        assert name in ('numerator', 'denominator')
+        vtype = getattr(self, '%s_type' % name, None)
+        v = 1 if vtype == 'constant' else None  # initial value
+        if vtype == 'multi_total':
+            v = len(context)
+        if vtype == 'multi_filter':
+            rfilter = self.get(name)            # get contained filter
+            if rfilter is None or not IRecordFilter.providedBy(rfilter):
+                return v
+            # get embedded catalog for the form:
+            catalog = getattr(aq_base(context), 'catalog', None)
+            if catalog is None:
+                return v
+            q = filter_query(rfilter)           # repoze.catalog query object
+            v = catalog.rcount(q)               # result count from catalog
+        return v
+ 
     def _mr_values(self, context):
         """return (n, m) values for numerator, denominator"""
-        n = self._mr_raw_numerator(context)
-        m = self._mr_raw_denominator(context)
+        n = self._mr_get_value(context, name='numerator')
+        m = self._mr_get_value(context, name='denominator')
         return (n, m)
 
     def _flex_value(self, context):

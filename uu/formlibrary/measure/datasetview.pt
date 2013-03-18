@@ -90,8 +90,20 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
    <table class="quickinfo">
     <tbody>
      <tr tal:condition="context/query_title"><td>Filter text in title of form:</td><td tal:content="context/query_title" /></tr>
-     <tr tal:condition="context/query_subject"><td>Filter on subject tags::</td><td tal:content="context/query_subject" /></tr>
-     <tr tal:condition="context/query_state"><td>Filter on workflow state of form:</td><td tal:content="context/query_state" /></tr>
+     <tr tal:condition="context/query_subject"><td>Filter on subject tags:</td>
+        <td>
+            <ul>
+               <li tal:repeat="tag context/query_subject"><span tal:content="tag"/></li>
+            </ul>
+        </td>
+     </tr>
+     <tr tal:condition="context/query_state"><td>Filter on workflow state of form:</td>
+        <td>
+            <ul>
+               <li tal:repeat="name context/query_state"><span tal:content="name"/></li>
+            </ul>
+        </td>
+     </tr>
      <tr tal:condition="python: context.query_start or context.query_end">
       <td>Filter on (start) date range for form:</td>
       <td>
@@ -117,7 +129,7 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
     </div>
    </tal:block>
    <hr />
-   <div class="editlinks"><a href="./edit">&#x270E; Click here to edit location and filter criteria</a></div>
+   <div class="editlinks"><a href="edit" tal:attributes="href string:${context/absolute_url}/edit">&#x270E; Click here to edit location and filter criteria</a></div>
    <div class="editlinks"><a class="clonebtn" href="" tal:attributes="href string:${context/absolute_url}/@@clone_dataset">&#x2731;Create a copy of this data set</a></div>
   </div>
   <div style="clear:both">&nbsp;</div>

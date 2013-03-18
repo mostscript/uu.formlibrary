@@ -367,7 +367,8 @@ class IFormDataSetSpecification(form.Schema):
 
     query_subject = schema.List(
         title=u'Filter: tags',
-        description=u'Query for any forms matching tags or subject.',
+        description=u'Query for any forms matching tags or subject '\
+                    u'(one per line).',
         value_type=schema.TextLine(),
         required=False,
         defaultFactory=list, #req zope.schema >= 3.8.0

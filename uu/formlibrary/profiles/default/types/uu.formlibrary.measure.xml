@@ -23,6 +23,9 @@
  <!-- add permission -->
  <property name="add_permission">cmf.AddPortalContent</property>
  
+ <!-- custom add view -->
+ <property name="add_view_expr">string:${folder_url}/@@measure_wizard</property>
+
  <!-- enabled behaviors -->
  <property name="behaviors">
    <element value="plone.app.content.interfaces.INameFromTitle" />

@@ -5,6 +5,7 @@ from Acquisition import aq_parent, aq_inner, aq_base
 from DateTime import DateTime
 from plone.dexterity.content import Container, Item
 from plone.uuid.interfaces import IUUID
+from plone.app.layout.navigation.root import getNavigationRoot
 from zope.component.hooks import getSite
 from zope.interface import implements
 
@@ -238,7 +239,8 @@ class FormDataSetSpecification(Item):
     def _path_query(self):
         spec_uids = getattr(self, 'locations', []) 
         if not spec_uids:
-            return None
+            navroot = getNavigationRoot(self)
+            return { 'portal_type': MULTI_FORM_TYPE, 'path': navroot }, []
         # first use catalog to get brains for all matches to these
         # UIDs where portal_type is MULTI_FORM_TYPE
         catalog = getSite().portal_catalog

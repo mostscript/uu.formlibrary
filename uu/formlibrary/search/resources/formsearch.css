@@ -37,6 +37,14 @@ table.queries th.rowcontrol, table.queries td.rowcontrol {
     text-align:right;
 }
 
+table.queries td.fieldspec {
+    max-width:40% !important;
+}
+
+table.queries td.fieldspec select {
+    max-width:20em;
+}
+
 table.queries td.value div.error:before {
     content:">>> ";
 }

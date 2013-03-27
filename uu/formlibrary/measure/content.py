@@ -49,7 +49,13 @@ class MeasureDefinition(Container):
             if catalog is None:
                 return v
             q = filter_query(rfilter)           # repoze.catalog query object
-            v = catalog.rcount(q)               # result count from catalog
+            try:
+                v = catalog.rcount(q)           # result count from catalog
+            except KeyError:
+                # could not perform query against catalog, likely because the
+                # form in question does not have the necessary field(s), so
+                # return a sentinel value safe for raw_value() to use.
+                v = float('NaN')
         return v
  
     def _mr_values(self, context):

@@ -78,7 +78,7 @@ class SearchableFields(object):
     implements(IBrowserPublisher, ISearchableFields)
      
     def __init__(self, context, request=None):
-        ## context should be context of API view, not API view
+        ## context should be context of API view, not API view itself
         self.context = context
         self.__parent__ = context  # may be re-parented by API to view
         self.request = getRequest() if request is None else request

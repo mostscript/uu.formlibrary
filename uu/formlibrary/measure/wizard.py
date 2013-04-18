@@ -463,7 +463,8 @@ class MeasureWizardView(object):
                 'clicking on filters listed below.',
                 type='info',
                 )
-            self.request.response.redirect(measure.absolute_url())
+            url = measure.absolute_url() + '/@@measure_criteria'
+            self.request.response.redirect(url)
         
         ## TODO: get previous state submitting to determine handler
         ## TODO: handler map step-interface to handler function

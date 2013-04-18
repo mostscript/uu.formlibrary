@@ -59,6 +59,13 @@
     permission="cmf.AddPortalContent"
     />
 
+  <!-- adapters -->
+  <adapter 
+    factory=".adapters.measure_form_definition"
+    provides="uu.formlibrary.interfaces.IFormDefinition"
+    for=".interfaces.IMeasureDefinition"
+    />  
+
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter
     for=".wizard.IMeasureWizardView

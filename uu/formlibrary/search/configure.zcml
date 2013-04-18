@@ -49,16 +49,35 @@
     name="filter_criteria"
     for="uu.formlibrary.search.interfaces.IRecordFilter"
     class=".criteria.FilterCriteriaView"
-    template="criteria.pt"
-    permission="zope2.View"
+    template="criteria_editor.pt"
+    permission="cmf.ModifyPortalContent"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
-  
+ 
+  <!-- criteria editor for measure, consumes API -->
+  <browser:page
+    name="measure_criteria"
+    for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
+    class=".criteria.MeasureCriteriaView"
+    template="criteria_editor.pt"
+    permission="cmf.ModifyPortalContent"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+ 
   <!-- search API supports definition and multi-form contexts -->  
   
   <browser:page
     name="searchapi"
     for="uu.formlibrary.search.interfaces.IRecordFilter"
+    class=".api.SearchAPI"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    allowed_attributes="fields comparators"
+    />
+ 
+  <browser:page
+    name="searchapi"
+    for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
     class=".api.SearchAPI"
     permission="zope2.View"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"

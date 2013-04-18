@@ -3,13 +3,14 @@ form.record-queries {
     display:block;
     background-color:#ddd;
     width:100%;
+    margin-bottom:0.6em;
 }
 
 table.queries {
     width:100%;
 }
 
-table.queries tr.even td {
+table.queries tr:nth-child(2n) td {
     background-color:#eee;
 }
 
@@ -55,22 +56,55 @@ table.queries td.value div.error {
     font-weight:bold;
 }
 
-a.addquery {
+.addquery {
     display:block;
+    font-size:115%;
     max-width:15em;
+    border-radius: 0.3em 0.3em;
     border:1px solid #999;
     background-color:#eee;
-    padding:0.2em;
+    padding:0.4em;
     margin:0.5em;
     margin-right:1em;
     cursor:pointer;
     color:#072;
 }
 
-a.savequery {
+.addquery span strong {
+    font-size:140%;
+}
+
+div#criteriaforms {
+    border:0.1em solid #6f7a73;
+    padding:0.5em 0.3;
+    background-color:#eee;
+}
+
+div#criteriaforms h3 {
+    color:#132;
+    background-color:#cfdfd0;
+    padding-left: 0.8em;
+    padding-top:0.2em;
+}
+
+form#payloads {
+    display: block;
+    text-align:center;
+    background-color:#6f7a73;
+    padding:0.1em;
+}
+
+form.record-queries {
+    margin-left:1em;
+    width:98%;
+}
+
+.savequery {
+    font-size:130%;
     display:block;
     max-width:15em;
     border:1px solid #999;
+    border-radius: 0.3em 0.3em;
     background-color:#eee;
     padding:0.2em;
     margin:0.5em;

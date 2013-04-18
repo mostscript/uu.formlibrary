@@ -28,7 +28,7 @@ class BaseFilterView(object):
         if not uid:
             return ()
         q = {
-            'getRawRelatedItems' : uid,
+            'getRawRelatedItems': uid,
             }
         return tuple(catalog.search(q))
      
@@ -63,29 +63,36 @@ class CompositeFilterView(BaseFilterView):
     
     def setop_title(self, op):
         field = ICompositeFilter['set_operator']
-        return [term.title for term in field.vocabulary if term.value==op][0]
+        return [term.title for term in field.vocabulary if term.value == op][0]
 
 
-class FilterCriteriaView(object):
-    """
-    Criteria search form view for a record filter context.
-    """
-
+class BaseCriteriaView(object):
+    
     def __init__(self, context, request):
-        if not IRecordFilter.providedBy(context):
-            raise ValueError('Context must be a record filter')
         self.context = context
         self.request = request
         self.portal = getSite()
         self.status = IStatusMessage(self.request)
     
     def update(self, *args, **kwargs):
-        payload = self.request.form.get('payload', None)
-        if payload is not None:
-            adapter = FilterJSONAdapter(self.context)
+        req = self.request
+        prefix = 'payload-'
+        if req.get('REQUEST_METHOD') != 'POST':
+            return
+        payload_keys = [k for k in self.request.form if k.startswith(prefix)]
+        if not payload_keys:
+            return
+        _info = lambda name: (name.replace(prefix, ''), req.get(name))
+        payloads = map(_info, payload_keys)
+        for name, payload in payloads:
+            rfilter = self.get_filter(name)
+            if rfilter is None:
+                continue
+            adapter = FilterJSONAdapter(rfilter)
             adapter.update(str(payload))
-            msg = u'Updated criteria'
+            msg = u'Updated criteria for %s' % rfilter.title
             self.status.addStatusMessage(msg, type='info')
+        req.response.redirect(self.context.absolute_url())  # to view tab
     
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
@@ -93,4 +100,49 @@ class FilterCriteriaView(object):
     
     def portalurl(self):
         return self.portal.absolute_url()
+    
+    def filters(self):
+        raise NotImplementedError('base class method')
+
+    def json(self, name):
+        """Get JSON payload for record filter, by name"""
+        raise NotImplementedError('base class method')
+      
+    def get_filter(self, name):
+        raise NotImplementedError('base class method')
+
+
+class FilterCriteriaView(BaseCriteriaView):
+    """
+    Criteria search form view for a record filter context.
+    """
+
+    def get_filter(self, name):
+        return self.context
+
+    def filters(self):
+        return [self.context]
+
+    def json(self, name):
+        """Get JSON payload for record filter, by name"""
+        return FilterJSONAdapter(self.context).serialize()
+
+
+class MeasureCriteriaView(BaseCriteriaView):
+    
+    def get_filter(self, name):
+        if name not in self.context.objectIds():
+            return None
+        return self.context.get(name)
+    
+    def filters(self):
+        _isrfilter = lambda o: o.portal_type == 'uu.formlibrary.recordfilter'
+        return filter(_isrfilter, self.context.contentValues())
+
+    def json(self, name):
+        """Get JSON payload for record filter, by name"""
+        if name not in self.context.objectIds():
+            return '{}'
+        rfilter = self.context.get(name)
+        return FilterJSONAdapter(rfilter).serialize()
 

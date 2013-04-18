@@ -21,6 +21,7 @@ from uu.retrieval.utils import identify_interface
 from uu.smartdate.converter import normalize_usa_date
 
 from uu.formlibrary.interfaces import IFormDefinition
+from uu.formlibrary.measure.interfaces import IMeasureDefinition
 from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
@@ -137,16 +138,7 @@ class FieldQuery(Persistent):
 @adapter(IRecordFilter)
 def filter_definition(context):
     measure_definition = aq_parent(aq_inner(context))
-    measure_group = aq_parent(aq_inner(measure_definition))
-    form_definition_uid = measure_group.definition
-    if not form_definition_uid:
-        return None
-    site = getSite()
-    catalog = site.portal_catalog
-    r = catalog.search({'UID': form_definition_uid})
-    if not r:
-        return None
-    return r[0]._unrestrictedGetObject()
+    return IFormDefinition(measure_definition)
 
 
 class RecordFilter(Item):

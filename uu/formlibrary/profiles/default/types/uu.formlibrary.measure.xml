@@ -55,11 +55,15 @@
     url_expr="string:${object_url}/edit" visible="True">
   <permission value="Modify portal content"/>
  </action>
-
  <action title="Data View" action_id="data_view" category="object"
          condition_expr="" url_expr="string:${object_url}/@@data_view"
          visible="True">
     <permission value="View"/>
+ </action>
+ <action title="Criteria" action_id="measure_criteria" category="object"
+         condition_expr="" url_expr="string:${object_url}/@@measure_criteria"
+         visible="True">
+  <permission value="Modify portal content"/>
  </action>
 </object>
 

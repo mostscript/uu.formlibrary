@@ -201,7 +201,7 @@ div.filterview div.oplabel {
     <div class="filtersummary">
     <div class="filterdetail" tal:repeat="filter python:[o for o in context.objectValues() if o.portal_type=='uu.formlibrary.recordfilter']">
         <h5><span tal:content="filter/Title" />
-        <a class="filteredit" target="_blank" href="" title="Edit filter criteria in new browser window/tab" tal:attributes="href string:${filter/absolute_url}/@@filter_criteria">&#x270E; Edit query/criteria</a>
+        <a class="filteredit" href="" title="Edit criteria in new browser window/tab" tal:attributes="href string:${context/absolute_url}/@@measure_criteria">&#x270E; Edit query/criteria</a>
         </h5>
 
          <div class="filterview" tal:define="operator filter/operator;

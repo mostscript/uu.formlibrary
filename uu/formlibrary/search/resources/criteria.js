@@ -87,7 +87,6 @@ formsearch.criteria = formsearch.criteria || {};
         '  </div>' +
         '</form>';
 
-
     ns.apiCallCache = {};  // cache url to parsed JSON for GET requests
 
     //given context element for UI event, get target record-queries form:
@@ -247,14 +246,18 @@ formsearch.criteria = formsearch.criteria || {};
                     set: function (v) {
                         var self = this,
                             prev = this._field,
+                            name,
                             changed = (prev == null || v !== prev);
                         // Check for null equiv string sentinel set by widget:
                         v = (v === ns.NOVALUE) ? null : v;
                         // enforce uniqueness constraint on fieldname relative
                         // to the containing form that manages this query:
-                        if (changed && v != null && this.context.fieldnameInUse(v)) {
-                            alert('Field already in use in this form: ' + v);
-                            return;
+                        if (changed && v != null) {
+                            name = v.name;
+                            if (this.context.fieldnameInUse(name)) {
+                                alert('Field already in use in this form: ' + v.title);
+                                v = null;
+                            }
                         }
                         // reset dependent data:
                         if (v == null) {

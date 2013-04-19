@@ -62,7 +62,7 @@
  </action>
  <action title="Criteria" action_id="measure_criteria" category="object"
          condition_expr="" url_expr="string:${object_url}/@@measure_criteria"
-         visible="True">
+         visible="True" insert-before="data_view">
   <permission value="Modify portal content"/>
  </action>
 </object>

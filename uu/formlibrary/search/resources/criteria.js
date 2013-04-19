@@ -233,13 +233,6 @@ formsearch.criteria = formsearch.criteria || {};
             return (fieldtype === 'Choice' || valuetype === 'Choice');
         };
 
-        this.availableComparators = function () {
-            var comparatorsUrl = $('base').attr('href') +
-                '/@@searchapi/comparators';
-            //comparators_url += '?byindex
-        };
-
-
         this.init(context, name, data);
     };
 
@@ -803,12 +796,6 @@ formsearch.criteria = formsearch.criteria || {};
             return input;
         };
 
-        // sync title property when set to DOM, called by prop set
-        this._syncTitle = function (name, title) {
-            $('h3', this._container(name)).text(title);
-        };
-
-
         // after events like add/remove rows, show the query operator
         // selection radio widget when there are more than two rows in
         // a critieria form
@@ -868,11 +855,10 @@ formsearch.criteria = formsearch.criteria || {};
             Object.defineProperties(this, {
                 title: {
                     set: function (value) {
-                        title = value;
-                        this._syncTitle(this.name, title);
+                        $('h3', this._container(self.name)).text(value);
                     },
                     get: function () {
-                        return title;
+                        $('h3', this._container(self.name)).text();
                     },
                     enumerable: true
                 },
@@ -935,6 +921,8 @@ formsearch.criteria = formsearch.criteria || {};
     ns.CriteriaForm.prototype = new ns.OrderedMapping();
 
 
+    // Comparators: object fronting for access to comparators
+    // ajax/json requests
     ns.Comparators = function Comparators(fields) {
 
         this.init = function (fields) {
@@ -1021,18 +1009,6 @@ formsearch.criteria = formsearch.criteria || {};
         this.has = function (key) {
             var name = (key instanceof ns.CriteriaForm) ? key.name : key;
             return ns.CriteriaForms.prototype.has.apply(this, [name]);
-        };
-
-        // Which CritieriaForm owns a DOM element?  Used for event handler
-        // routing: given a DOM node (or jquery wrapper thereof) context, 
-        // return the CritieraForm whose target contains the node.
-        this.formOwner = function (context) {
-            var formElem = $(context).parent('form.record-queries'),
-                name = formElem.attr('id').split('criteriaform-')[1];
-            if (name && this.has(name)) {
-                return this.get(name);
-            }
-            return null;
         };
 
         this.init();

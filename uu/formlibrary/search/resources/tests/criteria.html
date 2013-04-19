@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Criteria editor tests</title>
+<!-- jquery: -->
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+<!-- testing tools: -->
+<script type="text/javascript" src="jquery.mockjax.js"></script>
+<script type="text/javascript" src="qunit-1.11.0.js"></script>
+<!-- application module: -->
+<script type="text/javascript" src="../criteria.js"></script>
+<!-- application tests: -->
+<script type="text/javascript" src="criteria_tests.js"></script>
+<!-- test related stylesheets: -->
+<link rel="stylesheet" media="all" href="qunit-1.11.0.css" type="text/css" />
+<!-- application CSS: -->
+<link rel="stylesheet" media="all" href="../formsearch.css" type="text/css" />
+<!-- mock links to contained filters, used by editor JS: -->
+<link rel="recordfilter"
+      title="Numerator"
+      href="numerator"
+      />
+<link rel="recordfilter"
+      title="Denominator"
+      href="denominator"
+      />
+</head>
+<body>
+ <div id="content-core">
+  <h3>Define the filter criteria for your measure below:</h3>
+  <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.  Fields may be selected only once for each filter below.</p>
+  <div id="filter-manager">
+   <!-- placeholder for critiera forms managed and populated via AJAX -->
+  </div>
+  <div style="clear:both"></div>
+  <form id="payloads" action="" method="post">
+   <div class="payload-container" style="display:none">
+     <!-- hidden input payloads (mock) -->
+     <input type="hidden"
+            id="payload-numerator"
+            name="payload-numerator"
+            value="{operator:'AND', rows:[]}"
+            />
+     <input type="hidden"
+            id="payload-denominator"
+            name="payload-denominator"
+            value="{operator:'AND', rows:[]}"
+            />
+   </div>
+   <input type="submit" name="save.payloads" class="savequery" value="&#x2713; Save criteria for all filters" />
+  </form>
+ </div>
+ <div id="qunit"></div>
+ <div id="qunit-fixture"></div>
+</body>
+</html>

@@ -9,7 +9,7 @@ from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IUUID, IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
-from zope.app.container.interfaces import IOrderedContainer
+from zope.container.interfaces import IOrderedContainer
 from zope.interface import Interface, Invalid, invariant
 from zope.interface.interfaces import IInterface
 from zope.interface.common.mapping import IMapping

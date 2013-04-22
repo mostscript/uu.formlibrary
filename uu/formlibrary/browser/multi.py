@@ -8,7 +8,7 @@ from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import getFieldsInOrder, getFieldNamesInOrder
 from zope.schema.interfaces import IChoice, IList, IDate
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 

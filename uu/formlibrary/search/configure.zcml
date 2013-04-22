@@ -28,7 +28,7 @@
 
   <subscriber
     for="uu.formlibrary.interfaces.IMultiForm
-         zope.app.container.interfaces.IObjectAddedEvent"
+         zope.lifecycleevent.interfaces.IObjectAddedEvent"
     handler=".handlers.handle_multiform_modify"
     />
 

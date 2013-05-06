@@ -72,7 +72,7 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
  <div metal:fill-slot="content-core">
  <div class="listing-wrapper" tal:define="global hasdirect python:False">
   <div class="listing">
-   <h4>Resulting forms in this data set:</h4>
+   <h4>Resulting forms in this data set (<span class=result-count" tal:content="python: len(view.forms)">#</span>):</h4>
    <ul>
     <li tal:repeat="form view/forms">
      <img src="" tal:attributes="src form/getIcon" title="form" />

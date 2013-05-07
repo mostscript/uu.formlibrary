@@ -103,7 +103,7 @@ class MeasureDefinition(Container):
         return (raw, self._normalize(raw))
     
     def value_for(self, context):
-        """ 
+        """
         Given an appropriate form context, compute a value, normalize
         as appropriate.
         """
@@ -115,19 +115,20 @@ class MeasureDefinition(Container):
         if self._source_type() == MULTI_FORM_TYPE and self.denominator_type != 'constant':
             n, m = self._mr_values(context)
             nan = float('NaN')
-            divide = lambda a,b: float(a) / float(b) if b else nan
+            divide = lambda a, b: float(a) / float(b) if b else nan
             raw = divide(n, m)
             normalized = self._normalize(raw)
         else:
             raw, normalized = self._values(context)
-        point_record = { 
+        point_record = {
             'title': context.Title(),
             'url': context.absolute_url(),
-            'path' : content_path(context),
+            'path': content_path(context),
             'start': context.start,
             'value': normalized,
-            'raw_value' : raw,
-            'display_value' : self.display_format(normalized),
+            'raw_value': raw,
+            'display_value': self.display_format(normalized),
+            'user_notes': getattr(context, 'entry_notes', None),
         }
         if n is not None:
             point_record['raw_numerator'] = n
@@ -152,7 +153,7 @@ class MeasureDefinition(Container):
         return self.points(forms)
     
     def display_format(self, value):
-        """ 
+        """
         Format a value as a string using rules defined on measure
         definition.
         """
@@ -164,7 +165,7 @@ class MeasureDefinition(Container):
         return fmt % value
     
     def display_value(self, context):
-        """ 
+        """
         Return string display value (formatted) for context.
         """
         return self.display_format(self.value_for(context))
@@ -183,6 +184,9 @@ class MeasureDefinition(Container):
             if self.denominator_type == 'multi_filter':
                 note += u' (filtered)'
             note += u' records'
+        user_notes = info.get('user_notes')
+        if user_notes:
+            note += ' -- %s' % user_notes
         return note or None  # return None instead of empty note
 
 

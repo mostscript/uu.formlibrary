@@ -1,4 +1,4 @@
-# module for test fixture construction -- anything that takes part within 
+# module for test fixture construction -- anything that takes part within
 # one or more test cases, for all else, build your common fixtures in the
 # layer(s) (see layers.py), not the test cases.
 
@@ -23,7 +23,7 @@ CHART_AUDIT_SCHEMA = open(CHART_AUDIT_SCHEMA_FILE).read().strip()
 class CreateContentFixtures(object):
     """
     Adapts a test case and plone.app.testing test layer to create
-    fixtures as part of a content creation test.  These fixtures 
+    fixtures as part of a content creation test.  These fixtures
     may be reused by other test cases using the same layer.
     
     self.context is TestCase.
@@ -31,7 +31,7 @@ class CreateContentFixtures(object):
     self.portal is portal, set from layer.
     
     self.layer.fixtures_completed is flag to ensure content is created
-    only once per fixture (shared state for any all instances of 
+    only once per fixture (shared state for any all instances of
     CreateContentFixtures and all cases using it).
     
     Call create() method to create content fixtures -- can be called by
@@ -39,10 +39,10 @@ class CreateContentFixtures(object):
     """
     
     def __init__(self, context, layer):
-        self.context = context # test case
+        self.context = context  # test case
         self.layer = layer
         self.portal = self.layer['portal']
-        self.layer.fixtures_completed = False # self.create() acts only once
+        self.layer.fixtures_completed = False  # self.create() acts only once
      
     def _add_check(self, typename, id, iface, cls, title=None, parent=None):
         if parent is None:
@@ -57,18 +57,18 @@ class CreateContentFixtures(object):
         self.context.assertTrue(isinstance(o, cls))
         self.context.assertTrue(iface.providedBy(o))
         o.reindexObject()
-        return o # return constructed content for use in additional testing
+        return o  # return constructed content for use in additional testing
     
     def create(self):
         if self.layer.fixtures_completed:
-            return # run once, already run
+            return  # run once, already run
         from uu.formlibrary import (
             interfaces,
             library,
             definition,
             forms,
-            formsets,
             )
+        from uu.formlibrary.measure.content import FormDataSetSpecification
         library = self._add_check(
             typename=interfaces.LIBRARY_TYPE,
             id='formlib',
@@ -83,7 +83,7 @@ class CreateContentFixtures(object):
             cls=definition.FormDefinition,
             parent=library,
             )
-        field_group_a = self._add_check(
+        field_group_a = self._add_check(   # noqa
             typename=interfaces.FIELD_GROUP_TYPE,
             id='field_group_a',
             iface=interfaces.IFieldGroup,
@@ -91,7 +91,7 @@ class CreateContentFixtures(object):
             title=u'Field group A',
             parent=defn,
             )
-        field_group_b = self._add_check(
+        field_group_b = self._add_check(   # noqa
             typename=interfaces.FIELD_GROUP_TYPE,
             id='field_group_b',
             iface=interfaces.IFieldGroup,
@@ -99,22 +99,22 @@ class CreateContentFixtures(object):
             title=u'Field group B',
             parent=defn,
             )
-        setspec = self._add_check(
+        setspec = self._add_check(   # noqa
             typename=interfaces.FORM_SET_TYPE,
             id='form_set_query',
             iface=interfaces.IFormQuery,
-            cls=formsets.FormSetSpecifier,
+            cls=FormDataSetSpecification,
             title=u'Form Set Query',
             parent=defn,
             )
-        simple_form = self._add_check(
+        simple_form = self._add_check(   # noqa
             typename=interfaces.SIMPLE_FORM_TYPE,
             id='simple',
             iface=interfaces.ISimpleForm,
             cls=forms.SimpleForm,
             parent=self.portal,
             )
-        multi_form = self._add_check(
+        multi_form = self._add_check(   # noqa
             typename=interfaces.MULTI_FORM_TYPE,
             id='multi',
             iface=interfaces.IMultiForm,
@@ -170,5 +170,5 @@ class CreateContentFixtures(object):
         comp_filter.filter_b = IUUID(filter2)
         comp_filter.set_operator = 'difference'
         # finally mark, don't build fixtures more than once
-        self.fixtures_completed = True # run once
+        self.fixtures_completed = True  # run once
 

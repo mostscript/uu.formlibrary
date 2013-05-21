@@ -67,6 +67,7 @@ class CreateContentFixtures(object):
             library,
             definition,
             forms,
+            series,
             )
         from uu.formlibrary.measure.content import FormDataSetSpecification
         library = self._add_check(
@@ -107,19 +108,27 @@ class CreateContentFixtures(object):
         #    title=u'Form Set Query',
         #    parent=defn,
         #    )
+        form_series = self._add_check(  # noqa
+            typename=interfaces.SERIES_TYPE,
+            id='form_series',
+            iface=interfaces.IFormSeries,
+            cls=series.FormSeries,
+            title=u'Form series 1',
+            parent=self.portal,
+            )
         simple_form = self._add_check(   # noqa
             typename=interfaces.SIMPLE_FORM_TYPE,
             id='simple',
             iface=interfaces.ISimpleForm,
             cls=forms.SimpleForm,
-            parent=self.portal,
+            parent=form_series,
             )
         multi_form = self._add_check(   # noqa
             typename=interfaces.MULTI_FORM_TYPE,
             id='multi',
             iface=interfaces.IMultiForm,
             cls=forms.MultiForm,
-            parent=self.portal,
+            parent=form_series,
             )
         # fixtures for chart-audit used to test filters:
         from uu.formlibrary import search
@@ -139,36 +148,36 @@ class CreateContentFixtures(object):
             id='chartaudit',
             iface=interfaces.IMultiForm,
             cls=forms.MultiForm,
-            parent=self.portal,
+            parent=form_series,
             )
         ca_form.definition = IUUID(ca_defn)
-        filter1 = self._add_check(
-            typename=interfaces.FILTER_TYPE,
-            id='filter1',
-            iface=search.interfaces.IRecordFilter,
-            cls=search.filters.RecordFilter,
-            parent=ca_defn,
-            )
-        notify(ObjectCreatedEvent(filter1))
-        filter2 = self._add_check(
-            typename=interfaces.FILTER_TYPE,
-            id='filter2',
-            iface=search.interfaces.IRecordFilter,
-            cls=search.filters.RecordFilter,
-            parent=ca_defn,
-            )
-        notify(ObjectCreatedEvent(filter2))
-        comp_filter = self._add_check(
-            typename=interfaces.COMPOSITE_FILTER_TYPE,
-            id='composite',
-            iface=search.interfaces.ICompositeFilter,
-            cls=search.filters.CompositeFilter,
-            parent=ca_defn,
-            )
-        notify(ObjectCreatedEvent(comp_filter))
-        comp_filter.filter_a = IUUID(filter1)
-        comp_filter.filter_b = IUUID(filter2)
-        comp_filter.set_operator = 'difference'
-        # finally mark, don't build fixtures more than once
+        #filter1 = self._add_check(
+        #    typename=interfaces.FILTER_TYPE,
+        #    id='filter1',
+        #    iface=search.interfaces.IRecordFilter,
+        #    cls=search.filters.RecordFilter,
+        #    parent=ca_defn,
+        #    )
+        #notify(ObjectCreatedEvent(filter1))
+        #filter2 = self._add_check(
+        #    typename=interfaces.FILTER_TYPE,
+        #    id='filter2',
+        #    iface=search.interfaces.IRecordFilter,
+        #    cls=search.filters.RecordFilter,
+        #    parent=ca_defn,
+        #    )
+        #notify(ObjectCreatedEvent(filter2))
+        #comp_filter = self._add_check(
+        #    typename=interfaces.COMPOSITE_FILTER_TYPE,
+        #    id='composite',
+        #    iface=search.interfaces.ICompositeFilter,
+        #    cls=search.filters.CompositeFilter,
+        #    parent=ca_defn,
+        #    )
+        #notify(ObjectCreatedEvent(comp_filter))
+        #comp_filter.filter_a = IUUID(filter1)
+        #comp_filter.filter_b = IUUID(filter2)
+        #comp_filter.set_operator = 'difference'
+        ## finally mark, don't build fixtures more than once
         self.fixtures_completed = True  # run once
 

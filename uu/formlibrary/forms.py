@@ -409,8 +409,9 @@ class MultiForm(Item, RecordContainer):
     We will use a multi_form instance created by these fixtures -- one 
     that actually has a place in the content hierarchy (lives in portal
     root, for simplicity's sake -- see uu.formlibrary.tests.fixtures):
-    
-    >>> multi_form = portal['multi']
+   
+    >>> series = portal['form_series'] 
+    >>> multi_form = series['multi']
     >>> assert multi_form.definition is None  # fixture setup never set this
     >>> definition = portal['formlib']['def']
     >>> from plone.uuid.interfaces import IUUID

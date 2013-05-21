@@ -99,14 +99,14 @@ class CreateContentFixtures(object):
             title=u'Field group B',
             parent=defn,
             )
-        setspec = self._add_check(   # noqa
-            typename=interfaces.FORM_SET_TYPE,
-            id='form_set_query',
-            iface=interfaces.IFormQuery,
-            cls=FormDataSetSpecification,
-            title=u'Form Set Query',
-            parent=defn,
-            )
+        #setspec = self._add_check(   # noqa
+        #    typename=interfaces.FORM_SET_TYPE,
+        #    id='form_set_query',
+        #    iface=interfaces.IFormQuery,
+        #    cls=FormDataSetSpecification,
+        #    title=u'Form Set Query',
+        #    parent=defn,
+        #    )
         simple_form = self._add_check(   # noqa
             typename=interfaces.SIMPLE_FORM_TYPE,
             id='simple',

@@ -1,6 +1,7 @@
 <configure
   xmlns="http://namespaces.zope.org/zope"
   xmlns:cmf="http://namespaces.zope.org/cmf"
+  xmlns:z3c="http://namespaces.zope.org/z3c"
   xmlns:grok="http://namespaces.zope.org/grok"
   xmlns:five="http://namespaces.zope.org/five">
  
@@ -18,6 +19,35 @@
 
   <!-- include Generic Setup extension profiles -->
   <include file="profiles.zcml" />
+
+  <!-- custom field type for schema editor and for supermodel serialization -->
+  <utility
+    name="uu.formlibrary.fields.DescriptiveText"
+    component=".fields.DescriptiveTextFactory"
+    />
+
+  <utility
+    name="uu.formlibrary.fields.DescriptiveText"
+    component=".fields.DescriptiveTextHandler"
+    />
+
+  <z3c:widgetTemplate
+    mode="input"
+    widget="uu.formlibrary.browser.widget.DescriptiveLabelWidget"
+    template="browser/descriptive_widget.pt"
+    />
+
+  <z3c:widgetTemplate
+    mode="display"
+    widget="uu.formlibrary.browser.widget.DescriptiveLabelWidget"
+    template="browser/descriptive_widget.pt"
+    />
+
+  <adapter
+    factory=".browser.widget.DescriptiveLabelFieldWidget"
+    for=".fields.IDescriptiveText
+         z3c.form.interfaces.IFormLayer"
+    />
 
   <!-- adapter registrations -->
 

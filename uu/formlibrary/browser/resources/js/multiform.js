@@ -1,13 +1,15 @@
+/*jshint browser: true, nomen: false, eqnull: true, es5:true, trailing:true */
+
 
 //nested namespaces for script functions and objects:
 if (!window.uu) {
-    var uu = new Object();
+    var uu = {};
 }
 if (!uu.formlibrary) {
-    uu.formlibrary = new Object();
+    uu.formlibrary = {};
 }
 if (!uu.formlibrary.multiform) {
-    uu.formlibrary.multiform = new Object();
+    uu.formlibrary.multiform = {};
 }
 
 var jq = jQuery;
@@ -15,43 +17,42 @@ var jq = jQuery;
 
 /* validator functions: */
 uu.formlibrary.multiform.val_int_req = function(input, value) {
-    return /^[\-]?(\d+|(\d{1,2},)?((\d{3}),)*(\d{3}))$/.test(value); /* required integer */
-}
+    return (/^[\-]?(\d+|(\d{1,2},)?((\d{3}),)*(\d{3}))$/).test(value); /* required integer */
+};
 
 uu.formlibrary.multiform.val_int = function(input, value) {
-    return /^([\-]?(\d+|(\d{1,2},)?((\d{3}),)*(\d{3})))?$/.test(value); /* optional integer */
-}
+    return (/^([\-]?(\d+|(\d{1,2},)?((\d{3}),)*(\d{3})))?$/).test(value); /* optional integer */
+};
 
 uu.formlibrary.multiform.val_dec_req = function(input, value) {
-    return /^(\d+([.]\d+)?|([.]\d+))$/.test(value); /* required float */
-}
+    return (/^(\d+([.]\d+)?|([.]\d+))$/).test(value); /* required float */
+};
 
 uu.formlibrary.multiform.val_dec = function(input, value) {
-    return /^([\-]?(\d+([.]\d+)?|([.]\d+)))*$/.test(value); /*optional float */
-}
+    return (/^([\-]?(\d+([.]\d+)?|([.]\d+)))*$/).test(value); /*optional float */
+};
 
 uu.formlibrary.multiform.val_date_req = function(input, value) {
-    return (!(Date.parse(value) == null)); /* is date parsable? */
-}
+    return (Date.parse(value) != null); /* is date parsable? */
+};
 
 uu.formlibrary.multiform.val_date = function(input, value) {
-    if (value == '') {
+    if (value === '') {
         return true; /*optional field*/
     }
     return uu.formlibrary.multiform.val_date_req(input, value);
-}
-
+};
 
 uu.formlibrary.multiform.formids = function() {
-    var ids = new Array();
+    var ids = [];
     jq("form.formrow").each(function(idx){
         ids.push(this.id);
         });
     return ids;
-}
+};
 
 uu.formlibrary.multiform.getform = function(id) {
-    var o = new Object();
+    var o = {};
     var form = jq("#"+id);
     o.record_uid = form[0].id;
     var inputs = jq("input, textarea, select.choice-field, select.date-field", form);
@@ -95,14 +96,14 @@ uu.formlibrary.multiform.getform = function(id) {
             }
         }
         if (element == 'SELECT') {
-            if (input[0].multiple == true) { 
+            if (input[0].multiple === true) {
                 multivalued = true;
                 }
         }
-        if ((input.attr('name').split(':list').length == 2) && (multivalued==true)) {
+        if ((input.attr('name').split(':list').length == 2) && (multivalued===true)) {
             /* multi-choice field */
             if (!o[fieldname]) {
-                o[fieldname] = new Array();
+                o[fieldname] = [];
                 }
             o[fieldname].push(input.attr('value'));
             }
@@ -111,11 +112,11 @@ uu.formlibrary.multiform.getform = function(id) {
             }
         }
     return o;
-}
+};
 
 uu.formlibrary.multiform.formgrid = function() {
     var ids = uu.formlibrary.multiform.formids();
-    var result = new Array();
+    var result = [];
     for (var i=0; i<ids.length; i++) {
         var form = uu.formlibrary.multiform.getform(ids[i]);
         if (form) {
@@ -123,22 +124,24 @@ uu.formlibrary.multiform.formgrid = function() {
             }
         }
     return result;
-}
+};
 
 uu.formlibrary.multiform.formnotes = function() {
     var defval = "Enter any notes pertaining to this period.";
     var v = jq('textarea.entry_notes').val();
-    if (v == defval) { return "" }
+    if (v == defval) {
+        return "";
+    }
     return v;
-}
+};
 
 /* output object bundling form grid data (entries) and entry notes */
 uu.formlibrary.multiform.formbundle = function() {
-    var o = new Object();
+    var o = {};
     o.notes = uu.formlibrary.multiform.formnotes();
     o.entries = uu.formlibrary.multiform.formgrid();
     return o;
-}
+};
 
 /* output JSON string of form grid data and change metadata */
 uu.formlibrary.multiform.jsonbundle = function() {
@@ -147,13 +150,13 @@ uu.formlibrary.multiform.jsonbundle = function() {
         serialization = serialization.replace(/["]null["]/gi, '""');
     }
     return serialization;
-}
+};
 
 
 uu.formlibrary.multiform.copybundle = function() {
     var payload = jq('#payload');
     payload.val(uu.formlibrary.multiform.jsonbundle());
-}
+};
 
 uu.formlibrary.multiform.rowup = function() {
     var btn = jq(this);
@@ -163,7 +166,7 @@ uu.formlibrary.multiform.rowup = function() {
         rowitem.insertBefore(prev);
         }
     uu.formlibrary.multiform.refreshbuttons();
-}
+};
 
 uu.formlibrary.multiform.rowdown = function() {
     var btn = jq(this);
@@ -173,20 +176,20 @@ uu.formlibrary.multiform.rowdown = function() {
         rowitem.insertAfter(next);
         }
     uu.formlibrary.multiform.refreshbuttons();
-}
+};
 
 uu.formlibrary.multiform.rowdelete = function() {
     var btn = jq(this);
     btn.parents('li').remove();
     uu.formlibrary.multiform.rowhandlers();
-}
+};
 
 uu.formlibrary.multiform.refreshbuttons = function() {
     jq('ol.formrows li div.rowcontrol a.rowup').show();
     jq('ol.formrows li div.rowcontrol a.rowdown').show();
     jq('ol.formrows li:first div.rowcontrol a.rowup').hide();
     jq('ol.formrows li:last div.rowcontrol a.rowdown').hide();
-}
+};
 
 
 uu.formlibrary.multiform.validator_setup = function() {
@@ -202,7 +205,7 @@ uu.formlibrary.multiform.validator_setup = function() {
         jq('input.smartdate-widget').validator();
         jq('input.float-field').validator();
     }
-}
+};
 
 uu.formlibrary.multiform.rowhandlers = function() {
     jq('a.rowup, a.rowdown, a.rowdelete').unbind('click');
@@ -215,27 +218,28 @@ uu.formlibrary.multiform.rowhandlers = function() {
     if (window.smartdate) {
         smartdate.hookups();
     }
-}
+};
 
 uu.formlibrary.multiform.handle_new_row = function() {
-    var num_rows = parseInt(jq('input.numrows').val());
+    var num_rows = parseInt(jq('input.numrows').val(), 10),
+        onSuccess = function (responseText) {
+            var row = jq('<div />').append(responseText).find('ol.formrows li');
+            jq('ol.formrows').append(row);
+            uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
+            uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
+        };
     for (var i=0; i<num_rows; i++) {
         jq.ajax({
             url: uu.formlibrary.multiform.new_row_url(),
-            success: function(responseText) { /*callback*/
-                var row = jq('<div />').append(responseText).find('ol.formrows li');
-                jq('ol.formrows').append(row);
-                uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
-                uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
-                }
-            });
+            success: onSuccess /*callback*/
+        });
     }
-}
+};
 
 uu.formlibrary.multiform.new_row_url = function() {
     var cachebust = Math.random() * 10000000000000000000;
     return jq('input#new_row_url').val() + '?random=' + cachebust;
-}
+};
 
 uu.formlibrary.multiform.submit = function() {
     //console.log(JSON.stringify(uu.formlibrary.multiform.formbundle()));
@@ -260,7 +264,7 @@ uu.formlibrary.multiform.submit = function() {
         alert('Please correct input errors and then try saving again.');
         return false;
     }
-}
+};
 
 
 uu.formlibrary.multiform.clean_form_display = function() {
@@ -274,7 +278,7 @@ uu.formlibrary.multiform.clean_form_display = function() {
         var formdiv = form.children('div.singlerowform');
         var fielddivs = formdiv.find('div.fielddiv');
         for (var j=0; j<fielddivs.length; j++) {
-            if ((j+1) % 3 == 0) {
+            if ((j+1) % 3 === 0) {
                 var fielddiv = jq(fielddivs[j]);
                 if (fielddiv.next().hasClass('fielddiv')) {
                     jq('<div style="border-bottom:1px dotted #ddd;padding:0.2em;margin-bottom:0.4em;clear:both"></div>').insertAfter(fielddiv);
@@ -282,7 +286,7 @@ uu.formlibrary.multiform.clean_form_display = function() {
             }
         }
     }
-}
+};
 
 
 jq(document).ready(function(){

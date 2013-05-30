@@ -16,6 +16,7 @@ from uu.formlibrary import utils
 
 strip = lambda v: v.strip()
 
+
 def construct(context, type_name, id):
     context.invokeFactory(id=id, type_name=type_name)
     return context[id]
@@ -30,7 +31,7 @@ def series_range(context, formdata):
     P_START, P_END, P_WEEKDAYS, P_FREQ = [
         _p(v) for v in ('start', 'end', 'active_weekdays', 'frequency')
         ]
-    end = context.end or date(date.today().year,12,31) #default:EOY
+    end = context.end or date(date.today().year, 12, 31)  # default:EOY
     start = context.start
     freq = context.frequency
     weekdays = context.active_weekdays
@@ -40,7 +41,7 @@ def series_range(context, formdata):
         if isinstance(formdata.get(P_END, None), date):
             end = formdata.get(P_END)
         if isinstance(formdata.get(P_WEEKDAYS, None), list):
-            weekdata = formdata.get(P_WEEKDAYS)
+            weekdays = formdata.get(P_WEEKDAYS)
         if isinstance(formdata.get(P_FREQ, None), str):
             freq = formdata.get(P_FREQ)
     return start, end, freq, weekdays
@@ -99,7 +100,7 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         super(PopulateForms, self).update()
         ## fieldset label fixup for periodic series group:
         periodic_group = [g for g in self.groups
-                            if g.label == u'IPeriodicSeries']
+                          if g.label == u'IPeriodicSeries']
         if periodic_group:
             periodic_group[0].label = u'Custom frequency/duration range'
             periodic_group[0].description = u''
@@ -110,8 +111,8 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         data, errors = self.extractData()
         if errors:
             self._status.addStatusMessage(
-                u'There were errors populating forms '\
-                u'or in interpreting your request '\
+                u'There were errors populating forms '
+                u'or in interpreting your request '
                 u'(see below for details).',
                 type='error',
                 )
@@ -122,25 +123,26 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         typelabel = FORM_TYPE_NAMES.get(typename, unicode(typename))
         if data.get('custom_range', False):
             periodic_group = [g for g in self.groups
-                                if g.label == u'IPeriodicSeries'][0]
+                              if g.label == u'IPeriodicSeries'][0]
             periodic_data = periodic_group.extractData()[0]
         start, end, freq, weekdays = series_range(self.context, periodic_data)
         if start is None:
             return self._nothing_to_do(u'No start date specified.')
         if freq == 'Weekly':
             if not weekdays:
-                return self._nothing_to_do(u'No active weekdays specified '\
+                return self._nothing_to_do(u'No active weekdays specified '
                                            u'for a weekly period.')
             infocls = lambda d: utils.WeeklyInfo(d, days=weekdays)
         else:
-            infocls = { 
-                'Monthly'           : utils.MonthlyInfo,
-                'Quarterly'         : utils.QuarterlyInfo,
-                'Annual'            : utils.AnnualInfo,
-                'Twice monthly'     : utils.TwiceMonthlyInfo,
-                'Every two months'  : utils.EveryTwoMonthsInfo,
-                'Every six months'  : utils.SemiAnnualInfo,
-                }[freq]  
+            infocls = {
+                'Monthly': utils.MonthlyInfo,
+                'Quarterly': utils.QuarterlyInfo,
+                'Annual': utils.AnnualInfo,
+                'Twice monthly': utils.TwiceMonthlyInfo,
+                'Every two months': utils.EveryTwoMonthsInfo,
+                'Every other month': utils.EveryOtherMonthInfo,
+                'Every six months': utils.SemiAnnualInfo,
+                }[freq]
         infos = [dict(infocls(d)) for d in infocls(start).all_until(end)]
         for info in infos:
             ## every date slice
@@ -156,7 +158,7 @@ class PopulateForms(AutoExtensibleForm, form.Form):
                         u'Skipped already created form %s ("%s")' % (
                             id,
                             title,
-                            ), 
+                            ),
                         type='warning',
                         )
                     continue
@@ -180,7 +182,7 @@ class PopulateForms(AutoExtensibleForm, form.Form):
 class PopulateFormsView(FormWrapper):
     """A wrapper view for PopulateForms"""
     
-    form = PopulateForms 
+    form = PopulateForms
     index = ViewPageTemplateFile('populate.pt')
      
     def __init__(self, context, request):

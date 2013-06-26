@@ -15,7 +15,8 @@ from uu.smartdate.browser.widget import SmartdateFieldWidget
 from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 
-from utils import find_context
+from uu.formlibrary.vocabulary import find_context
+from uu.formlibrary.vocabulary import definition_field_source
 
 
 ## global constants:
@@ -218,6 +219,38 @@ class IMeasureUnits(form.Schema):
         title=u'Units of measure',
         description=u'Label for units of measure (optional).',
         required=False,
+        )
+
+
+class IMeasureFieldSpec(form.Schema):
+    """
+    Field specification for flex/simple form measures with values
+    sourced directly from form field values.  Not applicable to
+    multi-record forms.
+    """
+    
+    numerator_field = schema.Choice(
+        title=u'Numerator field',
+        description=u'Which form field provides the numerator value? If '
+                    u'no value is specified, no numerator will be used.',
+        source=definition_field_source,
+        default='',
+        )
+
+    denominator_field = schema.Choice(
+        title=u'Denominator field',
+        description=u'Which form field provides a denominator value?  If '
+                    u'this is unspecified, no denominator will be used.',
+        source=definition_field_source,
+        default='',
+        )
+
+    notes_field = schema.Choice(
+        title=u'Notes field',
+        description=u'Which form field may provide note(s) for this measure. '
+                    u'(optional)',
+        source=definition_field_source,
+        default='',
         )
 
 

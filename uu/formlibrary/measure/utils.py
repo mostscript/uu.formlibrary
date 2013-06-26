@@ -42,7 +42,6 @@ class SignedDataStreamCodec(object):
         return msg
 
 
-
 class SignedPickleIO(object):
     """
     Encoder / decoder for HMAC-SHA256 signed, Base64 encoded pickle
@@ -65,15 +64,6 @@ class SignedPickleIO(object):
         if data is None:
             return None
         return pickle.loads(data)
-
-
-def find_context(request):
-    """Find the context from the request; from http://goo.gl/h9d9N"""
-    published = request.get('PUBLISHED', None)
-    context = getattr(published, '__parent__', None)
-    if context is None:
-        context = request.PARENTS[0]
-    return context
 
 
 def content_path(item):

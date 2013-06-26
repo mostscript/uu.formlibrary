@@ -66,6 +66,12 @@
     for=".interfaces.IMeasureDefinition"
     />  
 
+  <adapter 
+    factory=".adapters.group_form_definition"
+    provides="uu.formlibrary.interfaces.IFormDefinition"
+    for=".interfaces.IMeasureGroup"
+    />  
+
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter
     for=".wizard.IMeasureWizardView

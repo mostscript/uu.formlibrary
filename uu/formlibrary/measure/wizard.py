@@ -3,8 +3,6 @@ import copy
 from plone.app.uuid.utils import uuidToObject
 from plone.autoform.form import AutoExtensibleForm
 from plone.directives import form
-from plone.formwidget.contenttree import UUIDSourceBinder
-from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.keyring.interfaces import IKeyManager
 from plone.z3cform.interfaces import IWrappedForm
 from plone.z3cform.traversal import FormWidgetTraversal
@@ -12,7 +10,6 @@ from Products.statusmessages.interfaces import IStatusMessage
 from z3c.form import form as z3cform
 from z3c.form import button
 from z3c.form.interfaces import HIDDEN_MODE
-from z3c.form.browser.radio import RadioFieldWidget
 from zope.component import queryUtility, adapts
 from zope.component.hooks import getSite
 from zope.globalrequest import getRequest
@@ -24,14 +21,15 @@ from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.traversing.interfaces import ITraversable
 
-from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import IFormComponents
+from uu.formlibrary.vocabulary import find_context
 
 from interfaces import IMeasureNaming, IMeasureFormDefinition
 from interfaces import IMeasureSourceType, IMeasureCalculation
 from interfaces import IMeasureUnits, IMeasureRounding
-from utils import SignedPickleIO, find_context
+from interfaces import IMeasureFieldSpec
+from utils import SignedPickleIO
 from factory import MRMeasureFactory
 
 
@@ -66,13 +64,13 @@ class IMeasureWizardRounding(IMeasureRounding, IMeasureWizardSubform):
     
     express_as_percentage = schema.Bool(
         title=u'Express value as percentage',
-        description=u'Should the value be expressed as a percentage? '\
-                    u'If the raw value results from a ratio, and this '\
-                    u'option is selected, the ratio value (usually between '\
-                    u'zero and one) will be multiplied by 100 and values '\
-                    u'will be displayed in percentage notation.  This box '\
-                    u'may be pre-checked for you if the numerator and '\
-                    u'denominator types selected on the previous page '\
+        description=u'Should the value be expressed as a percentage? '
+                    u'If the raw value results from a ratio, and this '
+                    u'option is selected, the ratio value (usually between '
+                    u'zero and one) will be multiplied by 100 and values '
+                    u'will be displayed in percentage notation.  This box '
+                    u'may be pre-checked for you if the numerator and '
+                    u'denominator types selected on the previous page '
                     u'imply that computed values will be a rate or ratio.',
         default=False,
         required=False,
@@ -119,6 +117,7 @@ def fieldname_choices(context):
 
 alsoProvides(fieldname_choices, IContextSourceBinder)
 
+
 def fieldset_choices(context):
     definition = _source_definition(context)
     if definition is None:
@@ -127,10 +126,14 @@ def fieldset_choices(context):
     _term = lambda o: SimpleTerm(o.getId(), title=o.Title())
     choices = list(components.groups.values())
     default = SimpleTerm('', title=u'Default fieldset')
-    return SimpleVocabulary([default] + map(_term, choices)) 
+    return SimpleVocabulary([default] + map(_term, choices))
 
 
 alsoProvides(fieldset_choices, IContextSourceBinder)
+
+
+class IMeasureWizardFlexFields(IMeasureFieldSpec, IMeasureWizardSubform):
+    """Choose a fieldset/field for numerator/denominator/note."""
 
 
 class IMeasureWizardFlexFieldsetChoice(IMeasureWizardSubform):
@@ -163,34 +166,30 @@ class IMeasureWizardFlexFieldChoice(IMeasureWizardSubform):
 ## using button tokens as an input alphabet for the finite state machine.
 
 mr_delta_tables = {
-    IMeasureWizardNaming : {
-        'next' : IMeasureWizardMRCriteria,
+    IMeasureWizardNaming: {
+        'next': IMeasureWizardMRCriteria,
         },
-    IMeasureWizardMRCriteria : {
-        'previous' : IMeasureWizardNaming,
-        'next' : IMeasureWizardRounding,
+    IMeasureWizardMRCriteria: {
+        'previous': IMeasureWizardNaming,
+        'next': IMeasureWizardRounding,
         },
-    IMeasureWizardRounding : {
-        'previous' : IMeasureWizardMRCriteria,
-        'next' : None,   # final
+    IMeasureWizardRounding: {
+        'previous': IMeasureWizardMRCriteria,
+        'next': None,   # final
         },
 }
 
 flex_delta_tables = {
-    IMeasureWizardNaming : {
-        'next' : IMeasureWizardFlexFieldsetChoice,
+    IMeasureWizardNaming: {
+        'next': IMeasureWizardFlexFields,
         },
-    IMeasureWizardFlexFieldsetChoice : {
-        'previous' : IMeasureWizardNaming,
-        'next' : IMeasureWizardFlexFieldChoice,
+    IMeasureWizardFlexFields: {
+        'previous': IMeasureWizardNaming,
+        'next': IMeasureWizardRounding,
         },
-    IMeasureWizardFlexFieldChoice : {
-        'previous' : IMeasureWizardFlexFieldsetChoice,
-        'next' : IMeasureWizardFlexUnits,
-        },
-    IMeasureWizardFlexUnits : {
-        'previous' : IMeasureWizardFlexFieldChoice,
-        'next' : None,   # final
+    IMeasureWizardRounding: {
+        'previous': IMeasureWizardFlexFields,
+        'next': None,   # final
         },
 }
 
@@ -198,23 +197,23 @@ flex_delta_tables = {
 ## labels and titles for buttons and wizard steps:
 
 BUTTON_LABELS = {
-    'next' : u'Next >>',
-    'previous' : u'<< Previous',
-    'cancel' : u'Cancel',
+    'next': u'Next >>',
+    'previous': u'<< Previous',
+    'cancel': u'Cancel',
 }
 
 
 STEP_TITLES = {
-    IMeasureWizardNaming : u'Name and describe your measure',
-    IMeasureWizardDefinition : u'Choose a form definition for the measure',
-    IMeasureWizardSourceType : u'What type of data source?',
-    IMeasureWizardMRCriteria : u'How is measure calculated?',
-    IMeasureWizardRounding : 'How should computed values be displayed?',
-    IMeasureWizardFlexUnits : 'Describe and configure the units of measure?',
-    IMeasureWizardFlexFieldChoice : u'Choose a field as a value source.',
-    IMeasureWizardFlexFieldsetChoice : u'Choose a field group from which a '\
-                                       u'form field will be chosen.',
+    IMeasureWizardNaming: u'Name and describe your measure',
+    IMeasureWizardDefinition: u'Choose a form definition for the measure',
+    IMeasureWizardSourceType: u'What type of data source?',
+    IMeasureWizardMRCriteria: u'How is measure calculated?',
+    IMeasureWizardRounding: 'How should computed values be displayed?',
+    IMeasureWizardFlexUnits: 'Describe and configure the units of measure?',
+    IMeasureWizardFlexFields: u'How is measue calculated?  Choose '
+                              u'field(s) as sources of values.',
 }
+
 
 class IStepState(Interface):
     source_step = schema.BytesLine(
@@ -237,7 +236,7 @@ class WizardStepForm(AutoExtensibleForm, z3cform.Form):
     # schema must be property, not attribute for AutoExtensibleForm sublcass
     @property
     def schema(self):
-        return self._schema 
+        return self._schema
     
     @property
     def additionalSchemata(self):
@@ -267,7 +266,7 @@ class WizardStepForm(AutoExtensibleForm, z3cform.Form):
         Get content for use as form context by form widgets.  Note that
         this will be the context used by context source binder functions
         and as a result anything that needs to be passed to the source
-        binder should be passed through self.data on construction of 
+        binder should be passed through self.data on construction of
         a WizardStepForm.
         """
         if self.data:
@@ -337,8 +336,8 @@ class MeasureWizardView(object):
         stepmap = self.stepmap
         ## hidden form input always documents the source interface name:
         source = self.request.form.get(STEP_STATE_KEY, None)
-        submitted_buttons = [ 
-            k.replace('form.buttons.','') for k in self.request.form
+        submitted_buttons = [
+            k.replace('form.buttons.', '') for k in self.request.form
             if k.startswith('form.buttons')
             ]
         if submitted_buttons and source in stepmap:
@@ -350,17 +349,25 @@ class MeasureWizardView(object):
             if button_action not in delta_table and button_action == 'next':
                 ## a branch
                 if 'form.widgets.source_type' in self.request.form:
-                    form_ftitype = self.request.form.get('form.widgets.source_type')[0]
+                    form_ftitype = self.request.form.get(
+                        'form.widgets.source_type'
+                        )[0]
                     if form_ftitype == SIMPLE_FORM_TYPE:
-                        current_step = delta_table.get('branch_flex', current_step)
+                        current_step = delta_table.get(
+                            'branch_flex',
+                            current_step,
+                            )
                     else:
-                        current_step = delta_table.get('branch_mr', current_step)
+                        current_step = delta_table.get(
+                            'branch_mr',
+                            current_step,
+                            )
         return current_step  # may be None on final state
     
     def _sorted_buttons(self, buttons):
         if 'previous' in buttons:
             # previous always first button
-            return ( 
+            return (
                 ['previous'] +
                 filter(lambda v: v != 'previous', buttons)
                 )
@@ -459,7 +466,7 @@ class MeasureWizardView(object):
             factory = MRMeasureFactory(self.context)
             measure = factory(data)
             status.addStatusMessage(
-                'Created new measure, please configure criteria by '\
+                'Created new measure, please configure criteria by '
                 'clicking on filters listed below.',
                 type='info',
                 )
@@ -488,7 +495,7 @@ class MeasureWizardView(object):
             if method == 'GET':
                 self.request.response.redirect(self.context.absolute_url())
             else:
-                self.request.response.redirect(self.request.URL) # back to start
+                self.request.response.redirect(self.request.URL)  # goto start
             return False  # user selected cancel, redirect
         
         ## only GET request to this view is to first step; on such, clear any
@@ -512,12 +519,16 @@ class MeasureWizardView(object):
                 self.handle_errors(errors)
                 return
         
-            ## merge submitted data with previously saved step data, persist; 
+            ## merge submitted data with previously saved step data, persist;
             ## note: if there is not POSTed form data, then the merged data
             ## will not include fields for the current fieldset (usually, this
             ## just means the first page of the wizard, and that is a desired
-            ## consequence -- loading the wizard again should start fresh anyway).
-            saved_formdata = self._merged_data(data_schema, saved_formdata, data)
+            ## consequence -- loading wizard again should start fresh anyway).
+            saved_formdata = self._merged_data(
+                data_schema,
+                saved_formdata,
+                data,
+                )
             self.set_formdata(saved_formdata)  # persist data into pickle cookie
         
         ## get current wizard step (state, used by template and methods):
@@ -529,7 +540,7 @@ class MeasureWizardView(object):
                 if 'IMeasureWizardRounding' not in saved_formdata:
                     saved_formdata['IMeasureWizardRounding'] = {}
                 d = saved_formdata['IMeasureWizardRounding']
-                d['express_as_percentage'] = True 
+                d['express_as_percentage'] = True
         
         if self.current_step is None:
             return self.update_final(saved_formdata, *args, **kwargs)
@@ -542,7 +553,7 @@ class MeasureWizardView(object):
             )
         
         ## at this point, any button values submitted in the request are
-        ## going to confuse the next step form, so remove them 
+        ## going to confuse the next step form, so remove them
         self.remove_buttons_from_request_data()
         
         ## Get form instance, add buttons, then update/render; a hidden
@@ -550,7 +561,7 @@ class MeasureWizardView(object):
         self.update_next_step_form(data=saved_formdata)
     
     def __call__(self, *args, **kwargs):
-        if self.update(*args, **kwargs) != False:
+        if self.update(*args, **kwargs) is not False:
             return self.index(*args, **kwargs)  # from template via Five magic
 
 

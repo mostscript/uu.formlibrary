@@ -107,7 +107,7 @@ class MeasureDefinition(Container):
         Given an appropriate form context, compute a value, normalize
         as appropriate.
         """
-        return self._values()[1]
+        return self._values(context)[1]
     
     def datapoint(self, context):
         """Returns dict for data point given form context"""

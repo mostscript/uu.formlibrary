@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from persistent import Persistent
 from persistent.list import PersistentList
-from zope.component import adapts
-from zope.interface import implements
 from plone.dexterity.content import Container, Item, DexterityContent
 from plone.schemaeditor.browser.schema.traversal import SchemaContext
+from zope.component import adapts
+from zope.interface import implements
 
 from uu.dynamicschema.schema import SignatureSchemaContext
 from uu.dynamicschema.schema import copy_schema
@@ -13,7 +15,7 @@ from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
 from uu.formlibrary.interfaces import IDefinitionHistory, IFormComponents
 
 
-itemkeys = lambda seq: zip(*seq)[0] if seq else [] #unzip items tuple
+itemkeys = lambda seq: zip(*seq)[0] if seq else []  # unzip items tuple
 is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
 
 
@@ -25,7 +27,7 @@ class DefinitionHistory(Persistent):
     def __init__(self, context, *args, **kwargs):
         if not IFormDefinition.providedBy(context):
             raise ValueError('context must provide IFormDefinition')
-        self.context = context # form definition
+        self.context = context  # form definition
         self.namespace = kwargs.get('namespace', '')
         self.signature = kwargs.get('signature', None)
         self.modified = kwargs.get('modified', datetime.now())
@@ -45,7 +47,7 @@ class FormComponents(object):
     
     def _load_items(self):
         self._items = [(name, o) for name, o in self.context.objectItems()
-            if is_field_group(o)]
+                       if is_field_group(o)]
     
     @property
     def names(self):
@@ -61,14 +63,14 @@ class DefinitionBase(SignatureSchemaContext):
     
     def __init__(self, content_base):
         self.content_base = content_base
-        SignatureSchemaContext.__init__(self) #sets self.signature=None
+        SignatureSchemaContext.__init__(self)  # sets self.signature=None
         self.signature_history = PersistentList()
     
     def schema_version(self, signature):
         signature = str(signature.strip())
         if signature not in self.signature_history:
             return -1
-        return self.signature_history.index(signature) + 1 #one-indexed
+        return self.signature_history.index(signature) + 1  # one-indexed
     
     def __getattr__(self, name):
         """Hack to get acquisition and Python property self.schema to work"""
@@ -81,7 +83,7 @@ class DefinitionBase(SignatureSchemaContext):
         """low-tech traversal hook"""
         if name == 'edit_schema':
             title = u'Form schema: %s' % self.title
-            temp_schema = copy_schema(self.schema) # edit copy, not in-place!
+            temp_schema = copy_schema(self.schema)  # edit copy, not in-place!
             schema_context = SchemaContext(
                 temp_schema, self.REQUEST, name, title).__of__(self)
             return schema_context
@@ -109,7 +111,7 @@ class FormDefinition(Container, DefinitionBase):
     def __getitem__(self, name):
         if name in self.objectIds():
             return Container.__getitem__(self, name)
-        return DefinitionBase.__getitem__(self, name) #traversal hook
+        return DefinitionBase.__getitem__(self, name)  # traversal hook
     
     def log(self, *args, **kwargs):
         if not hasattr(self, 'definition_history'):
@@ -117,7 +119,7 @@ class FormDefinition(Container, DefinitionBase):
         if len(args) == 1 and IDefinitionHistory.providedBy(args[0]):
             self.definition_history.append(args[0])
             return
-        entry = DefinitionHistory(context, **kwargs)
+        entry = DefinitionHistory(self, **kwargs)
         self.definition_history.append(entry)
     
     # work-around until plone.dexterity 1.0.2 released ( http://goo.gl/w40bc )

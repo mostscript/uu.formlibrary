@@ -17,6 +17,7 @@ from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 
 from utils import find_context
 
+
 ## global constants:
 
 MEASURE_DEFINITION_TYPE = 'uu.formlibrary.measure'
@@ -47,19 +48,22 @@ MR_FORM_NUMERATOR_CHOICES = SimpleVocabulary(MR_FORM_COMMON_FILTER_CHOICES)
 
 MR_FORM_DENOMINATOR_CHOICES = SimpleVocabulary(
     [
-        SimpleTerm('constant', 'No denominator (do not divide numerator value)'),
+        SimpleTerm(
+            'constant',
+            title=u'No denominator (do not divide numerator value)'
+        ),
     ] + MR_FORM_COMMON_FILTER_CHOICES,
 )
 
 
 VALUE_TYPE_CHOICES = SimpleVocabulary([
     SimpleTerm(value=v, title=title)
-        for v, title in (
-            ('count', u'Count of occurrences'),
-            ('decimal', u'Decimal number, including ratio value.'),
-            ('percentage', u'Percentage of total or selected records'),
-            ('rating', u'Rating on a scale'),
-            )
+    for v, title in (
+        ('count', u'Count of occurrences'),
+        ('decimal', u'Decimal number, including ratio value.'),
+        ('percentage', u'Percentage of total or selected records'),
+        ('rating', u'Rating on a scale'),
+        )
     ]
 )
 
@@ -70,6 +74,7 @@ ROUNDING_CHOICES = SimpleVocabulary([
     SimpleTerm('ceiling', title=u'Ceiling: always round upward.'),
     SimpleTerm('floor', title=u'Floor: always round downward.'),
 ])
+
 
 ## field default (defaultFactory) methods:
 
@@ -91,7 +96,7 @@ class IMeasureNaming(form.Schema):
     title = schema.TextLine(
         title=u'Name (title) of measure',
         required=True,
-        )   
+        )
     
     description = schema.Text(
         title=u'Describe your measure (optional)',
@@ -105,8 +110,8 @@ class IMeasureFormDefinition(form.Schema):
     form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Select a form definition',
-        description=u'Select a form definition to use for measure(s). '\
-                    u'The definition that you choose will control the '\
+        description=u'Select a form definition to use for measure(s). '
+                    u'The definition that you choose will control the '
                     u'available fields for query by measure(s).',
         source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         required=True,
@@ -120,7 +125,7 @@ class IMeasureSourceType(form.Schema):
     form.widget(source_type=RadioFieldWidget)
     source_type = schema.Choice(
         title=u'Data source type',
-        description=u'What kind of form data will provide a data source '\
+        description=u'What kind of form data will provide a data source '
                     u'used to compute measure values?',
         vocabulary=SOURCE_TYPE_CHOICES,
         default=MULTI_FORM_TYPE,
@@ -143,12 +148,12 @@ class IMeasureCalculation(form.Schema):
     form.widget(denominator_type=RadioFieldWidget)
     denominator_type = schema.Choice(
         title=u'(Optional) denominator',
-        description=u'You may choose if and how an optional denominator is '\
-                    u'used to compute this measure.  The default '\
-                    u'denominator is the total of records for a given form, '\
-                    u'which is useful for percentages and ratios, but you '\
-                    u'may also choose a constant denominator if what you '\
-                    u'aim to compute and display is a raw count of matches '\
+        description=u'You may choose if and how an optional denominator is '
+                    u'used to compute this measure.  The default '
+                    u'denominator is the total of records for a given form, '
+                    u'which is useful for percentages and ratios, but you '
+                    u'may also choose a constant denominator if what you '
+                    u'aim to compute and display is a raw count of matches '
                     u'resulting from a numerator computed by filter.',
         vocabulary=MR_FORM_DENOMINATOR_CHOICES,
         default='multi_total',
@@ -164,12 +169,13 @@ class IMeasureCalculation(form.Schema):
                 'to a value equal to one, this is neither useful or allowed.'
             raise Invalid(m)
 
+
 class IMeasureRounding(form.Schema):
     
     display_precision = schema.Int(
         title=u'Digits after decimal point (display precision)?',
-        description=u'When displaying a decimal value, how many places '\
-                    u'beyond the decimal point should be displayed in '\
+        description=u'When displaying a decimal value, how many places '
+                    u'beyond the decimal point should be displayed in '
                     u'output?  Default: two digits after the decimal point.',
         default=1,
         )
@@ -177,10 +183,10 @@ class IMeasureRounding(form.Schema):
     form.widget(rounding=RadioFieldWidget)
     rounding = schema.Choice(
         title=u'How should number be optionally rounded?',
-        description=u'You may choose to round decimal values to integer '\
-                    u'(whole or negative non-decimal number) values using '\
-                    u'a rounding rule; be default, no rounding takes '\
-                    u'place.  You may prefer to use display precision '\
+        description=u'You may choose to round decimal values to integer '
+                    u'(whole or negative non-decimal number) values using '
+                    u'a rounding rule; be default, no rounding takes '
+                    u'place.  You may prefer to use display precision '
                     u'above in many cases, instead of rounding.',
         vocabulary=ROUNDING_CHOICES,
         required=False,
@@ -201,9 +207,9 @@ class IMeasureUnits(form.Schema):
 
     multiplier = schema.Float(
         title=u'Value multiplier constant',
-        description=u'What constant numeric (whole or decimal number) '\
-                    u'should the raw computed value be multiplied by?  For '\
-                    u'percentages computed with both a numerator and '\
+        description=u'What constant numeric (whole or decimal number) '
+                    u'should the raw computed value be multiplied by?  For '
+                    u'percentages computed with both a numerator and '
                     u'denominator, enter 100.',
         default=1.0,
         )
@@ -222,6 +228,7 @@ class IMeasureDefinition(form.Schema,
                          IMeasureNaming,
                          IMeasureCalculation,
                          IMeasureRounding,
+                         IMeasureFieldSpec,
                          IMeasureUnits):
     """
     Measure definition content interface.
@@ -293,7 +300,7 @@ class IMeasureGroup(form.Schema,
 
 
 class IMeasureLibrary(IOrderedContainer, form.Schema, IAttributeUUID):
-    """ 
+    """
     Marker interface for library folder containing measure groups, which
     contain measure definitions (and topic/collections as data sets).
     """
@@ -328,7 +335,7 @@ class IFormDataSetSpecification(form.Schema):
 
     description = schema.Text(
         title=u'Description',
-        description=u'Description of the form set resulting from '\
+        description=u'Description of the form set resulting from '
                     u'selection or query.',
         required=False,
         )
@@ -337,12 +344,12 @@ class IFormDataSetSpecification(form.Schema):
     form.widget(locations=MultiContentTreeFieldWidget)
     locations = schema.List(
         title=u'Included locations',
-        description=u'Select locations (specific forms or containing '\
-                    u'folders, including form series and/or parent '\
-                    u'folders) to include.  If you do not choose at '\
-                    u'least one location, all forms will be included and '\
-                    u'optionally filtered. If you choose locations, only '\
-                    u'forms within those locations will be included and '\
+        description=u'Select locations (specific forms or containing '
+                    u'folders, including form series and/or parent '
+                    u'folders) to include.  If you do not choose at '
+                    u'least one location, all forms will be included and '
+                    u'optionally filtered. If you choose locations, only '
+                    u'forms within those locations will be included and '
                     u'optionally filtered by any chosen filter criteria.',
         value_type=schema.Choice(
             source=UUIDSourceBinder(),
@@ -353,7 +360,7 @@ class IFormDataSetSpecification(form.Schema):
 
     sort_on_start = schema.Bool(
         title=u'Sort on start date?',
-        description=u'Should resulting forms included be sorted by '\
+        description=u'Should resulting forms included be sorted by '
                     u'their respective start dates?',
         required=False,
         default=True,
@@ -367,11 +374,11 @@ class IFormDataSetSpecification(form.Schema):
 
     query_subject = schema.List(
         title=u'Filter: tags',
-        description=u'Query for any forms matching tags or subject '\
+        description=u'Query for any forms matching tags or subject '
                     u'(one per line).',
         value_type=schema.TextLine(),
         required=False,
-        defaultFactory=list, #req zope.schema >= 3.8.0
+        defaultFactory=list,  # req zope.schema >= 3.8.0
         )
 
     query_state = schema.List(
@@ -379,10 +386,10 @@ class IFormDataSetSpecification(form.Schema):
         description=u'List of workflow states. If not specified, items in '
                     u'any state will be considered.',
         value_type=schema.Choice(
-            vocabulary=u'plone.app.vocabularies.WorkflowStates', #named vocab
+            vocabulary=u'plone.app.vocabularies.WorkflowStates',  # named vocab
             ),
         required=False,
-        defaultFactory=list, #req zope.schema >= 3.8.0
+        defaultFactory=list,  # req zope.schema >= 3.8.0
         )
 
     form.widget(query_start=SmartdateFieldWidget)
@@ -411,7 +418,7 @@ class IFormDataSetSpecification(form.Schema):
         """
     
     def directly_included(self, spec):
-        """ 
+        """
         Given spec as either UID, form object, or brain, return True if
         the form object is directly included in the locations field, or
         return False if merely indirectly included.

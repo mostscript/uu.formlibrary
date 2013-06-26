@@ -9,7 +9,7 @@ from plone.app.layout.navigation.root import getNavigationRoot
 from zope.component.hooks import getSite
 from zope.interface import implements
 
-from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
+from uu.formlibrary.interfaces import MULTI_FORM_TYPE
 from uu.formlibrary.search.filters import filter_query
 from uu.formlibrary.search.interfaces import IRecordFilter
 
@@ -75,7 +75,7 @@ class MeasureDefinition(Container):
         source_type = self._source_type()
         if source_type == MULTI_FORM_TYPE:
             nan = float('NaN')
-            divide = lambda a,b: float(a) / float(b) if b else nan
+            divide = lambda a, b: float(a) / float(b) if b else nan
             return divide(*self._mr_values(context))
         return self._flex_form_value(context)
     
@@ -88,9 +88,9 @@ class MeasureDefinition(Container):
         rrule = self.rounding
         if rrule:
             fn = {
-                'round' : round,
-                'ceiling' : math.ceil,
-                'floor' : math.floor,
+                'round': round,
+                'ceiling': math.ceil,
+                'floor': math.floor,
                 }.get(rrule, round)
             v = fn(v)
         if self.value_type == 'count':
@@ -112,7 +112,8 @@ class MeasureDefinition(Container):
     def datapoint(self, context):
         """Returns dict for data point given form context"""
         n = m = None
-        if self._source_type() == MULTI_FORM_TYPE and self.denominator_type != 'constant':
+        if (self._source_type() == MULTI_FORM_TYPE and
+                self.denominator_type != 'constant'):
             n, m = self._mr_values(context)
             nan = float('NaN')
             divide = lambda a, b: float(a) / float(b) if b else nan
@@ -224,10 +225,10 @@ class FormDataSetSpecification(Item):
         Returns catalog brains for each location in locations field.
         """
         catalog = getSite().portal_catalog
-        spec_uids = getattr(self, 'locations', []) 
+        spec_uids = getattr(self, 'locations', [])
         if not spec_uids:
             return None
-        q = { 'UID' : {'query': spec_uids, 'operator': 'or', 'depth':0} }
+        q = {'UID': {'query': spec_uids, 'operator': 'or', 'depth': 0}}
         return catalog.search(q)
     
     def directly_included(self, spec):
@@ -247,25 +248,25 @@ class FormDataSetSpecification(Item):
         return spec in self.locations
     
     def _path_query(self):
-        spec_uids = getattr(self, 'locations', []) 
+        spec_uids = getattr(self, 'locations', [])
         if not spec_uids:
             navroot = getNavigationRoot(self)
-            return { 'portal_type': MULTI_FORM_TYPE, 'path': navroot }, []
+            return {'portal_type': MULTI_FORM_TYPE, 'path': navroot}, []
         # first use catalog to get brains for all matches to these
         # UIDs where portal_type is MULTI_FORM_TYPE
         catalog = getSite().portal_catalog
-        filter_q = { 
+        filter_q = {
             'portal_type': MULTI_FORM_TYPE,
             'UID': {
                 'query': spec_uids,
                 'operator': 'or',
-                },  
-            }   
+                },
+            }
         form_uids = [b.UID for b in catalog.search(filter_q)]
         folder_uids = list(set(spec_uids).difference(form_uids))
-        folder_q = { 'UID' : {'query': folder_uids, 'operator': 'or'} }
+        folder_q = {'UID': {'query': folder_uids, 'operator': 'or'}}
         folder_paths = [b.getPath() for b in catalog.search(folder_q)]
-        path_q = { 
+        path_q = {
             'portal_type': MULTI_FORM_TYPE,
             'path': {
                 'query': folder_paths,
@@ -275,10 +276,10 @@ class FormDataSetSpecification(Item):
         return path_q, form_uids
 
     def _query_spec(self):
-        idxmap = { 
-            'query_title' : 'Title',
-            'query_subject' : 'Subject',
-            'query_state' : 'review_state',
+        idxmap = {
+            'query_title': 'Title',
+            'query_subject': 'Subject',
+            'query_state': 'review_state',
         }
         q = {}
         pathq, form_uids = self._path_query()
@@ -288,7 +289,7 @@ class FormDataSetSpecification(Item):
             idx = idxmap[name]
             v = getattr(self, name, None)
             if isinstance(v, datetime.date):
-                v = datetime.datetime(*v.timetuple()[:7]) # internal convert
+                v = datetime.datetime(*v.timetuple()[:7])  # internal convert
             if isinstance(v, datetime.datetime):
                 v = DateTime(v)
             if v:
@@ -298,17 +299,17 @@ class FormDataSetSpecification(Item):
         if self.query_start and self.query_end:
             q['start'] = {
                 'query': (_DT(self.query_start), _DT(self.query_end)),
-                'range' : 'min:max',
+                'range': 'min:max',
                 }
         if self.query_start and not self.query_end:
             q['start'] = {
                 'query': _DT(self.query_start),
-                'range' : 'min',
+                'range': 'min',
                 }
         if self.query_end and not self.query_start:
             q['start'] = {
                 'query': _DT(self.query_end),
-                'range' : 'max',
+                'range': 'max',
                 }
         return q, form_uids
     
@@ -316,8 +317,8 @@ class FormDataSetSpecification(Item):
         folder_query, form_uids = self._query_spec()
         catalog = getSite().portal_catalog
         directly_specified = catalog.search({
-            'UID' : {'query': form_uids, 'operator': 'or'},
-            })  
+            'UID': {'query': form_uids, 'operator': 'or'},
+            })
         forms_in_folders_specified = catalog.search(folder_query)
         # get a LazyCat (concatenation of two results):
         unsorted_result = directly_specified + forms_in_folders_specified

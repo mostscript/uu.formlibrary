@@ -30,7 +30,7 @@ from interfaces import IMeasureSourceType, IMeasureCalculation
 from interfaces import IMeasureUnits, IMeasureRounding
 from interfaces import IMeasureFieldSpec
 from utils import SignedPickleIO
-from factory import MRMeasureFactory
+from factory import MeasureFactory
 
 
 class IMeasureWizardSubform(form.Schema):
@@ -462,24 +462,22 @@ class MeasureWizardView(object):
         a 'next' button has been submitted.
         """
         status = IStatusMessage(self.request)
+        factory = MeasureFactory(self.context)
+        measure = factory(data)
+        status.addStatusMessage(
+            'Created new measure, please configure criteria by '
+            'clicking on filters listed below.',
+            type='info',
+            )
+        url = measure.absolute_url()
         if self.context.source_type == MULTI_FORM_TYPE:
-            factory = MRMeasureFactory(self.context)
-            measure = factory(data)
+            url += '/@@measure_criteria'
+        self.request.response.redirect(url)
+        if self.context.source_type == SIMPLE_FORM_TYPE:
             status.addStatusMessage(
-                'Created new measure, please configure criteria by '
-                'clicking on filters listed below.',
+                'Created new measure.',
                 type='info',
                 )
-            url = measure.absolute_url() + '/@@measure_criteria'
-            self.request.response.redirect(url)
-        
-        ## TODO: get previous state submitting to determine handler
-        ## TODO: handler map step-interface to handler function
-        ## TODO: factory adapters
-        ## TODO: A criteria view for measure when multiple filters contained?
-        ## TODO: response URL (post-creation for redirect):
-        ##       (1) Flex form measure: go to measure view
-        ##       (2) MR criteria view
         self.formbody = 'Your measure has been configured'  # TODO: rem
     
     def data_implies_percentage(self, saved_formdata):

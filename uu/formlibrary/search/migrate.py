@@ -7,6 +7,7 @@ from zope.lifecycleevent import ObjectModifiedEvent
 FORMTYPE = 'uu.formlibrary.multiform'
 SITENAMES = ('qiteamspace', 'opip', 'cnhnqi')
 
+
 def migrate_multiform_add_catalogs(app):
     for name in SITENAMES:
         site = app[name]
@@ -18,10 +19,10 @@ def migrate_multiform_add_catalogs(app):
             assert form.catalog is not None
         txn = transaction.get()
         txn.note('/'.join(site.getPhysicalPath()))
-        txn.note('Added form search catalogs to all multi-record form instances.')
+        txn.note('Added form search catalogs to all multi-record forms.')
         txn.commit()
 
 
 if __name__ == '__main__' and 'app' in locals():
-    migrate_multiform_add_catalogs(app)
+    migrate_multiform_add_catalogs(app)  # noqa
 

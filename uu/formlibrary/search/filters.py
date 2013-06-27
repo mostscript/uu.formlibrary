@@ -4,10 +4,11 @@ from datetime import date
 
 from Acquisition import aq_inner, aq_parent
 from zope.component import adapts, adapter
-from zope.component.hooks import getSite
 from zope.dottedname.resolve import resolve
+from zope.globalrequest import getRequest
 from zope.interface import implements, implementer
 from zope.publisher.interfaces.browser import IBrowserPublisher
+from zope.publisher.interfaces import NotFound
 from plone.dexterity.content import Item
 from plone.indexer import indexer
 from persistent import Persistent
@@ -21,7 +22,6 @@ from uu.retrieval.utils import identify_interface
 from uu.smartdate.converter import normalize_usa_date
 
 from uu.formlibrary.interfaces import IFormDefinition
-from uu.formlibrary.measure.interfaces import IMeasureDefinition
 from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
@@ -39,7 +39,7 @@ comparator_cls = lambda v: getattr(query, v) if v in COMPARATORS else None
 def query_idxtype(q):
     """Get index type for specific comparator, field combination"""
     comparator, field = q.comparator, q.field
-    
+
     # for text, whether to use text index or field index depends on the
     # comparator saved on the query:
     if ITextLine.providedBy(field) or IBytesLine.providedBy(field):
@@ -102,34 +102,34 @@ class FieldQuery(Persistent):
     but resolution of field object is cached indefinitely in volatile.
     """
     implements(IFieldQuery)
-    
+
     def __init__(self, field, comparator, value):
         if not schema.interfaces.IField.providedBy(field):
             raise ValueError('field provided must be schema field')
         self._field_id = field_id(field)
         self.comparator = str(comparator)
         self.value = value
-    
+
     def _get_field(self):
         if not getattr(self, '_v_field', None):
             self._v_field = resolvefield(self._field_id)
         return self._v_field
-    
+
     def _set_field(self, field):
         self._field_id = field_id(field)
         self._v_field = field
-    
+
     field = property(_get_field, _set_field)
-    
+
     def _set_value(self, value):
         self._get_field().validate(value)
         self._value = value
-    
+
     def _get_value(self):
         return self._value
-    
+
     value = property(_get_value, _set_value)
-    
+
     def validate(self, iface):
         return (self._get_field().interface is iface)
 
@@ -143,16 +143,16 @@ def filter_definition(context):
 
 class RecordFilter(Item):
     implements(IRecordFilter)
-    
+
     def __init__(self, id=None, *args, **kwargs):
         super(RecordFilter, self).__init__(id, *args, **kwargs)
         self.reset(**kwargs)
-    
+
     def reset(self, **kwargs):
         self.operator = kwargs.get('operator', 'AND')
         self._queries = PersistentDict()
         self._order = PersistentList()
-    
+
     def schema(self):
         """
         Assume definition bound to RecordFilter always provides schema
@@ -160,12 +160,12 @@ class RecordFilter(Item):
         """
         definition = IFormDefinition(self)
         return definition.schema
-    
+
     def validate(self):
         schema = self.schema()
         for query in self._queries.values():
             query.validate(schema)
-    
+
     def add(self, query=None, **kwargs):
         if query is None:
             ## attempt to make query from kwargs given either
@@ -185,7 +185,7 @@ class RecordFilter(Item):
         fieldname = query.field.__name__
         self._queries[fieldname] = query
         self._order.append(fieldname)
-    
+
     def remove(self, query):
         if IFieldQuery.providedBy(query):
             query = query.field.__name__
@@ -193,43 +193,43 @@ class RecordFilter(Item):
             raise KeyError('Query not found (fieldname: %s)' % query)
         del(self._queries[query])
         self._order.remove(query)
-    
+
     ## RO mapping interface
     def get(self, name, default=None):
         return self._queries.get(name, default)
-    
+
     def __len__(self):
         return len(self._order)
-    
+
     def __getitem__(self, name):
         v = self.get(name, None)
         if v is None:
             raise KeyError(name)  # fieldname not found
         return v
-    
+
     def __contains__(self, name):
         if IFieldQuery.providedBy(name):
             name = name.field.__name__
         return name in self._order
-    
+
     def keys(self):
         return list(self._order)
-    
+
     def iterkeys(self):
         return self._order.__iter__()
-    
+
     def itervalues(self):
         return itertools.imap(lambda k: self.get(k), self.iterkeys())
-    
+
     def iteritems(self):
         return itertools.imap(lambda k: (k, self.get(k)), self.iterkeys())
-    
+
     def values(self):
         return list(self.itervalues())
-    
+
     def items(self):
         return list(self.iteritems())
-    
+
     @property
     def externalEditorEnabled(self):
         return False
@@ -239,7 +239,7 @@ class FilterJSONAdapter(object):
     """
     Update/serialize an IRecordFilter object from/to JSON data or
     equivalent dict, matching the destination object format:
-        
+
           ________________
          |      DATA      |
          |----------------+
@@ -258,7 +258,7 @@ class FilterJSONAdapter(object):
         if not IRecordFilter.providedBy(context):
             raise ValueError('context must provide IRecordFilter')
         self.context = context
-    
+
     def normalize_value(self, field, value):
         if schema.interfaces.IDate.providedBy(field):
             if isinstance(value, basestring):
@@ -271,7 +271,7 @@ class FilterJSONAdapter(object):
         if schema.interfaces.IFloat.providedBy(field):
             return float(value)
         return value
-    
+
     def update(self, data):
         """
         Update from JSON data or equivalent dict.
@@ -290,8 +290,8 @@ class FilterJSONAdapter(object):
             queries.append(FieldQuery(field, comparator, value))
         self.context.reset()  # clear queries
         self.context.operator = data.get('operator', 'AND')
-        r = map(self.context.add, queries)  # add all
-    
+        r = map(self.context.add, queries)  # add all  # noqa
+
     def _serialize_value(self, field, value):
         if value and schema.interfaces.IDate.providedBy(field):
             return value.strftime('%Y-%m-%d')
@@ -303,7 +303,7 @@ class FilterJSONAdapter(object):
         row['value'] = self._serialize_value(query.field, query.value)
         row['comparator'] = query.comparator
         return row
-    
+
     def serialize(self, use_json=True):
         """
         Serialze queries of context to JSON, or if use_json is False, to an
@@ -319,13 +319,13 @@ class FilterJSONAdapter(object):
 
 class CriteriaJSONCapability(object):
     """API capability for JSON output"""
-    
+
     implements(IBrowserPublisher)
 
     def __init__(self, context, request=None):
         self.context = context
         self.request = getRequest() if request is None else request
-    
+
     def __call__(self, *args, **kwargs):
         return FilterJSONAdapter(self.context).serialize(use_json=False)
 
@@ -334,24 +334,24 @@ class CriteriaJSONCapability(object):
         if self.request is not None:
             self.request.response.setHeader('Content-type', 'application/json')
             self.request.response.setHeader('Content-length', str(len(msg)))
-        return msg 
-    
+        return msg
+
     def publishTraverse(self, request, name):
         if name == 'publish_json':
             if self.request is not request:
                 self.request = request
             return self.publish_json  # callable method
         raise NotFound(self, name, request)
-    
+
     def browserDefault(self, request):
         if request:
             return self, ('publish_json',)
-        return self, ()        
+        return self, ()
 
 
 class CompositeFilter(Item):
     implements(ICompositeFilter)
-    
+
     @property
     def externalEditorEnabled(self):
         return False
@@ -365,4 +365,4 @@ def directly_related_uids(context):
         if len(v) >= 32:
             r.append(v)
     return r
- 
+

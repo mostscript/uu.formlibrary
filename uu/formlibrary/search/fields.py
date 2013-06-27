@@ -49,7 +49,7 @@ class FieldInfo(object):
             'vocabulary',
             )
         items = self.__dict__.items()
-        return dict([(k,v) for k,v in items if v is not None and k in keep])
+        return dict([(k, v) for k, v in items if v is not None and k in keep])
     
     def publish_json(self):
         msg = json.dumps(self(), indent=2)
@@ -117,12 +117,12 @@ class SearchableFields(object):
     
     def items(self):
         return list(self.iteritems())
-    
+     
     def __contains__(self, name):
         return name in self._fieldnames
     
     def __call__(self, *args, **kwargs):
-        return dict((k,v()) for k,v in self.iteritems())
+        return dict((k, v()) for k, v in self.iteritems())
 
     def publish_json(self):
         msg = json.dumps(self(), indent=2)

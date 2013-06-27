@@ -13,6 +13,7 @@ _u = lambda v: v if isinstance(v, unicode) else str(v).decode('utf-8')
 
 _is_iter = lambda v: not isinstance(v, basestring) and hasattr(v, '__iter__')
 
+
 class ComparatorInfo(object):
     implements(IComparator)
     
@@ -35,7 +36,11 @@ class ComparatorInfo(object):
 ALL = ComparatorInfo(u'All', u'contains all of', symbol=u'\u2286')
 ANY = ComparatorInfo(u'Any', u'includes any of', symbol=u'*')
 CONTAINS = ComparatorInfo(u'Contains', u'contains', symbol=u'\u2208')
-DOESNOTCONTAIN = ComparatorInfo(u'DoesNotContain', u'does not contain', symbol=u'\u2209')
+DOESNOTCONTAIN = ComparatorInfo(
+    u'DoesNotContain',
+    u'does not contain',
+    symbol=u'\u2209',
+    )
 EQ = ComparatorInfo(u'Eq', u'is equal to', symbol=u'=')
 GE = ComparatorInfo(u'Ge', u'is greater than or equal to', symbol=u'\u2264')
 GT = ComparatorInfo(u'Gt', u'is greater than', symbol=u'>')
@@ -62,9 +67,9 @@ COMPARATORS = (
 
 
 COMPARATORS_BY_INDEX = {
-    'field'     : (ANY, EQ, GE, GT, INRANGE, LE, LT, NOTEQ, NOTINRANGE),
-    'text'      : (CONTAINS, DOESNOTCONTAIN),
-    'keyword'   : (ANY, ALL, DOESNOTCONTAIN),
+    'field': (ANY, EQ, GE, GT, INRANGE, LE, LT, NOTEQ, NOTINRANGE),
+    'text': (CONTAINS, DOESNOTCONTAIN),
+    'keyword': (ANY, ALL, DOESNOTCONTAIN),
     }
 
 

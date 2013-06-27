@@ -16,7 +16,7 @@ class FormEntry(SchemaSignedEntity):
     
     * Is locatable named item providing zope.location.interfaces.ILocation
     
-    * Provided persistence via SchemaSignedEntity base class, which is 
+    * Provided persistence via SchemaSignedEntity base class, which is
       a subclass of uu.record.base.Record, which is persistent.
     """
     

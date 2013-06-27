@@ -12,17 +12,17 @@ from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
 
 
 def local_query(context, query):
-    """ 
+    """
     Given a catalog search query dict and a context, restrict
     search to items contained in the context path or subfolders.
     
     Returns modified query dict for use with catalog search.
     """
     path = '/'.join(context.getPhysicalPath())
-    query['path'] = { 
-        'query' : path,
-        'depth' : 2,
-        }   
+    query['path'] = {
+        'query': path,
+        'depth': 2,
+        }
     return query
 
 
@@ -40,7 +40,7 @@ class MeasureLibraryView(object):
     
     def recent(self, limit=None, portal_type=None):
         """
-        Return catalog brains (metadata) of most recent 
+        Return catalog brains (metadata) of most recent
         measure definitions contained within this library.
         
         To limit results, pass in an integer value to limit.
@@ -48,8 +48,8 @@ class MeasureLibraryView(object):
         if portal_type is None:
             portal_type = self.definition_type
         if portal_type not in self._brains:
-            q = { 'portal_type': portal_type }
-            q.update({'sort_on':'modified', 'sort_order': 'descending'})
+            q = {'portal_type': portal_type}
+            q.update({'sort_on': 'modified', 'sort_order': 'descending'})
             q = local_query(self.context, q)
             r = self.catalog.searchResults(q)
             self._brains[portal_type] = r
@@ -97,7 +97,7 @@ class FormDataSetCloningView(object):
         generated_id = NormalizingNameChooser(parent).chooseName(
             None,
             target,
-            )  ## name from title, incidentally avoids colliding w/ source id
+            )  # name from title, incidentally avoids colliding w/ source id
         return generated_id
     
     def update(self):
@@ -107,7 +107,10 @@ class FormDataSetCloningView(object):
             parent = source.__parent__
             target = source._getCopy(parent)
             target.title = req.get('clone_title', source.title)
-            target.description = req.get('clone_description', source.description)
+            target.description = req.get(
+                'clone_description',
+                source.description,
+                )
             target_id = self.target_id(target, parent)
             target._setId(target_id)
             notify(ObjectCopiedEvent(target, source))
@@ -116,7 +119,7 @@ class FormDataSetCloningView(object):
             target.wl_clearLocks()
             notify(ObjectClonedEvent(target))
             self.status.add(
-                u'Created a new data set with title "%s" cloned from '\
+                u'Created a new data set with title "%s" cloned from '
                 u'original data set "%s"' % (target.title, source.title),
                 type=u'info',
                 )
@@ -125,7 +128,6 @@ class FormDataSetCloningView(object):
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)  # via framework magic
-
 
 
 class MeasureBaseView(object):
@@ -157,7 +159,7 @@ class MeasureBaseView(object):
     def _datasets(self):
         group = aq_parent(aq_inner(self.context))
         ftiname = DATASET_TYPE
-        return [o for o in group.contentValues() if o.portal_type==ftiname]
+        return [o for o in group.contentValues() if o.portal_type == ftiname]
     
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()
@@ -172,7 +174,7 @@ class MeasureDataView(MeasureBaseView):
     View that loads cross-product matrix of filters and collections/topics
     inside a measure for purpose of enumerating data values.
     
-    This is available for use as an adapter of a measure for purposes of 
+    This is available for use as an adapter of a measure for purposes of
     data sources for reports or for use by templates outputting HTML tables
     in a browser view.
     """

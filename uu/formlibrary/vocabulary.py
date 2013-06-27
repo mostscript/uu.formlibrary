@@ -3,6 +3,7 @@ from zope.globalrequest import getRequest
 from zope.schema import getFieldsInOrder
 from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
 from zope.schema.interfaces import IContextSourceBinder
+from zope.schema.interfaces import IField, IFloat, IInt
 
 from uu.formlibrary.interfaces import IFormDefinition
 
@@ -18,11 +19,18 @@ def find_context(request):
     return context
 
 
-def definition_field_list(context):
+def field_provides(field, ifaces):
+    """Does field provide at least one of the interfaces specified?"""
+    _pb = lambda iface: iface.providedBy(field)
+    return any(map(_pb, ifaces))
+
+
+def definition_field_list(context, field_ifaces=(IField,)):
     """Flattened list of fieldset/field possibilities for a form definition"""
     base_schema = context.schema
     result = list([
         (name, field.title) for name, field in getFieldsInOrder(base_schema)
+        if field_provides(field, field_ifaces)
         ])
     groups = IFormComponents(context).groups.items()
     for groupid, group in groups:
@@ -32,12 +40,13 @@ def definition_field_list(context):
         _title = lambda field: u'[%s] %s' % (group_title, field.title)
         _info = lambda name, field: (_fieldid(name), _title(field))
         result += [_info(name, field)
-                   for name, field in getFieldsInOrder(schema)]
+                   for name, field in getFieldsInOrder(schema)
+                   if field_provides(field, field_ifaces)]
     return result
 
 
 @grok.provider(IContextSourceBinder)
-def definition_field_source(context):
+def definition_field_source(context, field_ifaces=(IField,)):
     if isinstance(context, dict):
         context = find_context(getRequest())
     definition = IFormDefinition(context)
@@ -48,6 +57,11 @@ def definition_field_source(context):
     return SimpleVocabulary(
         [unspecified] + [
             SimpleTerm(value, title=title) for value, title in
-            definition_field_list(definition)
+            definition_field_list(definition, field_ifaces)
         ])
+
+
+@grok.provider(IContextSourceBinder)
+def definition_numeric_fields(context):
+    return definition_field_source(context, (IInt, IFloat))
 

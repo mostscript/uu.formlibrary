@@ -17,6 +17,7 @@ from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 
 from uu.formlibrary.vocabulary import find_context
 from uu.formlibrary.vocabulary import definition_field_source
+from uu.formlibrary.vocabulary import definition_numeric_fields
 
 
 ## global constants:
@@ -233,7 +234,7 @@ class IMeasureFieldSpec(form.Schema):
         title=u'Numerator field',
         description=u'Which form field provides the numerator value? If '
                     u'no value is specified, no numerator will be used.',
-        source=definition_field_source,
+        source=definition_numeric_fields,
         default='',
         )
 
@@ -241,7 +242,7 @@ class IMeasureFieldSpec(form.Schema):
         title=u'Denominator field',
         description=u'Which form field provides a denominator value?  If '
                     u'this is unspecified, no denominator will be used.',
-        source=definition_field_source,
+        source=definition_numeric_fields,
         default='',
         )
 

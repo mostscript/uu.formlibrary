@@ -18,12 +18,11 @@ class MRMeasureFactory(object):
     def _make_measure(self, data):
         kw = {}   # field values for new measure
         naming = data.get('IMeasureWizardNaming')
-        title = naming.get('title')
         rounding = data.get('IMeasureWizardRounding')
         calc = data.get('IMeasureWizardMRCriteria')
-        kw.update(naming)   # title, description
-        kw.update(rounding) # rounding, display_precision, display as percent
-        kw.update(calc)     # numerator_type, denominator_type
+        kw.update(naming)    # title, description
+        kw.update(rounding)  # rounding, display_precision, display as percent
+        kw.update(calc)      # numerator_type, denominator_type
         measure = createContent(MEASURE_DEFINITION_TYPE, **kw)
         if kw.get('express_as_percentage', False):
             measure.multiplier = 100.0

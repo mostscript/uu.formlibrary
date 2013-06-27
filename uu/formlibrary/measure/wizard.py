@@ -464,21 +464,20 @@ class MeasureWizardView(object):
         status = IStatusMessage(self.request)
         factory = MeasureFactory(self.context)
         measure = factory(data)
-        status.addStatusMessage(
-            'Created new measure, please configure criteria by '
-            'clicking on filters listed below.',
-            type='info',
-            )
         url = measure.absolute_url()
         if self.context.source_type == MULTI_FORM_TYPE:
+            status.addStatusMessage(
+                'Created new measure, please configure criteria by '
+                'clicking on filters listed below.',
+                type='info',
+                )
             url += '/@@measure_criteria'
-        self.request.response.redirect(url)
         if self.context.source_type == SIMPLE_FORM_TYPE:
             status.addStatusMessage(
                 'Created new measure.',
                 type='info',
                 )
-        self.formbody = 'Your measure has been configured'  # TODO: rem
+        self.request.response.redirect(url)
     
     def data_implies_percentage(self, saved_formdata):
         d = saved_formdata.get('IMeasureWizardMRCriteria', {})

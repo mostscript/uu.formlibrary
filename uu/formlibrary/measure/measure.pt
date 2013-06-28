@@ -187,12 +187,30 @@ div.filterview div.oplabel {
      <tbody>
       <tr>
         <td class="fieldlabel"><label>Numerator type:</label></td>
-        <td style="border-bottom:0.2em solid black;"><span tal:replace="python: view.choice_label('numerator_type')" />
+        <td tal:condition="python:view.source_type() == 'uu.formlibrary.multiform'"
+            style="border-bottom:0.2em solid black;">
+          <span tal:replace="python: view.choice_label('numerator_type')" />
+        </td>
+        <td tal:condition="python:view.source_type() == 'uu.formlibrary.simpleform'"
+            style="border-bottom:0.2em solid black;">
+          <span class="stereotype" tal:condition="context/numerator_field">(Field value)</span>
+          <span tal:replace="python: view.choice_label('numerator_field')" />
         </td>
       </tr>
       <tr>
         <td class="fieldlabel"><label>Denominator type:</label></td>
-        <td><span tal:replace="python: view.choice_label('denominator_type')" />
+        <td tal:condition="python:view.source_type() == 'uu.formlibrary.multiform'">
+          <span tal:replace="python: view.choice_label('denominator_type')" />
+        </td>
+        <td tal:condition="python:view.source_type() == 'uu.formlibrary.simpleform'">
+          <span class="stereotype" tal:condition="context/denominator_field">(Field value)</span>
+          <span tal:replace="python: view.choice_label('denominator_field')" />
+        </td>
+      </tr>
+      <tr tal:condition="python:view.source_type() == 'uu.formlibrary.simpleform'">
+        <td class="fieldlabel"><label>Notes field:</label></td>
+        <td>
+          <span tal:replace="python: view.choice_label('notes_field')" />
         </td>
       </tr>
      </tbody>

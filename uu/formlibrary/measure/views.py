@@ -151,6 +151,8 @@ class MeasureBaseView(object):
         v = getattr(self.context, fieldname, field.default)
         if v is None:
             return ''
+        if callable(vocab):
+            vocab = vocab(self.context)
         return vocab.getTerm(v).title
     
     def filter_view(self, filter):
@@ -160,7 +162,10 @@ class MeasureBaseView(object):
         group = aq_parent(aq_inner(self.context))
         ftiname = DATASET_TYPE
         return [o for o in group.contentValues() if o.portal_type == ftiname]
-    
+
+    def source_type(self):
+        return aq_parent(aq_inner(self.context)).source_type
+
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()
     

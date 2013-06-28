@@ -273,7 +273,19 @@ class IMeasureDefinition(form.Schema,
     There is a pretty safe assumption that a measure value should
     be a floating point number.
     """
-    
+
+    form.fieldset(
+        'multi_record',
+        label=u'Multi-record form calculation',
+        fields=['numerator_type', 'denominator_type'],
+        )
+
+    form.fieldset(
+        'flex_calc',
+        label=u'Flex form calculation',
+        fields=['numerator_field', 'denominator_field', 'note_field']
+        )
+
     def group():
         """Get parent group containing this measure"""
 

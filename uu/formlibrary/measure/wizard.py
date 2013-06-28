@@ -481,6 +481,10 @@ class MeasureWizardView(object):
         self.request.response.redirect(url)
     
     def data_implies_percentage(self, saved_formdata):
+        if self.context.source_type == SIMPLE_FORM_TYPE:
+            d = saved_formdata.get('IMeasureWizardFlexFields', {})
+            n, d = d.get('numerator_field'), d.get('denominator_field')
+            return bool(n) and bool(d)  # both defined
         d = saved_formdata.get('IMeasureWizardMRCriteria', {})
         nt, mt = d.get('numerator_type', None), d.get('denominator_type', None)
         return (nt == 'multi_filter' and mt in ('multi_total', 'multi_filter'))

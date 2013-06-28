@@ -18,6 +18,10 @@ from interfaces import IFormDataSetSpecification
 from utils import content_path
 
 
+# sentinel value:
+NOVALUE = float('NaN')
+
+
 # measure definition content type class:
 
 class MeasureDefinition(Container):
@@ -55,7 +59,7 @@ class MeasureDefinition(Container):
                 # could not perform query against catalog, likely because the
                 # form in question does not have the necessary field(s), so
                 # return a sentinel value safe for raw_value() to use.
-                v = float('NaN')
+                v = NOVALUE
         return v
  
     def _mr_values(self, context):
@@ -64,20 +68,40 @@ class MeasureDefinition(Container):
         m = self._mr_get_value(context, name='denominator')
         return (n, m)
 
-    def _flex_value(self, context):
-        raise NotImplementedError('todo')   # TODO
-    
+    def _flex_field_value(self, context, path):
+        data = getattr(context, 'data', {})
+        spec = path.split('/')
+        fieldset = spec[0] if len(spec) > 1 else ''
+        name = spec[1] if len(spec) > 1 else path
+        record = data.get(fieldset)
+        if record is not None:
+            return getattr(record, name, NOVALUE)
+        return NOVALUE
+
+    def _flex_values(self, context):
+        """return raw (n, m) values for numerator, denominator"""
+        # inital constant / default values:
+        n = m = 1
+        nfield = getattr(self, 'numerator_field', None) or None
+        dfield = getattr(self, 'denominator_field', None) or None
+        if nfield is None and dfield is None:
+            # no fields defined, NaN
+            return (NOVALUE, 1)
+        if nfield is not None:
+            n = self._flex_field_value(context, nfield)
+        if dfield is not None:
+            m = self._flex_field_value(context, dfield)
+        return (n, m)
+
     def raw_value(self, context):
         """
         Get raw value (no rounding or constant multiple), given a form
         instance.
         """
-        source_type = self._source_type()
-        if source_type == MULTI_FORM_TYPE:
-            nan = float('NaN')
-            divide = lambda a, b: float(a) / float(b) if b else nan
-            return divide(*self._mr_values(context))
-        return self._flex_form_value(context)
+        is_multi_form = self._source_type() == MULTI_FORM_TYPE
+        divide = lambda a, b: float(a) / float(b) if b else NOVALUE
+        vfn = self._mr_values if is_multi_form else self._flex_values
+        return divide(*vfn(context))
     
     def _normalize(self, v):
         if math.isnan(v):
@@ -109,17 +133,28 @@ class MeasureDefinition(Container):
         """
         return self._values(context)[1]
     
+    def note_for(self, context):
+        if self._source_type() == MULTI_FORM_TYPE:
+            return getattr(context, 'entry_notes', None)
+        # flex form:
+        notesfield = getattr(self, 'notes_field', None) or None
+        if notesfield:
+            d = self._flex_field_value(context, notesfield)
+            if d:
+                return d
+        return None
+
     def datapoint(self, context):
         """Returns dict for data point given form context"""
         n = m = None
         if (self._source_type() == MULTI_FORM_TYPE and
                 self.denominator_type != 'constant'):
             n, m = self._mr_values(context)
-            nan = float('NaN')
-            divide = lambda a, b: float(a) / float(b) if b else nan
+            divide = lambda a, b: float(a) / float(b) if b else NOVALUE
             raw = divide(n, m)
             normalized = self._normalize(raw)
         else:
+            n, m = self._flex_values(context)
             raw, normalized = self._values(context)
         point_record = {
             'title': context.Title(),
@@ -129,7 +164,7 @@ class MeasureDefinition(Container):
             'value': normalized,
             'raw_value': raw,
             'display_value': self.display_format(normalized),
-            'user_notes': getattr(context, 'entry_notes', None),
+            'user_notes': self.note_for(context),
         }
         if n is not None:
             point_record['raw_numerator'] = n
@@ -220,6 +255,12 @@ class MeasureLibrary(Container):
 class FormDataSetSpecification(Item):
     implements(IFormDataSetSpecification)
     
+    def group(self):
+        return aq_parent(aq_inner(self))  # folder containing
+    
+    def _source_type(self):
+        return self.group().source_type
+
     def included_locations(self):
         """
         Returns catalog brains for each location in locations field.
@@ -248,15 +289,16 @@ class FormDataSetSpecification(Item):
         return spec in self.locations
     
     def _path_query(self):
+        form_type = self._source_type()
         spec_uids = getattr(self, 'locations', [])
         if not spec_uids:
             navroot = getNavigationRoot(self)
-            return {'portal_type': MULTI_FORM_TYPE, 'path': navroot}, []
+            return {'portal_type': form_type, 'path': navroot}, []
         # first use catalog to get brains for all matches to these
-        # UIDs where portal_type is MULTI_FORM_TYPE
+        # UIDs where portal_type is form_type
         catalog = getSite().portal_catalog
         filter_q = {
-            'portal_type': MULTI_FORM_TYPE,
+            'portal_type': form_type,
             'UID': {
                 'query': spec_uids,
                 'operator': 'or',
@@ -267,7 +309,7 @@ class FormDataSetSpecification(Item):
         folder_q = {'UID': {'query': folder_uids, 'operator': 'or'}}
         folder_paths = [b.getPath() for b in catalog.search(folder_q)]
         path_q = {
-            'portal_type': MULTI_FORM_TYPE,
+            'portal_type': form_type,
             'path': {
                 'query': folder_paths,
                 'operator': 'or',

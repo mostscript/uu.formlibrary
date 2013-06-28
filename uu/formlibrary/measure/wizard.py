@@ -477,6 +477,7 @@ class MeasureWizardView(object):
                 'Created new measure.',
                 type='info',
                 )
+        self.formbody = ''
         self.request.response.redirect(url)
     
     def data_implies_percentage(self, saved_formdata):

@@ -1,26 +1,17 @@
 import uuid
 
-from plone.supermodel import serializeSchema
-from zope.component import queryUtility
 from z3c.form import form, field
-from z3c.form.browser.radio import RadioFieldWidget
-from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import getFieldsInOrder, getFieldNamesInOrder
-from zope.schema.interfaces import IChoice, IList, IDate
 from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
-from uu.dynamicschema.interfaces import ISchemaSaver
-from uu.dynamicschema.schema import parse_schema
 from uu.workflows.utils import history_log
 
 from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
 from uu.formlibrary.forms import common_widget_updates
 from uu.formlibrary.search.handlers import handle_multiform_savedata
-
-from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
@@ -28,12 +19,14 @@ DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
 
 
 class RowForm(form.EditForm):
+    
     template = ROW_TEMPLATE
+
     def __init__(self, record, schema, request):
         self._rowform_rec = record
         self._rowform_schema = schema
         self.fields = field.Fields(schema)
-        self.prefix = '%s~' % record.record_uid # (js should split on '~')
+        self.prefix = '%s~' % record.record_uid  # (js should split on '~')
         super(RowForm, self).__init__(record, request)
     
     def updateWidgets(self):
@@ -46,7 +39,9 @@ class DivRowForm(RowForm):
 
 
 class RowDisplayForm(form.DisplayForm):
+
     template = ROW_TEMPLATE
+
     def __init__(self, record, schema, request):
         self.fields = field.Fields(schema)
         super(RowDisplayForm, self).__init__(record, request)
@@ -66,7 +61,7 @@ class MultiFormEntry(object):
         self.definition = IFormDefinition(self.context)
         self.request = request
         self.seriesinfo = dict(
-            [(k,v) for k,v in self.series.__dict__.items()
+            [(k, v) for k, v in self.series.__dict__.items()
                 if v is not None and k in getFieldNamesInOrder(IFormSeries)])
         self.title = '%s: %s' % (self.series.Title().strip(), context.Title())
         self._fields = []
@@ -74,7 +69,7 @@ class MultiFormEntry(object):
     
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
-        return self.index(*args, **kwargs)  #index() via Five/framework magic
+        return self.index(*args, **kwargs)  # index() via Five/framework magic
    
     def update(self, *args, **kwargs):
         msg = ''
@@ -114,24 +109,24 @@ class MultiFormEntry(object):
                         url = self.context.absolute_url()
                         self.request.RESPONSE.redirect(url)
         if msg:
-           self._status.addStatusMessage(msg, type='info')
+            self._status.addStatusMessage(msg, type='info')
     
     @property
     def schema(self):
         entry_uids = self.context.keys()
         if not entry_uids:
             return self.definition.schema
-        return self.context[entry_uids[0]].schema # of first contained record
+        return self.context[entry_uids[0]].schema  # of first contained record
     
     def fields(self):
         if not self._fields:
             self._fields = getFieldsInOrder(self.schema)
-        return [v for k,v in self._fields] #field objects
+        return [v for k, v in self._fields]  # field objects
     
     def fieldnames(self):
         if not self._fields:
             self._fields = getFieldsInOrder(self.schema)
-        return [k for k,v in self._fields] #field objects
+        return [k for k, v in self._fields]  # field objects
     
     def logourl(self):
         filename = getattr(self.definition.logo, 'filename', None)
@@ -151,11 +146,11 @@ class MultiFormEntry(object):
     
     def classname(self, name):
         """
-        class name is two names separated by space: column number prefixed 
+        class name is two names separated by space: column number prefixed
         by the letter 'c' and column name prefixed by 'col-'
         """
         if not isinstance(name, basestring):
-            name = name.__name__ # assume field, not fieldname
+            name = name.__name__  # assume field, not fieldname
         fieldnames = self.fieldnames()
         if name not in fieldnames:
             return 'c0 col-%s' % name
@@ -163,12 +158,12 @@ class MultiFormEntry(object):
    
     def entry_uids(self):
         if not hasattr(self.context, '_keys'):
-            self._keys = self.context.keys() #ordered uids of entries
+            self._keys = self.context.keys()  # ordered uids of entries
         return self._keys
     
     def rowform(self, uid=None):
         if uid is None or uid not in self.entry_uids():
-            record = self.context.create() #create new with UUID
+            record = self.context.create()  # create new with UUID
         else:
             record = self.context.get(uid)
         self._last_uid = record.record_uid
@@ -187,7 +182,7 @@ class MultiFormEntry(object):
         """return the last row uid for row rendered by rowform or random"""
         if hasattr(self, '_last_uid'):
             return self._last_uid
-        return str(uuid.uuid4()) #default random UUID is fallback only
+        return str(uuid.uuid4())  # default random UUID is fallback only
     
     def new_row_url(self):
         return '/'.join((self.context.absolute_url(), '@@new_row'))

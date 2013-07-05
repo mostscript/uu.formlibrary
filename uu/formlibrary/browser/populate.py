@@ -75,12 +75,12 @@ def title_variants(info, prefixes, suffixes):
 
 class PopulateForms(AutoExtensibleForm, form.Form):
     """Populate forms wizard for form series"""
-    
+
     ## settins for auto-form:
     ignoreContext = True
     autoGroups = True
     enable_form_tabbing = False  # display without form tabs
-    
+
     schema = IPopulateForms
     additionalSchemata = (IPeriodicSeries,)
 
@@ -89,13 +89,13 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         ## don't use self.status from z3c.form, use plone status
         ## messages from Products.statusmessage
         self._status = IStatusMessage(self.request)
-    
+
     def _nothing_to_do(self, reason=None):
         msg = u'Cannot populate forms: missing information'
         if reason is not None:
             msg += u' (%s)' % reason
         self._status.addStatusMessage(msg, type='info')
-    
+
     def update(self, *args, **kwargs):
         super(PopulateForms, self).update()
         ## fieldset label fixup for periodic series group:
@@ -181,10 +181,10 @@ class PopulateForms(AutoExtensibleForm, form.Form):
 
 class PopulateFormsView(FormWrapper):
     """A wrapper view for PopulateForms"""
-    
+
     form = PopulateForms
     index = ViewPageTemplateFile('populate.pt')
-     
+
     def __init__(self, context, request):
         FormWrapper.__init__(self, context, request)
 

@@ -10,15 +10,15 @@ from uu.formlibrary.interfaces import IMultiFormCSV, IMultiForm, IFormSeries
 
 class MultiFormCSVDownload(object):
     """view to download CSV for a multi-record form"""
-    
+
     DISP = 'attachment; filename=%s'
-    
+
     def __init__(self, context, request):
         if not IMultiForm.providedBy(context):
             raise ValueError('context must be multi-record form')
         self.context = context
         self.request = request
-    
+
     def __call__(self, *args, **kwargs):
         filename = '%s.csv' % self.context.getId()
         csv = IMultiFormCSV(self.context)
@@ -34,15 +34,15 @@ class MultiFormCSVDownload(object):
 class TempFileStreamIterator(object):
     """
     file stream iterator implementation for a temporary file; closes the
-    file once iteration is complete to ensure tempfile is destroyed. 
+    file once iteration is complete to ensure tempfile is destroyed.
     This is an interface compatible replacement for filestream_iterator
     from ZPublisher, which requires a file path and does not issue a
     close operation on the file.
     """
-    
+
     implements(IStreamIterator)
 
-    def __init__(self, tmpfile, streamsize=1<<16):
+    def __init__(self, tmpfile, streamsize=(1 << 16)):
         if tmpfile.name != '<fdopen>':
             raise TypeError('%s is not unnamed temporary file' % tmpfile)
         self.tmpfile = tmpfile
@@ -55,10 +55,10 @@ class TempFileStreamIterator(object):
             self.tmpfile.close()
             raise StopIteration
         return data
-    
+
     def __len__(self):
         current = self.tmpfile.tell()
-        self.tmpfile.seek(0,2) #EOF
+        self.tmpfile.seek(0, 2)  # EOF
         size = self.tmpfile.tell()
         self.tmpfile.seek(current)
         return size
@@ -66,15 +66,15 @@ class TempFileStreamIterator(object):
 
 class SeriesCSVArchiveView(object):
     """View for zip file output of a series including the CSV data"""
-    
+
     DISP = 'attachment; filename=%s'
-    
+
     def __init__(self, context, request):
         if not IFormSeries.providedBy(context):
             raise ValueError('%s does not provide IFormSeries' % context)
         self.context = context
         self.request = request
-    
+
     def __call__(self, *args, **kwargs):
         secmgr = getSecurityManager()
         include = lambda o: IMultiForm.providedBy(o)
@@ -83,7 +83,7 @@ class SeriesCSVArchiveView(object):
         archive = zipfile.ZipFile(output, mode='w')
         for form in forms:
             if not secmgr.checkPermission('View', form):
-                continue #omit/skip form to which user has no View permission.
+                continue  # omit/skip form to which user has no View permission.
             data = IMultiFormCSV(form)
             filename = '%s.csv' % form.getId()
             archive.writestr(filename, data)

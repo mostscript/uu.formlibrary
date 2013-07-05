@@ -19,7 +19,7 @@ DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
 
 
 class RowForm(form.EditForm):
-    
+
     template = ROW_TEMPLATE
 
     def __init__(self, record, schema, request):
@@ -28,7 +28,7 @@ class RowForm(form.EditForm):
         self.fields = field.Fields(schema)
         self.prefix = '%s~' % record.record_uid  # (js should split on '~')
         super(RowForm, self).__init__(record, request)
-    
+
     def updateWidgets(self):
         common_widget_updates(self)
         super(RowForm, self).updateWidgets()
@@ -66,11 +66,11 @@ class MultiFormEntry(object):
         self.title = '%s: %s' % (self.series.Title().strip(), context.Title())
         self._fields = []
         self._status = IStatusMessage(self.request)
-    
+
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)  # index() via Five/framework magic
-   
+
     def update(self, *args, **kwargs):
         msg = ''
         if 'payload' in self.request.form:
@@ -110,40 +110,40 @@ class MultiFormEntry(object):
                         self.request.RESPONSE.redirect(url)
         if msg:
             self._status.addStatusMessage(msg, type='info')
-    
+
     @property
     def schema(self):
         entry_uids = self.context.keys()
         if not entry_uids:
             return self.definition.schema
         return self.context[entry_uids[0]].schema  # of first contained record
-    
+
     def fields(self):
         if not self._fields:
             self._fields = getFieldsInOrder(self.schema)
         return [v for k, v in self._fields]  # field objects
-    
+
     def fieldnames(self):
         if not self._fields:
             self._fields = getFieldsInOrder(self.schema)
         return [k for k, v in self._fields]  # field objects
-    
+
     def logourl(self):
         filename = getattr(self.definition.logo, 'filename', None)
         if filename is None:
             return None
         base = self.definition.absolute_url()
         return '%s/@@download/logo/%s' % (base, filename)
-    
+
     def instructions(self):
         _instructions = getattr(self.definition, 'instructions')
         if not _instructions:
             return u''
         return getattr(_instructions, 'output', None) or u''
-    
+
     def portalurl(self):
         return getSite().absolute_url()
-    
+
     def classname(self, name):
         """
         class name is two names separated by space: column number prefixed
@@ -155,12 +155,12 @@ class MultiFormEntry(object):
         if name not in fieldnames:
             return 'c0 col-%s' % name
         return 'c%s col-%s' % (fieldnames.index(name), name)
-   
+
     def entry_uids(self):
         if not hasattr(self.context, '_keys'):
             self._keys = self.context.keys()  # ordered uids of entries
         return self._keys
-    
+
     def rowform(self, uid=None):
         if uid is None or uid not in self.entry_uids():
             record = self.context.create()  # create new with UUID
@@ -177,16 +177,16 @@ class MultiFormEntry(object):
         form = row_view_cls(record, record.schema, self.request)
         form.update()
         return form.render()
-    
+
     def last_row_uid(self):
         """return the last row uid for row rendered by rowform or random"""
         if hasattr(self, '_last_uid'):
             return self._last_uid
         return str(uuid.uuid4())  # default random UUID is fallback only
-    
+
     def new_row_url(self):
         return '/'.join((self.context.absolute_url(), '@@new_row'))
-    
+
     @property
     def displaymode(self):
         if self.VIEWNAME == 'edit':
@@ -196,4 +196,4 @@ class MultiFormEntry(object):
 
 class MultiFormDisplay(MultiFormEntry):
     VIEWNAME = 'view'
- 
+

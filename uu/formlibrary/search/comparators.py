@@ -16,13 +16,13 @@ _is_iter = lambda v: not isinstance(v, basestring) and hasattr(v, '__iter__')
 
 class ComparatorInfo(object):
     implements(IComparator)
-    
+
     def __init__(self, name, label=None, description=None, symbol=None):
         self.name = _u(name)
         self.label = _u(label) if label else self.name
         self.description = _u(description) if description else None
         self.symbol = _u(symbol) if symbol else None
-    
+
     def display_label(self):
         """
         merges symbol with label for a display label appropriate
@@ -82,7 +82,7 @@ class ComparatorRepresentation(object):
         self.__parent__ = self.context = context
         self.comparator = comparator
         self.request = getRequest() if request is None else request
-    
+
     def __call__(self, *args, **kwargs):
         include = ('name', 'label', 'description', 'symbol')
         result = {}
@@ -98,46 +98,46 @@ class ComparatorRepresentation(object):
 
 
 class Comparators(object):
-    
+
     implements(IComparators, IBrowserPublisher)
-    
+
     def __init__(self, request=None):
         self.request = getRequest() if request is None else request
         self._map = dict((c.name, c) for c in COMPARATORS)
-    
+
     def get(self, name, default=None):
         return self._map.get(_u(name), None)
-    
+
     def __getitem__(self, name):
         v = self.get(name, None)
         if v is None:
             raise KeyError(name)
         return v
-    
+
     def keys(self):
         return self._map.keys()
-    
+
     def iterkeys(self):
         return self._map.keys().__iter__()
-    
+
     def itervalues(self):
         return itertools.imap(lambda k: self.get(k), self.keys())
-    
+
     def iteritems(self):
         return itertools.imap(lambda k: (k, self.get(k)), self.keys())
-    
+
     def values(self):
         return list(self.itervalues())
-    
+
     def items(self):
         return list(self.iteritems())
-    
+
     def __len__(self):
         return len(self._map)
-    
+
     def __contains__(self, name):
         return _u(name) in self._map
-    
+
     def __call__(self, symbols=False, byindex=None, choice=False):
         """
         Return list of (name, label) tuples, optionally filtered
@@ -180,9 +180,9 @@ class Comparators(object):
             self.request.response.setHeader('Content-type', 'application/json')
             self.request.response.setHeader('Content-length', str(len(v)))
         return v
-    
+
     ## IBrowserPublisher / IPublishTraverse methods:
-    
+
     def publishTraverse(self, request, name):
         if name == 'publish_json':
             if self.request is not request:
@@ -191,7 +191,7 @@ class Comparators(object):
         if name in self._map:
             return ComparatorRepresentation(self, request, self.get(name))
         raise NotFound(self, name, request)
-    
+
     def browserDefault(self, request):
         if request:
             return self, ('publish_json',)

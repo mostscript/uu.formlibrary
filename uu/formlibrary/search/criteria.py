@@ -10,12 +10,12 @@ from comparators import Comparators
 
 
 class BaseFilterView(object):
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
         self.portal = getSite()
-    
+
     def used_by(self):
         """
         returns sequence of catalog brains for all content
@@ -31,7 +31,7 @@ class BaseFilterView(object):
             'getRawRelatedItems': uid,
             }
         return tuple(catalog.search(q))
-     
+
     def portalurl(self):
         return self.portal.absolute_url()
 
@@ -40,19 +40,19 @@ class FilterView(BaseFilterView):
     """
     Summary view for IRecordFilter.
     """
-    
+
     def __init__(self, context, request):
         if not IRecordFilter.providedBy(context):
             raise ValueError('Context must be a record filter')
         super(FilterView, self).__init__(context, request)
         self.comparators = Comparators(request)
-    
+
     def queries(self):
         return self.context.values()
-    
+
     def comparator_title(self, comparator):
         return self.comparators.get(comparator).label
-    
+
     def comparator_symbol(self, comparator):
         return self.comparators.get(comparator).symbol
 
@@ -60,20 +60,20 @@ class FilterView(BaseFilterView):
 class CompositeFilterView(BaseFilterView):
     def __init__(self, context, request):
         super(CompositeFilterView, self).__init__(context, request)
-    
+
     def setop_title(self, op):
         field = ICompositeFilter['set_operator']
         return [term.title for term in field.vocabulary if term.value == op][0]
 
 
 class BaseCriteriaView(object):
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
         self.portal = getSite()
         self.status = IStatusMessage(self.request)
-    
+
     def update(self, *args, **kwargs):
         req = self.request
         prefix = 'payload-'
@@ -93,21 +93,21 @@ class BaseCriteriaView(object):
             msg = u'Updated criteria for %s' % rfilter.title
             self.status.addStatusMessage(msg, type='info')
         req.response.redirect(self.context.absolute_url())  # to view tab
-    
+
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
-    
+
     def portalurl(self):
         return self.portal.absolute_url()
-    
+
     def filters(self):
         raise NotImplementedError('base class method')
 
     def json(self, name):
         """Get JSON payload for record filter, by name"""
         raise NotImplementedError('base class method')
-      
+
     def get_filter(self, name):
         raise NotImplementedError('base class method')
 
@@ -129,12 +129,12 @@ class FilterCriteriaView(BaseCriteriaView):
 
 
 class MeasureCriteriaView(BaseCriteriaView):
-    
+
     def get_filter(self, name):
         if name not in self.context.objectIds():
             return None
         return self.context.get(name)
-    
+
     def filters(self):
         _isrfilter = lambda o: o.portal_type == 'uu.formlibrary.recordfilter'
         return filter(_isrfilter, self.context.contentValues())

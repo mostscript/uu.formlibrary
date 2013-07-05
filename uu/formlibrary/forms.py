@@ -863,11 +863,11 @@ class MultiForm(Item, RecordContainer):
 
     Metadata definition
     -------------------
-    
+
     A multi-record form may have global metadata about it -- not per-record.
     In order to make this user-extensible, a similar mechanism must
     exist to provide a form definition for use in metadata.
-   
+
     Initially, our form here has a definition, but no definition for metadata:
 
     >>> assert aq_base(IFormDefinition(party_form)) is aq_base(definition2)
@@ -888,7 +888,7 @@ class MultiForm(Item, RecordContainer):
     >>> req = test_request()
     >>> composed = ComposedForm(party_form, req, name='metadata')
     >>> assert aq_base(composed.definition) is aq_base(meta_defn)
-  
+
     Note: update of actual metadata is responsibility of views and/or
     ComposedForm adapters on the form.  RecordContainer.update() does
     not handle metadata, only record data.

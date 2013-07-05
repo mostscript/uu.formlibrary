@@ -9,7 +9,7 @@ class FormLibrary(Container):
     """
     Form library contains form definitions providing IFormDefinition.
     """
-   
+
     portal_type = LIBRARY_TYPE
 
     implements(IFormLibrary)

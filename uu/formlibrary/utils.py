@@ -418,7 +418,7 @@ class EveryOtherMonthInfo(EveryTwoMonthsInfo):
         year = year + 1 if month == 1 else year
         next_month = self.context.replace(year=year, month=month, day=1)
         return next_month - timedelta(days=1)  # last day of this month
-    
+
     @property
     def title(self):
         year, month = self.context.year, self.context.month

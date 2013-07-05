@@ -14,10 +14,10 @@ class IDescriptiveText(IField):
 class DescriptiveText(Field):
     """Read-only field of descriptive text"""
     implements(IDescriptiveText, IFromUnicode)
-    
+
     def validate(self, value):
         pass
-    
+
     def get(self, obj):
         return '1'
 
@@ -26,7 +26,7 @@ class DescriptiveText(Field):
 
     def set(self, obj, v):
         pass
-    
+
     def fromUnicode(self, str):
         return '1'
 

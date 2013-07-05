@@ -54,14 +54,14 @@ class IMeasureWizardSourceType(IMeasureSourceType, IMeasureWizardSubform):
 
 class IMeasureWizardMRCriteria(IMeasureCalculation, IMeasureWizardSubform):
     """Numerator/denominator selection for measure via multi-record form"""
-    
+
 
 class IMeasureWizardRounding(IMeasureRounding, IMeasureWizardSubform):
     """
     Marker for automata state for rounding and percentage calculation
     step via multi-record form data source.
     """
-    
+
     express_as_percentage = schema.Bool(
         title=u'Express value as percentage',
         description=u'Should the value be expressed as a percentage? '
@@ -140,7 +140,7 @@ class IMeasureWizardFlexFieldsetChoice(IMeasureWizardSubform):
     """
     Choose a fieldset from which to obtain value from Flex form.
     """
-    
+
     fieldset = schema.Choice(
         title=u'Choose a field group from which to find a field name',
         source=fieldset_choices,
@@ -154,7 +154,7 @@ class IMeasureWizardFlexFieldChoice(IMeasureWizardSubform):
     Choose a field or fieldset from which to obtain value from Flex form.
     Assumes a context of a form definition.
     """
-    
+
     fieldname = schema.Choice(
         title=u'Choose a field to obtain a value from',
         source=fieldname_choices,
@@ -229,15 +229,15 @@ class WizardStepForm(AutoExtensibleForm, z3cform.Form):
     """
     Form for a content creation wizard step, always with some context.
     """
-   
+
     implements(IWrappedForm)
     autoGroups = False
-     
+
     # schema must be property, not attribute for AutoExtensibleForm sublcass
     @property
     def schema(self):
         return self._schema
-    
+
     @property
     def additionalSchemata(self):
         return (IStepState,)
@@ -248,7 +248,7 @@ class WizardStepForm(AutoExtensibleForm, z3cform.Form):
         self.__parent__ = context   # zope2 security permission acquisition
         self.request = request
         self.data = data
-    
+
     def updateWidgets(self):
         super(WizardStepForm, self).updateWidgets()
         if 'IStepState.source_step' in self.fields:
@@ -260,7 +260,7 @@ class WizardStepForm(AutoExtensibleForm, z3cform.Form):
             widget = self.widgets['IStepState.source_step']
             widget.mode = HIDDEN_MODE
             widget.value = widget.extract()  # force get value from request
-    
+
     def getContent(self):
         """
         Get content for use as form context by form widgets.  Note that
@@ -279,49 +279,49 @@ class IMeasureWizardView(Interface):
 
 
 class MeasureWizardView(object):
-    
+
     implements(IMeasureWizardView)
-    
+
     # cookie name keys:
     data_cookie = 'MeasureWizardView_data'          # pseudo-session data
     step_cookie = 'MeasureWizardView_last_current'  # last viewed form step
-    
+
     default_step = IMeasureWizardNaming
-    
+
     def __init__(self, context, request):
         self.context = context      # context here is measure group
         self.__parent__ = context   # zope2 security permission acquisition
         self.request = request
         self.portal = getSite()
         self._secret = queryUtility(IKeyManager).secret()
-    
+
     @property
     def delta(self):
         if self.context.source_type == MULTI_FORM_TYPE:
             return mr_delta_tables
         return flex_delta_tables
-    
+
     def formdata(self):
         encoded_data = self.request.cookies.get(self.data_cookie, None)
         if not encoded_data:
             return None
         data = SignedPickleIO(self._secret).loads(encoded_data)
         return data
-    
+
     def set_formdata(self, data):
         msg = SignedPickleIO(self._secret).dumps(data)
         self.request.response.setCookie(self.data_cookie, msg)
-    
+
     @property
     def step_title(self):
         return STEP_TITLES.get(self.current_step, u'')
-    
+
     @property
     def stepmap(self):
         return dict(
             [(o.__name__, o) for o in STEP_TITLES.keys()]
             )  # name->interface
-    
+
     def get_submitted_source_step(self):
         stepmap = self.stepmap
         current_step = self.default_step   # initially, start state
@@ -330,7 +330,7 @@ class MeasureWizardView(object):
         if source in stepmap:
             return stepmap.get(source)
         return current_step  # fallback
-    
+
     def get_current_form_step(self):
         current_step = self.default_step   # initially, start state
         stepmap = self.stepmap
@@ -363,7 +363,7 @@ class MeasureWizardView(object):
                             current_step,
                             )
         return current_step  # may be None on final state
-    
+
     def _sorted_buttons(self, buttons):
         if 'previous' in buttons:
             # previous always first button
@@ -372,7 +372,7 @@ class MeasureWizardView(object):
                 filter(lambda v: v != 'previous', buttons)
                 )
         return list(buttons)  # original sort
-    
+
     def buttons(self, step):
         """
         Return button.Buttons instance with all buttons to display for
@@ -390,7 +390,7 @@ class MeasureWizardView(object):
         return button.Buttons(
             *[button.Button(name, title) for name, title in buttons]
             )
-    
+
     def submitted_data(self):
         data = {'all_data': self.formdata() or {}}
         data_schema = self.get_submitted_source_step()
@@ -398,13 +398,13 @@ class MeasureWizardView(object):
         form.update()
         data, errors = form.extractData()
         return data_schema, data, errors, form
-    
+
     def _merged_data(self, data_schema, saved_formdata, data):
         _key = data_schema.__name__  # keyed by interface name
         merged = copy.deepcopy(saved_formdata)
         merged[_key] = data
         return merged
-   
+
     def remove_buttons_from_request_data(self):
         """
         Remove all keys in self.request.form starting with 'form.buttons'
@@ -414,7 +414,7 @@ class MeasureWizardView(object):
             del(self.request.form[k])
             if k in self.request.other:
                 del(self.request.other[k])
-    
+
     def update_next_step_form(self, data=None, current=None):
         ## fallbacks for all data, current step schema, saved data for step
         data = data if data is not None else {}
@@ -422,7 +422,7 @@ class MeasureWizardView(object):
         saved_current = data.get(current.__name__, {}) if data else {}
         ## special cases, pass into saved_current all data:
         saved_current['all_data'] = data
-        
+
         ## create form instance
         form = WizardStepForm(
             self.context,
@@ -434,7 +434,7 @@ class MeasureWizardView(object):
         form.update()
         self.formbody = form.render()
         return form
-    
+
     def clear_wizard_cookies(self):
         if self.data_cookie in self.request.cookies:
             self.request.response.expireCookie(self.data_cookie)
@@ -451,11 +451,11 @@ class MeasureWizardView(object):
             current_step = self.get_current_form_step()
         self.remove_buttons_from_request_data()
         return self.update_next_step_form(current=current_step)
-    
+
     def handle_errors(self, errors):
         messages = IStatusMessage(self.request)
         messages.add('Please fix highlighted errors', type='error')
-    
+
     def update_final(self, data, *args, **kwargs):
         """
         A final state/step of the form has been reached, and
@@ -479,7 +479,7 @@ class MeasureWizardView(object):
                 )
         self.formbody = ''
         self.request.response.redirect(url)
-    
+
     def data_implies_percentage(self, saved_formdata):
         if self.context.source_type == SIMPLE_FORM_TYPE:
             d = saved_formdata.get('IMeasureWizardFlexFields', {})
@@ -499,19 +499,19 @@ class MeasureWizardView(object):
             else:
                 self.request.response.redirect(self.request.URL)  # goto start
             return False  # user selected cancel, redirect
-        
+
         ## only GET request to this view is to first step; on such, clear any
         ## cookies resulting from previous wizard sessions:
         if method != 'POST':
             self.clear_wizard_cookies()
-        
+
         ## get form data from previous steps already submitted:
         saved_formdata = self.formdata() or {}
-        
+
         ## process any data submitted from previous step
         if 'form.buttons.next' in self.request.form:
             data_schema, data, errors, error_form = self.submitted_data()
-        
+
             if errors:
                 self.current_step = data_schema
                 error_form.buttons = self.buttons(data_schema)
@@ -520,7 +520,7 @@ class MeasureWizardView(object):
                 self.formbody = error_form.render()
                 self.handle_errors(errors)
                 return
-        
+
             ## merge submitted data with previously saved step data, persist;
             ## note: if there is not POSTed form data, then the merged data
             ## will not include fields for the current fieldset (usually, this
@@ -532,10 +532,10 @@ class MeasureWizardView(object):
                 data,
                 )
             self.set_formdata(saved_formdata)  # persist data into pickle cookie
-        
+
         ## get current wizard step (state, used by template and methods):
         self.current_step = self.get_current_form_step()
-        
+
         ## if rounding step and % implied, set express_as_percentage to True
         if self.current_step == IMeasureWizardRounding:
             if self.data_implies_percentage(saved_formdata):
@@ -543,25 +543,25 @@ class MeasureWizardView(object):
                     saved_formdata['IMeasureWizardRounding'] = {}
                 d = saved_formdata['IMeasureWizardRounding']
                 d['express_as_percentage'] = True
-        
+
         if self.current_step is None:
             return self.update_final(saved_formdata, *args, **kwargs)
-        
+
         ## set a cookie for last known step so that ajax/overlay requests
         ## can access ++widget++ traversal:
         self.request.response.setCookie(
             self.step_cookie,
             self.current_step.__name__,
             )
-        
+
         ## at this point, any button values submitted in the request are
         ## going to confuse the next step form, so remove them
         self.remove_buttons_from_request_data()
-        
+
         ## Get form instance, add buttons, then update/render; a hidden
         ## input with current step state will be added to by WizardStepForm
         self.update_next_step_form(data=saved_formdata)
-    
+
     def __call__(self, *args, **kwargs):
         if self.update(*args, **kwargs) is not False:
             return self.index(*args, **kwargs)  # from template via Five magic
@@ -575,7 +575,7 @@ class MeasureWizardWidgetTraversal(FormWidgetTraversal):
 
     implements(ITraversable)
     adapts(IMeasureWizardView, IBrowserRequest)
-    
+
     def _prepareForm(self):
         return self.context.widget_traversal_form()
 

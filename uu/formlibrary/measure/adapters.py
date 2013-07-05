@@ -20,7 +20,7 @@ def group_form_definition(context):
     if not r:
         return None
     return r[0]._unrestrictedGetObject()
-    
+
 
 @implementer(IFormDefinition)
 @adapter(IMeasureDefinition)

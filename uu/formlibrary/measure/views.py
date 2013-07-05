@@ -15,7 +15,7 @@ def local_query(context, query):
     """
     Given a catalog search query dict and a context, restrict
     search to items contained in the context path or subfolders.
-    
+
     Returns modified query dict for use with catalog search.
     """
     path = '/'.join(context.getPhysicalPath())
@@ -27,7 +27,7 @@ def local_query(context, query):
 
 
 class MeasureLibraryView(object):
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
@@ -37,12 +37,12 @@ class MeasureLibraryView(object):
         self.dataset_type = DATASET_TYPE
         self.group_type = GROUP_TYPE
         self.topic_type = 'Topic'
-    
+
     def recent(self, limit=None, portal_type=None):
         """
         Return catalog brains (metadata) of most recent
         measure definitions contained within this library.
-        
+
         To limit results, pass in an integer value to limit.
         """
         if portal_type is None:
@@ -56,28 +56,28 @@ class MeasureLibraryView(object):
         if limit is not None:
             return self._brains[portal_type][:limit]
         return self._brains[portal_type]
-    
+
     def count(self, portal_type=None):
         return len(self.recent(portal_type=portal_type))
-    
+
     def searchpath(self):
         return '/'.join(self.context.getPhysicalPath())
 
 
 class FormDataSetView(object):
     """Default view for IFormDataSetSpecification"""
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
         self.forms = []
-    
+
     def update(self):
         req = self.request
         if req.get('REQUEST_METHOD', 'GET') == 'POST' and 'clone' in req:
             print 'TODO: cloning'
         self.forms = self.context.forms()
-    
+
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)  # via framework magic
@@ -85,13 +85,13 @@ class FormDataSetView(object):
 
 class FormDataSetCloningView(object):
     """View for cloning a dataset, acting as a factory for a copy"""
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
         self.forms = []
         self.status = IStatusMessage(self.request)
-    
+
     def target_id(self, target, parent):
         """Given a target and parent, generate new id"""
         generated_id = NormalizingNameChooser(parent).chooseName(
@@ -99,7 +99,7 @@ class FormDataSetCloningView(object):
             target,
             )  # name from title, incidentally avoids colliding w/ source id
         return generated_id
-    
+
     def update(self):
         req = self.request
         if req.get('REQUEST_METHOD', 'GET') == 'POST' and 'makeclone' in req:
@@ -124,7 +124,7 @@ class FormDataSetCloningView(object):
                 type=u'info',
                 )
             req.response.redirect(target.absolute_url() + '/edit')
-    
+
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)  # via framework magic
@@ -132,7 +132,7 @@ class FormDataSetCloningView(object):
 
 class MeasureBaseView(object):
     """Shared view capabilities for data view and core view of measure"""
-    
+
     index = None  # overridden by Five magic
 
     def __init__(self, context, request=None):
@@ -140,11 +140,11 @@ class MeasureBaseView(object):
         self.request = request
         self.datasets = []
         self.datapoints = {}
-    
+
     def use_percent(self):
         vtype, multiplier = self.context.value_type, self.context.multiplier
         return vtype == 'percentage' and multiplier == 100
-    
+
     def choice_label(self, fieldname):
         field = IMeasureDefinition[fieldname]
         vocab = field.vocabulary
@@ -154,10 +154,10 @@ class MeasureBaseView(object):
         if callable(vocab):
             vocab = vocab(self.context)
         return vocab.getTerm(v).title
-    
+
     def filter_view(self, filter):
         return getMultiAdapter((filter, self.request), name="filter_view")
-    
+
     def _datasets(self):
         group = aq_parent(aq_inner(self.context))
         ftiname = DATASET_TYPE
@@ -168,7 +168,7 @@ class MeasureBaseView(object):
 
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()
-    
+
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
@@ -178,12 +178,12 @@ class MeasureDataView(MeasureBaseView):
     """
     View that loads cross-product matrix of filters and collections/topics
     inside a measure for purpose of enumerating data values.
-    
+
     This is available for use as an adapter of a measure for purposes of
     data sources for reports or for use by templates outputting HTML tables
     in a browser view.
     """
-    
+
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()
         for dataset in self.datasets:

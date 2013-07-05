@@ -9,13 +9,13 @@ from interfaces import MEASURE_DEFINITION_TYPE, IMeasureGroup
 
 
 class MeasureFactory(object):
-    
+
     implements(IMultiRecordMeasureFactory)
     adapts(IMeasureGroup)
-    
+
     def __init__(self, context):
         self.context = context  # is a measure group
-    
+
     def _make_measure(self, data):
         kw = {}   # field values for new measure
         naming = data.get('IMeasureWizardNaming')
@@ -33,13 +33,13 @@ class MeasureFactory(object):
             measure.value_type = 'percentage'
         addContentToContainer(self.context, measure)  # will auto-choose id
         return measure.__of__(self.context)
-    
+
     def _make_filter(self, measure, name):
         kw = {}   # field values for new measure
         kw['title'] = name
         rfilter = createContent(FILTER_TYPE, **kw)
         addContentToContainer(measure, rfilter)  # will auto-choose id
-    
+
     def _make_filters(self, measure, data):
         calc = data.get('IMeasureWizardMRCriteria')
         num_type = calc.get('numerator_type')

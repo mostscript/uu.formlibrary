@@ -71,6 +71,13 @@
     for=".interfaces.IBaseForm"
     />
 
+  <adapter 
+    factory=".forms.metadata_form_definition"
+    provides=".interfaces.IFormDefinition"
+    name="metadata"
+    for=".interfaces.IMultiForm"
+    />
+
   <adapter
     factory=".importexport.csv_export"
     />

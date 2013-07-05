@@ -770,6 +770,15 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
         required=False,
         )
 
+    form.widget(metadata_definition=ContentTreeFieldWidget)
+    metadata_definition = schema.Choice(
+        title=u'Metadata definition',
+        description=u'Select a form definition to provide metadata fields '
+                    u'for this form (optional).',
+        required=False,
+        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
+        )
+
 
 class IPeriodicSeries(form.Schema):
     """Definition of a sequence of periods of time"""

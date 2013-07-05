@@ -15,7 +15,7 @@ from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from z3c.form.interfaces import IDataConverter
 from z3c.form.testing import TestRequest
 from zope.component.hooks import getSite
-from zope.component import adapter, queryUtility, getMultiAdapter
+from zope.component import adapter, queryUtility, getMultiAdapter, queryAdapter
 from zope.event import notify
 from zope.interface import implements, implementer
 from zope.globalrequest import getRequest
@@ -106,20 +106,34 @@ def common_widget_updates(context):
         formfield.widgetFactory = SmartdateFieldWidget
 
 
-# # form-related adapters:
+# form-related adapters:
 
-@implementer(IFormDefinition)
-@adapter(IBaseForm)
-def form_definition(form):
-    def_uid = form.definition
+def _form_definition(form, attr='definition'):
+    def_uid = getattr(form, attr, None)
     if def_uid is None:
-        raise ValueError('form lacks definition identifier')
+        raise ValueError('form lacks %s identifier' % attr)
     site = getSite()
     catalog = getToolByName(site, 'portal_catalog')
     r = catalog.search({'UID': def_uid, 'portal_type': DEFINITION_TYPE})
     if not r:
         raise ValueError('could not locate form definition')
     return r[0]._unrestrictedGetObject()
+
+
+@implementer(IFormDefinition)
+@adapter(IBaseForm)
+def form_definition(form):
+    return _form_definition(form)
+
+
+@implementer(IFormDefinition)
+@adapter(IBaseForm)
+def metadata_form_definition(form):
+    """Named adapter for metadata"""
+    try:
+        return _form_definition(form, attr='metadata_definition')
+    except ValueError:
+        return None  # since metadata definition is optional
 
 
 class ComposedForm(AutoExtensibleForm, form.Form):
@@ -146,7 +160,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
     def additionalSchemata(self):
         return self._additionalSchemata
 
-    def __init__(self, context, request):
+    def __init__(self, context, request, name=None):
         """
         Construct composed form given (default) schema an a tuple
         of ordered additional schema key/value pairs of (string)
@@ -156,7 +170,14 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         self.request = request
         # form definition will either be context, or adaptation of context.
         # see uu.formlibrary.forms.form_definition for adapter example.
-        self.definition = IFormDefinition(self.context)
+        if name is None:
+            self.definition = IFormDefinition(self.context)
+        else:
+            self.definition = queryAdapter(
+                self.context,
+                IFormDefinition,
+                name=name,
+                )
         self._schema = self.definition.schema
         self.groups = []  # modified by updateFieldsFromSchemata()
 
@@ -781,7 +802,7 @@ class MultiForm(Item, RecordContainer):
     >>> import json  # requires Python >= 2.6
     >>> data['name'] = 'Chunky monkey'
     >>> serialized = json.dumps([data,], indent=2)  # JSON array of one item...
-    >>> print serialized  # doctest: +ELLIPSIS
+    >>> print serialized  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     [
       {
         "party_time": "11/06/05 12:00",
@@ -790,6 +811,7 @@ class MultiForm(Item, RecordContainer):
         "record_uid": "..."
       }
     ]
+
 
     The JSON created above is useful enough for demonstration, despite being
     only a single-item list.
@@ -804,7 +826,7 @@ class MultiForm(Item, RecordContainer):
 
     >>> data['name'] = 'Curious George'
     >>> serialized = json.dumps(data, indent=2)  # JSON object, not array.
-    >>> print serialized  # doctest: +ELLIPSIS
+    >>> print serialized  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     {
       "party_time": "11/06/05 12:00",
       "birthday": "06/01/1977",
@@ -838,6 +860,38 @@ class MultiForm(Item, RecordContainer):
 
     It should be noted that update_all() removes entries not in the data
     payload, and it preserves the order contained in the JSON entries.
+
+    Metadata definition
+    -------------------
+    
+    A multi-record form may have global metadata about it -- not per-record.
+    In order to make this user-extensible, a similar mechanism must
+    exist to provide a form definition for use in metadata.
+   
+    Initially, our form here has a definition, but no definition for metadata:
+
+    >>> assert aq_base(IFormDefinition(party_form)) is aq_base(definition2)
+    >>> assert getattr(party_form, 'metadata_definition', None) is None
+    >>> from zope.component import queryAdapter
+    >>> assert queryAdapter(party_form, IFormDefinition, 'metadata') is None
+
+    Let's assign a definition for metadata:
+
+    >>> party_form.metadata_definition = IUUID(definition)
+    >>> meta_defn = queryAdapter(party_form, IFormDefinition, 'metadata')
+    >>> assert meta_defn is not None
+    >>> assert aq_base(meta_defn) is aq_base(definition)
+
+    ComposedForm adapter can be created to manage metadata:
+
+    >>> from uu.formlibrary.tests import test_request
+    >>> req = test_request()
+    >>> composed = ComposedForm(party_form, req, name='metadata')
+    >>> assert aq_base(composed.definition) is aq_base(meta_defn)
+  
+    Note: update of actual metadata is responsibility of views and/or
+    ComposedForm adapters on the form.  RecordContainer.update() does
+    not handle metadata, only record data.
 
     Object events
     -------------
@@ -967,7 +1021,20 @@ class MultiForm(Item, RecordContainer):
 
     def __init__(self, id=None, **kwargs):
         Item.__init__(self, id, **kwargs)
+        self._metadata = PersistentDict()
         RecordContainer.__init__(self, factory=FormEntry)
+
+    @property
+    def data(self):
+        """
+        Compatibility shim for using ComposedForm adapter for
+        multi-record form metadata; setting self._metadata on
+        instance where it does not previously exist avoids need
+        for a migration.
+        """
+        if getattr(self, '_metadata', None) is None:
+            self._metadata = PersistentDict()
+        return self._metadata
 
     def _definition(self):
         try:

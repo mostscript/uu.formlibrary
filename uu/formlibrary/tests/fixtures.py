@@ -25,25 +25,25 @@ class CreateContentFixtures(object):
     Adapts a test case and plone.app.testing test layer to create
     fixtures as part of a content creation test.  These fixtures
     may be reused by other test cases using the same layer.
-    
+
     self.context is TestCase.
     self.layer is plone.app.testing test layer.
     self.portal is portal, set from layer.
-    
+
     self.layer.fixtures_completed is flag to ensure content is created
     only once per fixture (shared state for any all instances of
     CreateContentFixtures and all cases using it).
-    
+
     Call create() method to create content fixtures -- can be called by
     more than one test case, but will only create fixtures once.
     """
-    
+
     def __init__(self, context, layer):
         self.context = context  # test case
         self.layer = layer
         self.portal = self.layer['portal']
         self.layer.fixtures_completed = False  # self.create() acts only once
-     
+
     def _add_check(self, typename, id, iface, cls, title=None, parent=None):
         if parent is None:
             parent = self.portal
@@ -58,7 +58,7 @@ class CreateContentFixtures(object):
         self.context.assertTrue(iface.providedBy(o))
         o.reindexObject()
         return o  # return constructed content for use in additional testing
-    
+
     def create(self):
         if self.layer.fixtures_completed:
             return  # run once, already run

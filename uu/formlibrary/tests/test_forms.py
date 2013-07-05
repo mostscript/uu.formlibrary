@@ -63,12 +63,12 @@ class ComposedFormTest(unittest.TestCase):
     """Test ComposedForm adapter (merged form / auto-form)"""
 
     layer = DEFAULT_PROFILE_TESTING
-    
+
     def setUp(self):
         self.portal = self.layer['portal']
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
         self.type_fixtures_created = False
-    
+
     def _add_check(self, typename, id, iface, cls, title=None, parent=None):
         if parent is None:
             parent = self.portal
@@ -96,7 +96,7 @@ class ComposedFormTest(unittest.TestCase):
         group_a.group_usage = u'grid'
         group_b = definition['field_group_b']
         return (request, library, definition, group_a, group_b)
-    
+
     def test_composed_no_schema(self):
         request, library, definition, group_a, group_b = self._fixtures()
         contained = definition.contentValues()
@@ -110,17 +110,17 @@ class ComposedFormTest(unittest.TestCase):
         assert definition.schema is composed_prior_to_schema.schema
         # group A schema is a grid, should not be in additionalSchemata:
         assert group_a.schema not in composed_prior_to_schema.additionalSchemata
-        # group B schema is not a grid, but direct fieldset-like construct, 
+        # group B schema is not a grid, but direct fieldset-like construct,
         # therefore should be in additionalSchemata
         assert group_b.schema in composed_prior_to_schema.additionalSchemata
         assert len(composed_prior_to_schema.additionalSchemata) == 2
-    
+
     def test_prefixes(self):
         request, library, definition, group_a, group_b = self._fixtures()
         from uu.formlibrary.forms import ComposedForm
         composed = ComposedForm(definition, request)
         composed.updateFields()
-        assert composed.getPrefix(group_b.schema) == group_b.getId() 
+        assert composed.getPrefix(group_b.schema) == group_b.getId()
         assert composed.getPrefix(definition.schema) == ''
         # group_a is a special case, it is a grid, so its schema is wrapped
         # in another schema -- indirectly part of form composition:
@@ -130,10 +130,10 @@ class ComposedFormTest(unittest.TestCase):
         schemas = [t[1] for t in composed.group_schemas]
         wrapper = [s for s in schemas if is_grid_wrapper_schema(s)][0]
         assert composed.getPrefix(wrapper) == group_a.getId()
-    
+
     def test_composed(self):
         request, library, definition, group_a, group_b = self._fixtures()
-        # modify schema (via XML of definition, group) entries, trigger 
+        # modify schema (via XML of definition, group) entries, trigger
         # load of dynamic schema via event handlers from uu.dynamicschema:
         definition.entry_schema = DEFINITION_SCHEMA
         notify(ObjectModifiedEvent(definition))
@@ -144,20 +144,20 @@ class ComposedFormTest(unittest.TestCase):
         group_b.entry_schema = GROUP_B_FIELDSET_SCHEMA
         notify(ObjectModifiedEvent(group_b))
         assert 'feedback' in getFieldNamesInOrder(group_b.schema)
-        
+
         from uu.formlibrary.forms import ComposedForm
         # assumed: ComposedForm can get out of date when the schema of the
-        # adapted item changes.  composed.schema and 
+        # adapted item changes.  composed.schema and
         # composed.additionalSchemata reflect the schema of the definition
         # and its contained groups AT THE TIME OF CONSTRUCTION/ADAPTATION
         # -- if this becomes a problem, adjust the property implementation
-        # to be a true proxy at a later date, and adjust this test 
+        # to be a true proxy at a later date, and adjust this test
         # accordingly.
         composed = ComposedForm(definition, request)
         assert len(composed.additionalSchemata) == 2
         #composed.updateFields()
         composed.update()
-        
+
         # group_a is a grid, which has its schema wrapped by ComposedForm
         # construction -- the wrapper is referenced, we want to get it:
         from uu.formlibrary.forms import is_grid_wrapper_schema
@@ -169,13 +169,13 @@ class ComposedFormTest(unittest.TestCase):
         assert isinstance(wrapper['data'].value_type, DictRow)
         column_schema = wrapper['data'].value_type.schema
         assert column_schema == group_a.schema
-        
+
         # with regard to wrapping, serializations for the wrapper are NOT
         # stored or available in the uu.dynamicschema.schema.generated module
         # as they are throw-away and temporary for the scope of one view
-        # transaction.  Every time you adapt a definition with ComposedForm, 
+        # transaction.  Every time you adapt a definition with ComposedForm,
         # a new wrapper schema will be created.
-        # However, it should be noted that the wrapped schema providing the 
+        # However, it should be noted that the wrapped schema providing the
         # field group's columns is persisted in the schema saver:
         from uu.dynamicschema.interfaces import ISchemaSaver
         saver = queryUtility(ISchemaSaver)
@@ -189,10 +189,10 @@ class ComposedFormTest(unittest.TestCase):
         dynamic = getattr(generated, group_schema_identifier, None)
         assert dynamic is not None
         assert dynamic is group_a.schema
-        
+
         wrapper_signature = saver.signature(wrapper)
         assert wrapper_signature not in saver.keys() # throw-away not stored
-        
+
         # default fieldset fields:
         composed_schema_fields = [f.field for f in composed.fields.values()]
         assert definition.schema in [
@@ -200,7 +200,7 @@ class ComposedFormTest(unittest.TestCase):
         for name, field in getFieldsInOrder(definition.schema):
             assert name in composed.fields #keys
             assert field in composed_schema_fields
-        
+
         # each field group
         for group in (group_a, group_b):
             schema = group.schema

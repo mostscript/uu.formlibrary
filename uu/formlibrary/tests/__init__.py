@@ -10,7 +10,7 @@ from ZPublisher.HTTPRequest import HTTPRequest
 
 class PkgTest(unittest.TestCase):
     """basic unit tests for package go here"""
-    
+
     def test_pkg_import(self):
         """test package import, looks like zcml-initialized zope2 product"""
         import uu.formlibrary
@@ -18,7 +18,7 @@ class PkgTest(unittest.TestCase):
 
 
 def test_request():
-    """ 
+    """
     make request suitable for browser views and Zope2 security.
     """
     response = HTTPResponse(stdout=sys.stdout)

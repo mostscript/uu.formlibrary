@@ -11,11 +11,11 @@ class MultiFormTest(unittest.TestCase):
     """Test MultiForm implementation"""
 
     layer = DEFAULT_PROFILE_TESTING
-    
+
     def setUp(self):
         self.portal = self.layer['portal']
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
-    
+
 
 def test_suite():
     suite = unittest.TestSuite()

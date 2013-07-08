@@ -14,7 +14,6 @@ from z3c.form.browser.radio import RadioFieldWidget
 from z3c.form.browser.checkbox import CheckBoxFieldWidget
 from z3c.form.interfaces import IDataConverter
 from z3c.form.testing import TestRequest
-from zope.component.hooks import getSite
 from zope.component import adapter, queryUtility, getMultiAdapter, queryAdapter
 from zope.event import notify
 from zope.interface import implements, implementer
@@ -33,11 +32,11 @@ from uu.record.base import RecordContainer
 from uu.record.interfaces import IRecord
 from uu.smartdate.converter import ColloquialDateConverter
 from uu.smartdate.browser.widget import SmartdateFieldWidget
+from uu.formlibrary.definition import form_definition
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IBaseForm, IFormDefinition
 from uu.formlibrary.interfaces import IFormComponents
 from uu.formlibrary.interfaces import ISchemaProvider
-from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.record import FormEntry
 from uu.formlibrary.utils import grid_wrapper_schema
@@ -108,30 +107,13 @@ def common_widget_updates(context):
 
 # form-related adapters:
 
-def _form_definition(form, attr='definition'):
-    def_uid = getattr(form, attr, None)
-    if def_uid is None:
-        raise ValueError('form lacks %s identifier' % attr)
-    site = getSite()
-    catalog = getToolByName(site, 'portal_catalog')
-    r = catalog.search({'UID': def_uid, 'portal_type': DEFINITION_TYPE})
-    if not r:
-        raise ValueError('could not locate form definition')
-    return r[0]._unrestrictedGetObject()
-
-
-@implementer(IFormDefinition)
-@adapter(IBaseForm)
-def form_definition(form):
-    return _form_definition(form)
-
-
 @implementer(IFormDefinition)
 @adapter(IBaseForm)
 def metadata_form_definition(form):
     """Named adapter for metadata"""
     try:
-        return _form_definition(form, attr='metadata_definition')
+        primary = IFormDefinition(form)
+        return form_definition(primary, attr='metadata_definition')
     except ValueError:
         return None  # since metadata definition is optional
 
@@ -169,7 +151,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         self.context = context
         self.request = request
         # form definition will either be context, or adaptation of context.
-        # see uu.formlibrary.forms.form_definition for adapter example.
+        # see uu.formlibrary.definition.form_definition for adapter example.
         if name is None:
             self.definition = IFormDefinition(self.context)
         else:
@@ -870,14 +852,18 @@ class MultiForm(Item, RecordContainer):
 
     Initially, our form here has a definition, but no definition for metadata:
 
-    >>> assert aq_base(IFormDefinition(party_form)) is aq_base(definition2)
-    >>> assert getattr(party_form, 'metadata_definition', None) is None
+    >>> defn = IFormDefinition(party_form)
+    >>> assert aq_base(defn) is aq_base(definition2)
+    >>> assert getattr(defn, 'metadata_definition', None) is None
     >>> from zope.component import queryAdapter
+    >>> assert queryAdapter(defn, IFormDefinition, 'metadata') is None
     >>> assert queryAdapter(party_form, IFormDefinition, 'metadata') is None
 
     Let's assign a definition for metadata:
 
-    >>> party_form.metadata_definition = IUUID(definition)
+    >>> defn.metadata_definition = IUUID(definition)
+    >>> meta_defn = queryAdapter(defn, IFormDefinition, 'metadata')
+    >>> assert meta_defn is not None
     >>> meta_defn = queryAdapter(party_form, IFormDefinition, 'metadata')
     >>> assert meta_defn is not None
     >>> assert aq_base(meta_defn) is aq_base(definition)

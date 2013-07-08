@@ -66,9 +66,16 @@
     />
   
   <adapter 
-    factory=".forms.form_definition"
+    factory=".definition.form_definition"
     provides=".interfaces.IFormDefinition"
     for=".interfaces.IBaseForm"
+    />
+
+  <adapter 
+    factory=".forms.metadata_form_definition"
+    provides=".interfaces.IFormDefinition"
+    name="metadata"
+    for=".interfaces.IFormDefinition"
     />
 
   <adapter 

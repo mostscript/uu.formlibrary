@@ -204,6 +204,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             'form_css',
             'entry_schema',
             'sync_states',
+            'metadata_definition',
             ]
         )
 

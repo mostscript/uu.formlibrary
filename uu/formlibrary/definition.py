@@ -4,7 +4,9 @@ from persistent import Persistent
 from persistent.list import PersistentList
 from plone.dexterity.content import Container, Item, DexterityContent
 from plone.schemaeditor.browser.schema.traversal import SchemaContext
+from Products.CMFCore.utils import getToolByName
 from zope.component import adapts
+from zope.component.hooks import getSite
 from zope.interface import implements
 
 from uu.dynamicschema.schema import SignatureSchemaContext
@@ -17,6 +19,18 @@ from uu.formlibrary.interfaces import IDefinitionHistory, IFormComponents
 
 itemkeys = lambda seq: zip(*seq)[0] if seq else []  # unzip items tuple
 is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
+
+
+def form_definition(context, attr='definition'):
+    def_uid = getattr(context, attr, None)
+    if def_uid is None:
+        raise ValueError('context lacks %s identifier' % attr)
+    site = getSite()
+    catalog = getToolByName(site, 'portal_catalog')
+    r = catalog.search({'UID': def_uid, 'portal_type': DEFINITION_TYPE})
+    if not r:
+        raise ValueError('could not locate form definition')
+    return r[0]._unrestrictedGetObject()
 
 
 class DefinitionHistory(Persistent):

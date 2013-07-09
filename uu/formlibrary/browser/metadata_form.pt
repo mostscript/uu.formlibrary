@@ -1,0 +1,3 @@
+<div class="metadata-form-fields">
+    <metal:block use-macro="context/@@ploneform-macros/widget_rendering" />
+</div>

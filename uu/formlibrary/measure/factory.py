@@ -31,6 +31,8 @@ class MeasureFactory(object):
         if kw.get('express_as_percentage', False):
             measure.multiplier = 100.0
             measure.value_type = 'percentage'
+        else:
+            measure.value_type = 'count'
         addContentToContainer(self.context, measure)  # will auto-choose id
         return measure.__of__(self.context)
 

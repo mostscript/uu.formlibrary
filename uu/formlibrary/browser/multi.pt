@@ -22,9 +22,8 @@
 <metal:block fill-slot="style_slot">
  <link rel="stylesheet" media="all" href="++resource++formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++formlibrary.css" type="text/css" />
 
-<style tal:condition="python:'form_css' in view.seriesinfo" tal:content="view/seriesinfo/form_css">
-<style tal:condition="python:view.definition.form_css.strip()" tal:content="view/definition/form_css" />
-</style>
+<style tal:condition="python:'form_css' in view.seriesinfo" tal:content="view/seriesinfo/form_css"></style>
+<style tal:condition="python:view.definition.form_css" tal:content="view/definition/form_css" />
 
 <tal:comment tal:replace="nothing">
  <!-- BELOW ARE RESPECTIVE EDIT/DISPLAY STYLES -->
@@ -144,10 +143,14 @@
   </div>
 
 <form tal:condition="python: view.VIEWNAME=='edit'" id="coredata" method="POST">
+  <form tal:replace="structure view/metadata_form" />  <-- form widgets embedded into the core data form -->
   <input type="hidden" name="payload" id="payload" value="" />
   <input id="btn-saveform" name="saveform" type="submit" value="&#x2714; Save form as draft" />
   <input id="btn-savesubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
 </form>
+<div class="form_metadata" tal:condition="python: view.VIEWNAME != 'edit'">
+  <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->
+</div>
 
  <div metal:use-macro="context/@@formcommon/macros/formseries_footer"></div>
 

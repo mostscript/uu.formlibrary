@@ -10,12 +10,23 @@ from Products.statusmessages.interfaces import IStatusMessage
 from uu.workflows.utils import history_log
 
 from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
-from uu.formlibrary.forms import common_widget_updates
+from uu.formlibrary.forms import ComposedForm, common_widget_updates
 from uu.formlibrary.search.handlers import handle_multiform_savedata
 
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
 DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
+
+
+class MetadataForm(ComposedForm):
+    template = ViewPageTemplateFile('metadata_form.pt')
+
+    def __init__(self, context, request):
+        super(MetadataForm, self).__init__(
+            context,
+            request,
+            name='metadata',
+            )
 
 
 class RowForm(form.EditForm):
@@ -66,6 +77,11 @@ class MultiFormEntry(object):
         self.title = '%s: %s' % (self.series.Title().strip(), context.Title())
         self._fields = []
         self._status = IStatusMessage(self.request)
+        self.has_metadata = bool(self.definition.metadata_definition)
+        if self.has_metadata:
+            self.mdform = MetadataForm(context, request)
+            if self.VIEWNAME != 'edit':
+                self.mdform.mode = 'display'
 
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
@@ -108,6 +124,9 @@ class MultiFormEntry(object):
                         msg += ' (form submitted for review)'
                         url = self.context.absolute_url()
                         self.request.RESPONSE.redirect(url)
+            if self.has_metadata:
+                self.mdform.update()
+                self.mdform._handleSave(None)
         if msg:
             self._status.addStatusMessage(msg, type='info')
 
@@ -134,6 +153,13 @@ class MultiFormEntry(object):
             return None
         base = self.definition.absolute_url()
         return '%s/@@download/logo/%s' % (base, filename)
+
+    def metadata_form(self):
+        """render metadata form, if available; used by template"""
+        if not self.has_metadata:
+            return ''
+        self.mdform.update()
+        return self.mdform.render()
 
     def instructions(self):
         _instructions = getattr(self.definition, 'instructions')

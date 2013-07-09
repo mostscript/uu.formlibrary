@@ -280,6 +280,15 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         defaultFactory=PersistentList,  # req. zope.schema >= 3.8.0
         )
 
+    form.widget(metadata_definition=ContentTreeFieldWidget)
+    metadata_definition = schema.Choice(
+        title=u'Metadata definition',
+        description=u'Select a form definition to provide metadata fields '
+                    u'for this form (optional).',
+        required=False,
+        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
+        )
+
     def log(*args, **kwargs):
         """
         Given either a single argument of an IDefintionHistory object
@@ -769,15 +778,6 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
         title=_(u'Entry notes'),
         description=_(u'Any notes about form entries for this period.'),
         required=False,
-        )
-
-    form.widget(metadata_definition=ContentTreeFieldWidget)
-    metadata_definition = schema.Choice(
-        title=u'Metadata definition',
-        description=u'Select a form definition to provide metadata fields '
-                    u'for this form (optional).',
-        required=False,
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         )
 
 

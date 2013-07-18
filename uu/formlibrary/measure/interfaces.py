@@ -43,7 +43,8 @@ MR_FORM_COMMON_FILTER_CHOICES = [
     SimpleTerm(
         'multi_filter',
         title=u'Value computed by a filter of records',
-        )
+        ),
+    SimpleTerm('multi_metadata', title=u'Metadata field value'),
 ]
 
 MR_FORM_NUMERATOR_CHOICES = SimpleVocabulary(MR_FORM_COMMON_FILTER_CHOICES)
@@ -94,12 +95,12 @@ def default_definition():
 
 class IMeasureNaming(form.Schema):
     """Title, description naming for measure."""
-    
+
     title = schema.TextLine(
         title=u'Name (title) of measure',
         required=True,
         )
-    
+
     description = schema.Text(
         title=u'Describe your measure (optional)',
         required=False,
@@ -108,7 +109,7 @@ class IMeasureNaming(form.Schema):
 
 class IMeasureFormDefinition(form.Schema):
     """Bound form definition for a measure or measure group"""
-    
+
     form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Select a form definition',
@@ -137,7 +138,7 @@ class IMeasureSourceType(form.Schema):
 
 class IMeasureCalculation(form.Schema):
     """Numerator/denominator selection for measure via multi-record form"""
-    
+
     form.widget(numerator_type=RadioFieldWidget)
     numerator_type = schema.Choice(
         title=u'Computed value: numerator',
@@ -161,7 +162,7 @@ class IMeasureCalculation(form.Schema):
         default='multi_total',
         required=True,
         )
-    
+
     @invariant
     def sensible_nm(data):
         nt, mt = data.numerator_type, data.denominator_type
@@ -173,7 +174,7 @@ class IMeasureCalculation(form.Schema):
 
 
 class IMeasureRounding(form.Schema):
-    
+
     display_precision = schema.Int(
         title=u'Digits after decimal point (display precision)?',
         description=u'When displaying a decimal value, how many places '
@@ -181,7 +182,7 @@ class IMeasureRounding(form.Schema):
                     u'output?  Default: two digits after the decimal point.',
         default=1,
         )
-    
+
     form.widget(rounding=RadioFieldWidget)
     rounding = schema.Choice(
         title=u'How should number be optionally rounded?',
@@ -198,7 +199,7 @@ class IMeasureRounding(form.Schema):
 
 class IMeasureUnits(form.Schema):
     """Modifiers for computed value: units, multiplier, rounding rules"""
-    
+
     form.widget(value_type=RadioFieldWidget)
     value_type = schema.Choice(
         title=u'Kind of value',
@@ -229,7 +230,7 @@ class IMeasureFieldSpec(form.Schema):
     sourced directly from form field values.  Not applicable to
     multi-record forms.
     """
-    
+
     numerator_field = schema.Choice(
         title=u'Numerator field',
         description=u'Which form field provides the numerator value? If '
@@ -266,10 +267,10 @@ class IMeasureDefinition(form.Schema,
                          IMeasureUnits):
     """
     Measure definition content interface.
-    
+
     Note: measures get their bound form definition and data source
     type from the measure group containing them.
-    
+
     There is a pretty safe assumption that a measure value should
     be a floating point number.
     """
@@ -294,7 +295,7 @@ class IMeasureDefinition(form.Schema,
         Given an appropriate form context, compute a value, normalize
         as appropriate (for .
         """
-    
+
     def display_format(value):
         """
         Format a value as a string using rules defined on measure
@@ -305,7 +306,7 @@ class IMeasureDefinition(form.Schema,
         """
         Return string display value (formatted) for context.
         """
-    
+
     def datapoint(context):
         """
         Given a form instance as a context, apply measure
@@ -331,7 +332,7 @@ class IMeasureDefinition(form.Schema,
         Given an info dict (data point), construct note text as
         a unicode object if applicable, or return None.
         """
-        
+
 
 class IMeasureGroup(form.Schema,
                     IAttributeUUID,
@@ -457,12 +458,12 @@ class IFormDataSetSpecification(form.Schema):
 
     def forms(self):
         """Return an iterable of form objects included."""
-    
+
     def included_locations(self):
         """
         List of catalog brains of included locations in locations field.
         """
-    
+
     def directly_included(self, spec):
         """
         Given spec as either UID, form object, or brain, return True if
@@ -475,7 +476,7 @@ class IFormDataSetSpecification(form.Schema):
 
 class IMultiRecordMeasureFactory(Interface):
     """Adapter interface for content creation"""
-    
+
     def __call__(data):
         """Create measures based on wizard data, see wizard.py"""
 

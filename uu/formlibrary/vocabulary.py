@@ -1,4 +1,5 @@
 from five import grok
+from zope.component import queryAdapter
 from zope.globalrequest import getRequest
 from zope.schema import getFieldsInOrder
 from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
@@ -50,6 +51,9 @@ def definition_field_source(context, field_ifaces=(IField,)):
     if isinstance(context, dict):
         context = find_context(getRequest())
     definition = IFormDefinition(context)
+    meta_defn = queryAdapter(definition, IFormDefinition, name='metadata')
+    if meta_defn is not None:
+        definition = meta_defn
     unspecified = SimpleTerm(
         value='',
         title=u'Unused / no field specified',

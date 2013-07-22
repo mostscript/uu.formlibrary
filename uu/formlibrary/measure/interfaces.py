@@ -1,3 +1,5 @@
+import operator
+
 from plone.directives import form
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree import ContentTreeFieldWidget
@@ -77,6 +79,63 @@ ROUNDING_CHOICES = SimpleVocabulary([
     SimpleTerm('ceiling', title=u'Ceiling: always round upward.'),
     SimpleTerm('floor', title=u'Floor: always round downward.'),
 ])
+
+
+CUMULATIVE_CHOICES = SimpleVocabulary([
+    SimpleTerm('', title=u'Not cumulative'),
+    SimpleTerm('numerator', title=u'Apply to computed numerator'),
+    #SimpleTerm('denominator', title=u'Apply to computed denominator.'),
+    #SimpleTerm(
+    #    'both',
+    #    title=u'Apply to both numerator, denominator respectively.',
+    #    ),
+    #SimpleTerm('final', title=u'Apply to final value for each period.'),
+])
+
+
+F_MEAN = lambda l: float(sum(l)) / len(l) if len(l) > 0 else float('nan')
+
+
+def F_MEDIAN(l):
+    """
+    Return middle value of sorted sequence for an odd-sized
+    list, or return the arithmetic mean of the two middle-values
+    in an even-sized list.
+    """
+    odd = lambda v: bool(v % 2)
+    s, size = sorted(l), len(l)
+    middle = size / 2
+    _slice = slice((middle - 1), (middle + 1))
+    return s[middle] if odd(size) else F_MEAN(s[_slice])
+
+
+AGGREGATE_FUNCTIONS = {
+    'SUM': sum,
+    'AVG': F_MEAN,
+    'PRODUCT': lambda l: reduce(operator.mul, l),
+    'MIN': min,
+    'MAX': max,
+    'MEDIAN': F_MEDIAN,
+    'COUNT': len,
+    'FIRST': lambda seq: seq[0] if len(seq) else None,
+    'LAST': lambda seq: seq[-1] if len(seq) else None,
+}
+
+AGGREGATE_LABELS = [
+    ('SUM', u'Sum'),
+    ('AVG', u'Average'),
+    ('PRODUCT', u'Product'),
+    ('MIN', u'Minimum'),
+    ('MAX', u'Maximum'),
+    ('MEDIAN', u'Median'),
+    ('COUNT', u'Count of occurrences'),
+    ('FIRST', u'Pick first found value'),
+    ('LAST', u'Pick last found value'),
+]
+
+CUMULATIVE_FN_CHOICES = SimpleVocabulary(
+    [SimpleTerm(v, title=title) for v, title in AGGREGATE_LABELS]
+)
 
 
 ## field default (defaultFactory) methods:
@@ -256,6 +315,27 @@ class IMeasureFieldSpec(form.Schema):
         )
 
 
+class IMeasureCumulative(form.Schema):
+    """
+    Cumulative calculation configuration options applicable
+    to time-series.
+    """
+
+    cumulative = schema.Choice(
+        title=u'Cumulative calculation?',
+        description=u'Should values in series be cumlatively calculated?',
+        vocabulary=CUMULATIVE_CHOICES,
+        default='',
+        required=False,
+        )
+
+    cumulative_fn = schema.Choice(
+        title=u'Cumulative function (if applicable)',
+        vocabulary=CUMULATIVE_FN_CHOICES,
+        default='SUM',
+        )
+
+
 ## content type interfaces:
 
 class IMeasureDefinition(form.Schema,
@@ -264,6 +344,7 @@ class IMeasureDefinition(form.Schema,
                          IMeasureCalculation,
                          IMeasureRounding,
                          IMeasureFieldSpec,
+                         IMeasureCumulative,
                          IMeasureUnits):
     """
     Measure definition content interface.
@@ -285,6 +366,12 @@ class IMeasureDefinition(form.Schema,
         'flex_calc',
         label=u'Flex form calculation',
         fields=['numerator_field', 'denominator_field', 'note_field']
+        )
+
+    form.fieldset(
+        'advanced',
+        label=u'Advanced',
+        fields=['cumulative', 'cumulative_fn'],
         )
 
     def group():

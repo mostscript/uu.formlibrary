@@ -487,7 +487,10 @@ class MeasureWizardView(object):
             return bool(n) and bool(d)  # both defined
         d = saved_formdata.get('IMeasureWizardMRCriteria', {})
         nt, mt = d.get('numerator_type', None), d.get('denominator_type', None)
-        return (nt == 'multi_filter' and mt in ('multi_total', 'multi_filter'))
+        return (
+            nt in ('multi_filter', 'mutli_metadata') and
+            mt in ('multi_total', 'multi_filter', 'multi_metadata')
+            )
 
     def update(self, *args, **kwargs):
         method = self.request.get('REQUEST_METHOD', None)

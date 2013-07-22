@@ -15,6 +15,7 @@ from uu.formlibrary.search.interfaces import IRecordFilter
 
 from interfaces import IMeasureDefinition, IMeasureGroup, IMeasureLibrary
 from interfaces import IFormDataSetSpecification
+from interfaces import AGGREGATE_FUNCTIONS
 from utils import content_path
 
 
@@ -26,22 +27,31 @@ NOVALUE = float('NaN')
 
 class MeasureDefinition(Container):
     """Metadata about a measure"""
-    
+
     implements(IMeasureDefinition)
-     
+
     portal_type = 'uu.formlibrary.measure'
-    
+
     def group(self):
         return aq_parent(aq_inner(self))  # folder containing
-    
+
     def _source_type(self):
         return self.group().source_type
+
+    def _metadata_field_value(self, context, path):
+        if path is None:
+            return NOVALUE
+        return self._flex_field_value(context, path)
 
     def _mr_get_value(self, context, name):
         """Get raw value for numerator or denominator"""
         assert name in ('numerator', 'denominator')
         vtype = getattr(self, '%s_type' % name, None)
         v = 1 if vtype == 'constant' else None  # initial value
+        if vtype == 'multi_metadata':
+            specname = '%s_field' % name
+            fieldpath = getattr(self, specname, None)
+            return self._metadata_field_value(context, fieldpath)
         if vtype == 'multi_total':
             v = len(context)
         if vtype == 'multi_filter':
@@ -61,7 +71,7 @@ class MeasureDefinition(Container):
                 # return a sentinel value safe for raw_value() to use.
                 v = NOVALUE
         return v
- 
+
     def _mr_values(self, context):
         """return (n, m) values for numerator, denominator"""
         n = self._mr_get_value(context, name='numerator')
@@ -99,10 +109,11 @@ class MeasureDefinition(Container):
         instance.
         """
         is_multi_form = self._source_type() == MULTI_FORM_TYPE
-        divide = lambda a, b: float(a) / float(b) if b else NOVALUE
+        _div = lambda a, b: float(a) / float(b) if b else NOVALUE
+        divide = lambda a, b: NOVALUE if a is None or b is None else _div(a, b)
         vfn = self._mr_values if is_multi_form else self._flex_values
         return divide(*vfn(context))
-    
+
     def _normalize(self, v):
         if math.isnan(v):
             return v
@@ -120,19 +131,19 @@ class MeasureDefinition(Container):
         if self.value_type == 'count':
             return int(v)  # count is always whole numbers
         return v  # floating point value, normalized
-    
+
     def _values(self, context):
         """Return raw and normalized value as a two item tuple"""
         raw = self.raw_value(context)
         return (raw, self._normalize(raw))
-    
+
     def value_for(self, context):
         """
         Given an appropriate form context, compute a value, normalize
         as appropriate.
         """
         return self._values(context)[1]
-    
+
     def note_for(self, context):
         if self._source_type() == MULTI_FORM_TYPE:
             return getattr(context, 'entry_notes', None)
@@ -171,13 +182,56 @@ class MeasureDefinition(Container):
         if m is not None:
             point_record['raw_denominator'] = m
         return point_record
-    
+
     def points(self, seq):
         """
         Given iterable seq of form instance contexts, return a list
         of datapoints for each.
         """
         return [self.datapoint(context) for context in seq]
+
+    def _set_cumulative_points(self, point, previous):
+        """
+        In place modification of point cumulative-to-present
+        based on previous sorted points.
+        """
+        mode = getattr(self, 'cumulative', '')
+        if not mode:
+            return  # not cumulative, no more work to do
+        opkey = getattr(self, 'cumulative_fn', 'SUM')
+        cfn = AGGREGATE_FUNCTIONS.get(opkey)
+        to_date = list(previous) + [point]
+        _div = lambda a, b: float(a) / float(b) if b else NOVALUE
+        divide = lambda a, b: NOVALUE if a is None or b is None else _div(a, b)
+        if mode == 'numerator':
+            key = 'raw_numerator'
+            values = [p.get(key) for p in to_date]
+            cnum = point['cumulative_numerator'] = cfn(values)
+            val = point['value'] = self._normalize(
+                divide(cnum, point.get('raw_denominator'))
+                )
+            point['display_value'] = self.display_format(val)
+            point['user_notes'] = '%s%s' % (
+                point.get('user_notes', '') or '',
+                ' (cumulative numerator)',
+                )
+            
+        return  # TODO: denominator, both, final modes
+
+    def _cumulative_points(self, seq):
+        _start = lambda o: getattr(o, 'start', None)
+        start_dates = filter(lambda v: v is not None, map(_start, seq))
+        series_start = min(start_dates)
+        points = sorted(
+            self.points(seq),
+            key=lambda info: info.get('start', None),
+            )  # sorted, un-normalized time-series of points
+        _previous_points = lambda idx: points[:idx]
+        for index, point in enumerate(points):
+            point['cumulative_start'] = series_start
+            previous = _previous_points(index)
+            self._set_cumulative_points(point, previous)  # in-place
+        return points
 
     def dataset_points(self, dataset):
         """
@@ -186,8 +240,10 @@ class MeasureDefinition(Container):
         included in the set.
         """
         forms = dataset.forms()
+        if getattr(self, 'cumulative', None):
+            return self._cumulative_points(forms)
         return self.points(forms)
-    
+
     def display_format(self, value):
         """
         Format a value as a string using rules defined on measure
@@ -199,13 +255,13 @@ class MeasureDefinition(Container):
         if self.value_type == 'percentage' and self.multiplier == 100.0:
             fmt += '%%'
         return fmt % value
-    
+
     def display_value(self, context):
         """
         Return string display value (formatted) for context.
         """
         return self.display_format(self.value_for(context))
-    
+
     def value_note(self, info):
         """
         Given a datapoint dict, create a textual note as addendum
@@ -213,13 +269,25 @@ class MeasureDefinition(Container):
         """
         note = u''
         if 'raw_numerator' in info and 'raw_denominator' in info:
-            note += u'%s of %s' % (
-                info.get('raw_numerator'),
-                info.get('raw_denominator'),
-                )
-            if self.denominator_type == 'multi_filter':
-                note += u' (filtered)'
-            note += u' records'
+            cumulative = info.get('cumulative_numerator', None)
+            if cumulative is not None:
+                op = self.get('cumulative_fn', 'SUM')
+                op = '+' if op == 'SUM' else ''
+                note += u'%s (%s%s) of %s' % (
+                    cumulative,
+                    op,
+                    info.get('raw_numerator'),
+                    info.get('raw_denominator'),
+                    )
+            else:
+                note += u'%s of %s' % (
+                    info.get('raw_numerator'),
+                    info.get('raw_denominator'),
+                    )
+                if self.denominator_type == 'multi_filter':
+                    note += u' (filtered)'
+                if self.denominator_type != 'multi_metadata':
+                    note += u' records'
         user_notes = info.get('user_notes')
         if user_notes:
             note += ' -- %s' % user_notes
@@ -234,9 +302,9 @@ class MeasureGroup(Container):
     to a form definition and source type common to all contained
     measures.
     """
-    
+
     implements(IMeasureGroup)
-   
+
     portal_type = 'uu.formlibrary.measuregroup'
 
 
@@ -244,9 +312,9 @@ class MeasureGroup(Container):
 
 class MeasureLibrary(Container):
     """Library contains measure groups and measures within them"""
-    
+
     implements(IMeasureLibrary)
-   
+
     portal_type = 'uu.formlibrary.measurelibrary'
 
 
@@ -254,10 +322,10 @@ class MeasureLibrary(Container):
 
 class FormDataSetSpecification(Item):
     implements(IFormDataSetSpecification)
-    
+
     def group(self):
         return aq_parent(aq_inner(self))  # folder containing
-    
+
     def _source_type(self):
         return self.group().source_type
 
@@ -271,7 +339,7 @@ class FormDataSetSpecification(Item):
             return None
         q = {'UID': {'query': spec_uids, 'operator': 'or', 'depth': 0}}
         return catalog.search(q)
-    
+
     def directly_included(self, spec):
         """
         Given spec as either UID, form object, or brain, return True if
@@ -287,7 +355,7 @@ class FormDataSetSpecification(Item):
                     return False
         spec = str(spec)
         return spec in self.locations
-    
+
     def _path_query(self):
         form_type = self._source_type()
         spec_uids = getattr(self, 'locations', [])
@@ -354,7 +422,7 @@ class FormDataSetSpecification(Item):
                 'range': 'max',
                 }
         return q, form_uids
-    
+
     def brains(self):
         folder_query, form_uids = self._query_spec()
         catalog = getSite().portal_catalog

@@ -7,6 +7,7 @@ from persistent.dict import PersistentDict
 from plone.dexterity.content import Item
 from plone.autoform.form import AutoExtensibleForm
 from plone.autoform.interfaces import WIDGETS_KEY
+from plone.indexer.decorator import indexer
 from plone.z3cform.fieldsets.group import GroupFactory
 from plone.z3cform.fieldsets.interfaces import IGroupFactory
 from z3c.form import form, field, button, converter, widget
@@ -116,6 +117,16 @@ def metadata_form_definition(form):
         return form_definition(primary, attr='metadata_definition')
     except ValueError:
         return None  # since metadata definition is optional
+
+
+@indexer(IBaseForm)
+def title_indexer(context):
+    title = context.Title()
+    parent = getattr(context, '__parent__', None)
+    if parent is None:
+        return title
+    supplement = parent.Title()
+    return '%s %s' % (title, supplement)
 
 
 class ComposedForm(AutoExtensibleForm, form.Form):

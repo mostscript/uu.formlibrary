@@ -88,6 +88,11 @@
   <adapter
     factory=".importexport.csv_export"
     />
+
+  <adapter
+    name="Title"
+    factory=".forms.title_indexer"
+    />
   
   <!-- event subscribers -->
 

@@ -205,7 +205,10 @@ class MeasureDefinition(Container):
         divide = lambda a, b: NOVALUE if a is None or b is None else _div(a, b)
         if mode == 'numerator':
             key = 'raw_numerator'
-            values = [p.get(key) for p in to_date]
+            values = filter(
+                lambda v: v != NOVALUE,
+                [p.get(key) for p in to_date],
+                )
             cnum = point['cumulative_numerator'] = cfn(values)
             val = point['value'] = self._normalize(
                 divide(cnum, point.get('raw_denominator'))

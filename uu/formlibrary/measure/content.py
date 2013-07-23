@@ -206,7 +206,7 @@ class MeasureDefinition(Container):
         if mode == 'numerator':
             key = 'raw_numerator'
             values = filter(
-                lambda v: v != NOVALUE,
+                lambda v: not math.isnan(v),
                 [p.get(key) for p in to_date],
                 )
             cnum = point['cumulative_numerator'] = cfn(values)

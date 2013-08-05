@@ -113,6 +113,22 @@
     class=".csv.SeriesCSVArchiveView"
     permission="zope2.View"
     />
+
+  <!-- json folder listing / search views -->
+
+  <browser:page
+    name="listing"
+    for="Products.CMFCore.interfaces.IFolderish"
+    class=".jsonlisting.JSONListing"
+    permission="cmf.ListFolderContents"
+    />
+
+  <browser:page
+    name="finder"
+    for="Products.CMFCore.interfaces.IFolderish"
+    class=".jsonlisting.JSONFinder"
+    permission="cmf.ListFolderContents"
+    />
  
   <!-- static resources -->
   

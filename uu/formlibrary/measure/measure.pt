@@ -178,6 +178,10 @@ div.filterview div.oplabel {
          <td tal:content="context/units" />
         </tal:block>
       </tr>
+      <tr tal:condition="python: getattr(context, 'goal', None) is not None">
+        <td class="fieldlabel"><label>Goal value:</label></td>
+        <td tal:content="context/goal" />
+      </tr>
      </tbody>
     </table>
   </div>

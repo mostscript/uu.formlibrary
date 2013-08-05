@@ -20,7 +20,7 @@ class MeasureFactory(object):
         kw = {}   # field values for new measure
         naming = data.get('IMeasureWizardNaming')
         rounding = data.get('IMeasureWizardRounding')
-        kw.update(naming)    # title, description
+        kw.update(naming)    # title, description, goal
         kw.update(rounding)  # rounding, display_precision, display as percent
         if self.context.source_type == MULTI_FORM_TYPE:
             calc = data.get('IMeasureWizardMRCriteria')

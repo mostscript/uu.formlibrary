@@ -40,6 +40,12 @@ class IMeasureWizardSubform(form.Schema):
 class IMeasureWizardNaming(IMeasureNaming, IMeasureWizardSubform):
     """Title, description subform"""
 
+    goal = schema.Float(
+        title=u'Goal value',
+        description=u'Numeric value of goal, if applicable (optional).',
+        required=False,
+        )
+
 
 class IMeasureWizardDefinition(IMeasureFormDefinition, IMeasureWizardSubform):
     """

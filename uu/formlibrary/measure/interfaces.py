@@ -374,6 +374,12 @@ class IMeasureDefinition(form.Schema,
         fields=['cumulative', 'cumulative_fn'],
         )
 
+    goal = schema.Float(
+        title=u'Goal value',
+        description=u'Numeric value of goal, if applicable (optional).',
+        required=False,
+        )
+
     def group():
         """Get parent group containing this measure"""
 

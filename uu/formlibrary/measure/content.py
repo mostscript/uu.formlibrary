@@ -4,6 +4,7 @@ import math
 from Acquisition import aq_parent, aq_inner, aq_base
 from DateTime import DateTime
 from plone.dexterity.content import Container, Item
+from plone.indexer.decorator import indexer
 from plone.uuid.interfaces import IUUID
 from plone.app.layout.navigation.root import getNavigationRoot
 from zope.component.hooks import getSite
@@ -22,6 +23,14 @@ from utils import content_path
 # sentinel value:
 NOVALUE = float('NaN')
 
+
+@indexer(IMeasureDefinition)
+def measure_subjects_indexer(context):
+    base = list(context.Subject())
+    if getattr(context, 'goal', None) is not None:
+        base += ['goal_value_%s' % context.goal]
+    return tuple(base)
+    
 
 # measure definition content type class:
 

@@ -72,6 +72,11 @@
     for=".interfaces.IMeasureGroup"
     />  
 
+  <adapter
+    name="Subject"
+    factory=".content.measure_subjects_indexer"
+    />
+
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter
     for=".wizard.IMeasureWizardView

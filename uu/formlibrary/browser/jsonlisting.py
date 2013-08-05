@@ -29,6 +29,7 @@ def iteminfo(brain):
         'review_state': brain.review_state,
         'created': brain.created.asdatetime() if brain.created else None,
         'modified': brain.modified.asdatetime() if brain.modified else None,
+        'subject': brain.Subject or (),
         'is_folderish': bool(brain.is_folderish),
         }
 

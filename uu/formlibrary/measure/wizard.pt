@@ -8,9 +8,117 @@
     <metal:block fill-slot="top_slot"
                  tal:define="dummy python:request.set('disable_border',1)" />
     <metal:block fill-slot="javascript_head_slot">
+<script type="text/javascript">
+
+(function ($) {
+    "use strict";
+
+    var guideOpen = false;  // hidden
+
+    function toggleGuide() {
+        var guide = $('#content .guide'),
+            form = $('#content form');
+        if (guideOpen) {
+           form.css('width', '98%');
+           guide.hide();
+           guideOpen = false;
+        } else {
+           form.css('width', '48%');
+           guide.show();
+           guideOpen = true;
+        }
+    };
+
+    function initGuide() {
+        var link = $('<a href="javascript:void(0)" class="guidelink">Tips / help &gt;&gt;&gt;</a>'),
+            labelNum = $('label[for=form-widgets-numerator_type] .formHelp'),
+            labelDen = $('label[for=form-widgets-denominator_type] .formHelp'),
+            link1 = link.clone().insertBefore(labelNum),
+            link2 = link.clone().insertBefore(labelDen);
+       link1.click(toggleGuide); 
+       link2.click(toggleGuide); 
+    };
+
+    $(document).ready(function () {
+        initGuide();
+    });
+}(jQuery));
+
+</script>
+
     </metal:block>
     <metal:block fill-slot="style_slot">
      <link rel="stylesheet" media="all" href="./++resource++formlibrary.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++formlibrary.css" type="text/css" />
+<style>
+
+#content form.rowlike {
+    float:left;
+    /* width:48%; */
+    font-size:90%;
+    padding-right:0.8em;
+}
+
+
+#content form.rowlike span.formHelp {
+    font-size:90%;
+    line-height:110%;
+    margin-left:1.6em;
+}
+
+.guide {
+    display:none;
+    float:left;
+    width:48%;
+    font-size:75%;
+    padding:0 0.4em;
+    border:1px dotted #999;
+    background-color:#ecf5f3;
+}
+
+.guide h4 {
+    color:blue;
+}
+
+.guide table {
+    border:1px solid #999;
+}
+
+.guide tr {
+    border-bottom:1px solid #999;
+}
+
+.guide th { 
+    text-align:center;
+}
+
+.guide td, .guide.th {
+    border-left:1px solid #999;
+    padding:0.2em;
+}
+
+.guide td.choice-highlight {
+    color:navy;
+    font-weight:bold;
+    padding:1em;
+    text-align:center;
+}
+
+.guide td.example {
+    font-style:italic;
+    font-size:90%;
+}
+
+.guide tr:nth-child(odd) {
+    background-color:#eee;
+}
+
+.guide.th {
+    font-size:120%;
+    background-color:#eee;
+}
+
+</style>
+
     </metal:block>
 </head>
 <body>
@@ -20,6 +128,96 @@
   <hr />
   <h2 tal:content="view/step_title">STEP TITLE</h2>
   <div tal:replace="structure view/formbody" />
+  <div class="guide" tal:condition="python: getattr(context, 'source_type', None) == 'uu.formlibrary.multiform'">
+<h4>Example outcomes and choices</h4>
+<p>For creating measures mapped to multi-record (chart-review) forms.</p>
+<table>
+<tr class="headings">
+    <th>Outcome</th>
+    <th>Numerator type</th>
+    <th>Denominator type</th>
+    <th>Example / explanation</th>
+</tr>
+<tr>
+    <td class="outcome-description">
+    Percentage of records that meet certain criteria (of total records). 
+    </td>
+    <td class="choice-highlight">
+    Value Computed by a filter of records
+    </td>
+    <td class="choice-highlight">
+    Total Records
+    </td>
+    <td class="example">
+    The percentage of records matching a criteria being assessed, screened, etc out of total records reviewed.
+    </td>
+</tr>
+<tr>
+    <td class="outcome-description">
+    Percentage of records that meet certain criteria (of a subset of records matching another set of criteria). 
+    </td>
+    <td class="choice-highlight">
+    Value Computed by a filter of records
+    </td>
+    <td class="choice-highlight">
+    Value Computed by a filter of records
+    </td>
+    <td class="example">
+    The percentage of a value in a question that has a sub-category. Example: number of records matching a certain type of missed opportunity over a count of all missed opportunities. (e.g. Parent refusal out of all missed opportunity, follow-up visits scheduled out of all with positive screening.)
+    </td>
+</tr>
+<tr>
+    <td class="outcome-description">
+    The count (total number) of records matching criteria. 
+    </td>
+    <td class="choice-highlight">
+    Value Computed by a filter of records
+    </td>
+    <td class="choice-highlight">
+    No Denominator
+    </td>
+    <td class="example">
+    The number of criteria met in records audited. i.e., How many kids had immunization assessed, how many kids tested positive.
+    </td>
+</tr>
+<tr>
+    <td class="outcome-description">
+    The count of total records in a form.
+    </td>
+    <td class="choice-highlight">
+    Total Records
+    </td>
+    <td class="choice-highlight">
+    No Denominator
+    </td>
+    <td class="example">
+    The number of all records that were reviewed / reported on within a periodic form (e.g. monthly chart review). 
+    </td>
+</tr>
+<tr>
+    <td class="outcome-description">
+    A score that rewards a low percentage of criteria being met with a higher number. 
+    </td>
+    <td class="choice-highlight">
+    Total Records
+    </td>
+    <td class="choice-highlight">
+    Value Computed by a filter of records
+    </td>
+    <td class="example">
+    This is an advanced situation: a score that is the inverse of a percentage value.  Use only if you wish to reward a low count of something with a high score.
+    </td>
+</tr>
+</table>
+
+<h4>Notes:</h4>
+<ul>
+<li>Selecting “Total Records” / “Total Records” is an invalid choice.</li>
+<li>Advanced choices include use of metadata fields for either a numerator or denominator.  This is usually used in cases where a count of charts in a chart review matching a criteria are divided over a field for total population or subpopulation that the designer of the form has specified.</li>
+</ul>
+
+
+  </div>
  </div>
 </body>
 </html>

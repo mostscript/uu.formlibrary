@@ -27,7 +27,7 @@ from uu.formlibrary.vocabulary import find_context
 
 from interfaces import IMeasureNaming, IMeasureFormDefinition
 from interfaces import IMeasureSourceType, IMeasureCalculation
-from interfaces import IMeasureUnits, IMeasureRounding
+from interfaces import IMeasureUnits
 from interfaces import IMeasureFieldSpec
 from utils import SignedPickleIO
 from factory import MeasureFactory
@@ -35,16 +35,6 @@ from factory import MeasureFactory
 
 class IMeasureWizardSubform(form.Schema):
     """Marker base for a subform of the measure creation wizard"""
-
-
-class IMeasureWizardNaming(IMeasureNaming, IMeasureWizardSubform):
-    """Title, description subform"""
-
-    goal = schema.Float(
-        title=u'Goal value',
-        description=u'Numeric value of goal, if applicable (optional).',
-        required=False,
-        )
 
 
 class IMeasureWizardDefinition(IMeasureFormDefinition, IMeasureWizardSubform):
@@ -58,29 +48,21 @@ class IMeasureWizardSourceType(IMeasureSourceType, IMeasureWizardSubform):
     """Choose form data-source type (branch point in wizard decision tree)"""
 
 
-class IMeasureWizardMRCriteria(IMeasureCalculation, IMeasureWizardSubform):
-    """Numerator/denominator selection for measure via multi-record form"""
+class IMeasureWizardGoal(Interface):
+    """Mixin interface for goal field common to measures"""
 
-
-class IMeasureWizardRounding(IMeasureRounding, IMeasureWizardSubform):
-    """
-    Marker for automata state for rounding and percentage calculation
-    step via multi-record form data source.
-    """
-
-    express_as_percentage = schema.Bool(
-        title=u'Express value as percentage',
-        description=u'Should the value be expressed as a percentage? '
-                    u'If the raw value results from a ratio, and this '
-                    u'option is selected, the ratio value (usually between '
-                    u'zero and one) will be multiplied by 100 and values '
-                    u'will be displayed in percentage notation.  This box '
-                    u'may be pre-checked for you if the numerator and '
-                    u'denominator types selected on the previous page '
-                    u'imply that computed values will be a rate or ratio.',
-        default=False,
+    goal = schema.Float(
+        title=u'Goal value',
+        description=u'Numeric value of goal, if applicable (optional).',
         required=False,
         )
+
+
+class IMeasureWizardMRCriteria(IMeasureNaming,
+                               IMeasureWizardGoal,
+                               IMeasureCalculation,
+                               IMeasureWizardSubform):
+    """Numerator/denominator selection for measure via multi-record form"""
 
 
 class IMeasureWizardFlexUnits(IMeasureUnits, IMeasureWizardSubform):
@@ -138,7 +120,10 @@ def fieldset_choices(context):
 alsoProvides(fieldset_choices, IContextSourceBinder)
 
 
-class IMeasureWizardFlexFields(IMeasureFieldSpec, IMeasureWizardSubform):
+class IMeasureWizardFlexFields(IMeasureNaming,
+                               IMeasureWizardGoal,
+                               IMeasureFieldSpec,
+                               IMeasureWizardSubform):
     """Choose a fieldset/field for numerator/denominator/note."""
 
 
@@ -172,29 +157,13 @@ class IMeasureWizardFlexFieldChoice(IMeasureWizardSubform):
 ## using button tokens as an input alphabet for the finite state machine.
 
 mr_delta_tables = {
-    IMeasureWizardNaming: {
-        'next': IMeasureWizardMRCriteria,
-        },
     IMeasureWizardMRCriteria: {
-        'previous': IMeasureWizardNaming,
-        'next': IMeasureWizardRounding,
-        },
-    IMeasureWizardRounding: {
-        'previous': IMeasureWizardMRCriteria,
         'next': None,   # final
         },
 }
 
 flex_delta_tables = {
-    IMeasureWizardNaming: {
-        'next': IMeasureWizardFlexFields,
-        },
     IMeasureWizardFlexFields: {
-        'previous': IMeasureWizardNaming,
-        'next': IMeasureWizardRounding,
-        },
-    IMeasureWizardRounding: {
-        'previous': IMeasureWizardFlexFields,
         'next': None,   # final
         },
 }
@@ -210,14 +179,13 @@ BUTTON_LABELS = {
 
 
 STEP_TITLES = {
-    IMeasureWizardNaming: u'Name and describe your measure',
     IMeasureWizardDefinition: u'Choose a form definition for the measure',
     IMeasureWizardSourceType: u'What type of data source?',
-    IMeasureWizardMRCriteria: u'How is measure calculated?',
-    IMeasureWizardRounding: 'How should computed values be displayed?',
+    IMeasureWizardMRCriteria: u'Describe a measure, and how it is calculated?',
     IMeasureWizardFlexUnits: 'Describe and configure the units of measure?',
-    IMeasureWizardFlexFields: u'How is measue calculated?  Choose '
-                              u'field(s) as sources of values.',
+    IMeasureWizardFlexFields: u'How is measure calculated?  Name, and describe '
+                              u'your measure, then choose field(s) as sources '
+                              u'of values.',
 }
 
 
@@ -292,14 +260,17 @@ class MeasureWizardView(object):
     data_cookie = 'MeasureWizardView_data'          # pseudo-session data
     step_cookie = 'MeasureWizardView_last_current'  # last viewed form step
 
-    default_step = IMeasureWizardNaming
-
     def __init__(self, context, request):
         self.context = context      # context here is measure group
         self.__parent__ = context   # zope2 security permission acquisition
         self.request = request
         self.portal = getSite()
         self._secret = queryUtility(IKeyManager).secret()
+
+    @property
+    def default_step(self):
+        _multi = self.context.source_type == MULTI_FORM_TYPE
+        return IMeasureWizardMRCriteria if _multi else IMeasureWizardFlexFields
 
     @property
     def delta(self):
@@ -486,18 +457,6 @@ class MeasureWizardView(object):
         self.formbody = ''
         self.request.response.redirect(url)
 
-    def data_implies_percentage(self, saved_formdata):
-        if self.context.source_type == SIMPLE_FORM_TYPE:
-            d = saved_formdata.get('IMeasureWizardFlexFields', {})
-            n, d = d.get('numerator_field'), d.get('denominator_field')
-            return bool(n) and bool(d)  # both defined
-        d = saved_formdata.get('IMeasureWizardMRCriteria', {})
-        nt, mt = d.get('numerator_type', None), d.get('denominator_type', None)
-        return (
-            nt in ('multi_filter', 'mutli_metadata') and
-            mt in ('multi_total', 'multi_filter', 'multi_metadata')
-            )
-
     def update(self, *args, **kwargs):
         method = self.request.get('REQUEST_METHOD', None)
         ## check for cancelation of wizard:
@@ -544,14 +503,6 @@ class MeasureWizardView(object):
 
         ## get current wizard step (state, used by template and methods):
         self.current_step = self.get_current_form_step()
-
-        ## if rounding step and % implied, set express_as_percentage to True
-        if self.current_step == IMeasureWizardRounding:
-            if self.data_implies_percentage(saved_formdata):
-                if 'IMeasureWizardRounding' not in saved_formdata:
-                    saved_formdata['IMeasureWizardRounding'] = {}
-                d = saved_formdata['IMeasureWizardRounding']
-                d['express_as_percentage'] = True
 
         if self.current_step is None:
             return self.update_final(saved_formdata, *args, **kwargs)

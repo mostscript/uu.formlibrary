@@ -2,7 +2,7 @@ from plone.dexterity.utils import createContent, addContentToContainer
 from zope.component import adapts
 from zope.interface import implements
 
-from uu.formlibrary.interfaces import MULTI_FORM_TYPE
+from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.search.interfaces import FILTER_TYPE
 from interfaces import IMultiRecordMeasureFactory
 from interfaces import MEASURE_DEFINITION_TYPE, IMeasureGroup
@@ -16,12 +16,26 @@ class MeasureFactory(object):
     def __init__(self, context):
         self.context = context  # is a measure group
 
+    def data_implies_percentage(self, saved_formdata):
+        if self.context.source_type == SIMPLE_FORM_TYPE:
+            d = saved_formdata.get('IMeasureWizardFlexFields', {})
+            n, d = d.get('numerator_field'), d.get('denominator_field')
+            return bool(n) and bool(d)  # both defined
+        d = saved_formdata.get('IMeasureWizardMRCriteria', {})
+        nt, mt = d.get('numerator_type', None), d.get('denominator_type', None)
+        return (
+            nt in ('multi_filter', 'mutli_metadata') and
+            mt in ('multi_total', 'multi_filter', 'multi_metadata')
+            )
+
     def _make_measure(self, data):
         kw = {}   # field values for new measure
-        naming = data.get('IMeasureWizardNaming')
-        rounding = data.get('IMeasureWizardRounding')
-        kw.update(naming)    # title, description, goal
-        kw.update(rounding)  # rounding, display_precision, display as percent
+        # use defaults for rounding, display_precision, infer if percentage
+        kw.update({
+            'rounding': '',
+            'display_precision': 1,
+            'express_as_percentage': self.data_implies_percentage(data),
+            })
         if self.context.source_type == MULTI_FORM_TYPE:
             calc = data.get('IMeasureWizardMRCriteria')
         else:

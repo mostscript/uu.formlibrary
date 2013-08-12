@@ -212,6 +212,7 @@
 
 <h4>Notes:</h4>
 <ul>
+<li>All ratios will be expressed as a percentage by default.</li>
 <li>Selecting “Total Records” / “Total Records” is an invalid choice.</li>
 <li>Advanced choices include use of metadata fields for either a numerator or denominator.  This is usually used in cases where a count of charts in a chart review matching a criteria are divided over a field for total population or subpopulation that the designer of the form has specified.</li>
 </ul>

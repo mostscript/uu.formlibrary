@@ -270,11 +270,11 @@ class MeasureDefinition(Container):
         _date = lambda info: info.get('start', None)
         dates = sorted(set(map(_date, all_points)))  # de-duped ordered dates
         for d in dates:
-            _match = lambda info: info.get('start') == d
+            _hasvalue = lambda info: not math.isnan(info.get('value', NOVALUE))
+            _match = lambda info: info.get('start') == d and _hasvalue(info)
             matches = filter(_match, all_points)
             values = [info.get('value', NOVALUE) for info in matches]
-            considered_values = filter(lambda v: not math.isnan(v), values)
-            calculated_value = fn(considered_values)
+            calculated_value = fn(values)
             includes = ', '.join([info.get('title') for info in matches])
             result.append({
                 'title': '%s: %s' % (label, d.isoformat()),

@@ -1,6 +1,7 @@
 from Acquisition import aq_parent, aq_inner
 from OFS.event import ObjectClonedEvent
 from plone.app.content.namechooser import NormalizingNameChooser
+from plone.app.uuid.utils import uuidToCatalogBrain
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 from zope.component import getMultiAdapter
@@ -9,6 +10,7 @@ from zope.lifecycleevent import ObjectCopiedEvent
 
 from interfaces import IMeasureDefinition
 from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
+from interfaces import AGGREGATE_LABELS
 
 
 def local_query(context, query):
@@ -71,6 +73,13 @@ class FormDataSetView(object):
         self.context = context
         self.request = request
         self.forms = []
+
+    def aggregate_label(self):
+        fn = getattr(self.context, 'aggregate_function', 'AVG')
+        return dict(AGGREGATE_LABELS).get(fn)  # get function label
+
+    def dataset_info(self, uid):
+        return uuidToCatalogBrain(uid)
 
     def update(self):
         req = self.request

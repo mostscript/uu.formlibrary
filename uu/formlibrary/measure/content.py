@@ -1,4 +1,5 @@
 import datetime
+from itertools import chain
 import math
 
 from Acquisition import aq_parent, aq_inner, aq_base
@@ -6,6 +7,7 @@ from DateTime import DateTime
 from plone.dexterity.content import Container, Item
 from plone.indexer.decorator import indexer
 from plone.uuid.interfaces import IUUID
+from plone.app.uuid.utils import uuidToObject
 from plone.app.layout.navigation.root import getNavigationRoot
 from zope.component.hooks import getSite
 from zope.interface import implements
@@ -16,7 +18,7 @@ from uu.formlibrary.search.interfaces import IRecordFilter
 
 from interfaces import IMeasureDefinition, IMeasureGroup, IMeasureLibrary
 from interfaces import IFormDataSetSpecification
-from interfaces import AGGREGATE_FUNCTIONS
+from interfaces import AGGREGATE_FUNCTIONS, AGGREGATE_LABELS
 from utils import content_path
 
 
@@ -245,16 +247,62 @@ class MeasureDefinition(Container):
             self._set_cumulative_points(point, previous)  # in-place
         return points
 
+    def _dataset_points(self, dataset):
+        forms = dataset.forms()
+        if getattr(self, 'cumulative', None):
+            return self._cumulative_points(forms)
+        return self.points(forms)
+
+    def _aggregate_dataset_points(self, aggregated, fn_name):
+        """
+        given a list of other aggregated datasets, get data for
+        each, and calculate aggregate values for points, given
+        a value aggregation function (fn).
+        """
+        fn = AGGREGATE_FUNCTIONS.get(fn_name)
+        label = dict(AGGREGATE_LABELS).get(fn_name, '')
+        result = []
+        raw = []
+        for ds in aggregated:
+            points = self._dataset_points(ds)
+            raw.append(points)
+        all_points = list(chain(*raw))
+        _date = lambda info: info.get('start', None)
+        dates = sorted(set(map(_date, all_points)))  # de-duped ordered dates
+        for d in dates:
+            _match = lambda info: info.get('start') == d
+            matches = filter(_match, all_points)
+            values = [info.get('value', NOVALUE) for info in matches]
+            considered_values = filter(lambda v: not math.isnan(v), values)
+            calculated_value = fn(considered_values)
+            includes = ', '.join([info.get('title') for info in matches])
+            result.append({
+                'title': '%s: %s' % (label, d.isoformat()),
+                'url': self.absolute_url(),
+                'path': '--',
+                'start': d,
+                'value': calculated_value,
+                'user_notes': 'Aggregate value (%s) includes: %s' % (
+                    label,
+                    includes,
+                    ),
+                'display_value': self.display_format(calculated_value),
+                })
+        return result
+
     def dataset_points(self, dataset):
         """
         Given an data set specification object providing the interface
         IFormDataSetSpecification, return data points for all forms
         included in the set.
         """
-        forms = dataset.forms()
-        if getattr(self, 'cumulative', None):
-            return self._cumulative_points(forms)
-        return self.points(forms)
+        if getattr(dataset, 'use_aggregate', False):
+            aggregated = getattr(dataset, 'aggregate_datasets', [])
+            if aggregated:
+                aggregated = [uuidToObject(ds) for ds in aggregated]
+                fn_name = getattr(dataset, 'aggregate_function', 'AVG')
+                return self._aggregate_dataset_points(aggregated, fn_name)
+        return self._dataset_points(dataset)
 
     def display_format(self, value):
         """

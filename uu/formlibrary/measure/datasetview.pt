@@ -70,6 +70,20 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
 </head>
 <body>
  <div metal:fill-slot="content-core">
+ <tal:block condition="python: getattr(context, 'use_aggregate', False)">
+   <h4>Aggregate data-set (<span tal:content="view/aggregate_label"/>) of:</h4>
+   <div class="note">Included below are listed data-sets included for consideration when calculating aggregate values.</div>
+   <ul>
+    <li tal:repeat="uid python:getattr(context, 'aggregate_datasets', [])">
+     <tal:block define="brain python:view.dataset_info(uid)">
+        <a href=""
+           tal:attributes="href brain/getURL"
+           tal:content="brain/Title" />
+     </tal:block>
+    </li>
+   </ul>
+ </tal:block>
+ <tal:block condition="python: not getattr(context, 'use_aggregate', False)">
  <div class="listing-wrapper" tal:define="global hasdirect python:False">
   <div class="listing">
    <h4>Resulting forms in this data set (<span class=result-count" tal:content="python: len(view.forms)">#</span>):</h4>
@@ -134,6 +148,8 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
   </div>
   <div style="clear:both">&nbsp;</div>
   </div>
+
+ </tal:block>
  </div>
 </body>
 </html>

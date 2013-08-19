@@ -522,6 +522,16 @@ class IFormDataSetSpecification(form.Schema):
             ]
         )
 
+    form.fieldset(
+        'aggregation',
+        label=u'Aggregation',
+        fields=[
+            'use_aggregate',
+            'aggregate_datasets',
+            'aggregate_function',
+            ]
+        )
+
     title = schema.TextLine(
         title=u'Title',
         description=u'Name of form set.',
@@ -599,6 +609,29 @@ class IFormDataSetSpecification(form.Schema):
         title=u'Filter: date range end',
         description=u'Date range inclusion query (end).',
         required=False,
+        )
+
+    use_aggregate = schema.Bool(
+        title=u'Use aggregate calculation?',
+        description=u'If selected, and other data-sets are selected '
+                    u'for aggregation, calculate aggregate value '
+                    u'for these data-sets using function specified?',
+        default=False,
+        )
+
+    aggregate_datasets = schema.List(
+        title=u'Aggregate data-sets',
+        value_type=schema.Choice(
+            source=MeasureGroupContentSourceBinder(portal_type=DATASET_TYPE),
+            ),
+        defaultFactory=list,
+        required=False,
+        )
+
+    aggregate_function = schema.Choice(
+        title=u'Aggregate function',
+        vocabulary=CUMULATIVE_FN_CHOICES,
+        default='AVG',
         )
 
     def brains(self):

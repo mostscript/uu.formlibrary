@@ -1,15 +1,18 @@
 import operator
 
+from Acquisition import aq_parent, aq_inner
+from plone.app.layout.navigation.interfaces import INavigationRoot
 from plone.directives import form
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
-from plone.uuid.interfaces import IAttributeUUID
+from plone.uuid.interfaces import IAttributeUUID, IUUID
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
 from zope.globalrequest import getRequest
-from zope.interface import Interface, Invalid, invariant
+from zope.interface import Interface, Invalid, implements, invariant
 from zope import schema
+from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 from uu.smartdate.browser.widget import SmartdateFieldWidget
@@ -136,6 +139,58 @@ AGGREGATE_LABELS = [
 CUMULATIVE_FN_CHOICES = SimpleVocabulary(
     [SimpleTerm(v, title=title) for v, title in AGGREGATE_LABELS]
 )
+
+
+class PermissiveVocabulary(SimpleVocabulary):
+    def __contains__(self, value):
+        return True
+
+    def getTermByToken(self, token):
+        """
+        this works around z3c.form.widget.SequenceWidget.extract()
+        pseudo-validation (which is broken for a permissive vocabulary).
+        """
+        try:
+            v = super(PermissiveVocabulary, self).getTermByToken(token)
+        except LookupError:
+            # fallback using dummy term, assumes token==value
+            return SimpleTerm(token)
+        return v
+
+
+class MeasureGroupContentSourceBinder(object):
+    """
+    Source binder for listing items contained in measure group parent of
+    a measure context, filtered by type.
+    """
+
+    implements(IContextSourceBinder)
+
+    def __init__(self, portal_type=None):
+        self.typename = str(portal_type)
+
+    def _group(self, context):
+        while not INavigationRoot.providedBy(context):
+            if IMeasureGroup.providedBy(context):
+                return context
+            context = aq_parent(aq_inner(context))
+        return None
+
+    def __call__(self, context):
+        group = self._group(context)
+        if group is None:
+            return PermissiveVocabulary([])
+        contained = group.objectValues()
+        if self.typename:
+            contained = filter(
+                lambda o: o.portal_type == self.typename,
+                contained,
+                )
+        terms = map(
+            lambda o: SimpleTerm(IUUID(o), title=o.Title().decode('utf-8')),
+            contained,
+            )
+        return PermissiveVocabulary(terms)
 
 
 ## field default (defaultFactory) methods:

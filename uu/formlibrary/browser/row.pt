@@ -1,6 +1,8 @@
 <tr>
- <td tal:repeat="widget view/widgets/values">
-  <span tal:replace="structure widget/render" />
- </td>
+ <tal:block repeat="widget view/widgets/values">
+  <td tal:attributes="class string:col-${widget/field/__name__} c${repeat/widget/index">
+   <span tal:replace="structure widget/render" />
+  </td>
+ </tal:block>
 </tr>
 

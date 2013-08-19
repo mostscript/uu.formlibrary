@@ -220,11 +220,54 @@ uu.formlibrary.multiform.rowhandlers = function() {
     }
 };
 
+uu.formlibrary.multiform.alignHeadingWidths = function (datarow) {
+    var headingsTable = $('table.formheadings'),
+        trHeadings = $('tr.headings', headingsTable),
+        headings = $('th', trHeadings),
+        datacells = $('td', $(datarow)),
+        widths = datacells.map(
+            function () {
+                return $(this).width();
+            }
+        ).toArray(),
+        sum = function (s) {
+            return s.reduce(
+                function (a,b) {
+                    return a + b;
+                }
+            );
+        },
+        idx,
+        dataCell,
+        th,
+        cellWidth,
+        cellPadding;
+    headingsTable.css('table-layout', 'fixed');
+    for (idx = 0; idx < widths.length; idx += 1) {
+        dataCell = $(datacells[idx]);
+        th = $(headings[idx]);
+        cellPadding = (dataCell.innerWidth() - dataCell.width()) / 2;
+        th.css(
+            'padding-left', cellPadding
+        ).css(
+            'padding-right', cellPadding
+        ).width(
+            widths[idx] + 1
+        );
+    }
+};
+
 uu.formlibrary.multiform.handle_new_row = function() {
     var num_rows = parseInt(jq('input.numrows').val(), 10),
+        headingsFixed = false,
         onSuccess = function (responseText) {
             var row = jq('<div />').append(responseText).find('ol.formrows li');
             jq('ol.formrows').append(row);
+            if (!headingsFixed && jq('table.formheadings').length) {
+                // columnar display, align headings with body
+                uu.formlibrary.multiform.alignHeadingWidths(row);
+                headingsFixed = true;
+            }
             uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
             uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
         };

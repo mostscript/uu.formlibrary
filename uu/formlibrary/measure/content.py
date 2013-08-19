@@ -273,7 +273,7 @@ class MeasureDefinition(Container):
             _hasvalue = lambda info: not math.isnan(info.get('value', NOVALUE))
             _match = lambda info: info.get('start') == d and _hasvalue(info)
             matches = filter(_match, all_points)
-            values = [info.get('value', NOVALUE) for info in matches]
+            values = [info.get('value') for info in matches]
             calculated_value = fn(values)
             includes = ', '.join([info.get('title') for info in matches])
             result.append({

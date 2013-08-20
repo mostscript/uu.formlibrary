@@ -166,8 +166,9 @@ class MeasureGroupContentSourceBinder(object):
 
     implements(IContextSourceBinder)
 
-    def __init__(self, portal_type=None):
+    def __init__(self, portal_type=None, exclude_context=True):
         self.typename = str(portal_type)
+        self.exclude_context = exclude_context
 
     def _group(self, context):
         while not INavigationRoot.providedBy(context):
@@ -186,6 +187,13 @@ class MeasureGroupContentSourceBinder(object):
                 lambda o: o.portal_type == self.typename,
                 contained,
                 )
+        if self.exclude_context:
+            _idmatch = lambda o: o.getId() == context.getId()
+            _groupcontext = IMeasureGroup.providedBy(context)
+            contained = filter(
+                lambda o: _groupcontext or not _idmatch(o),
+                contained,
+            )
         terms = map(
             lambda o: SimpleTerm(IUUID(o), title=o.Title().decode('utf-8')),
             contained,

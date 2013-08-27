@@ -428,7 +428,7 @@ class IMeasureDefinition(form.Schema,
     form.fieldset(
         'flex_calc',
         label=u'Flex form calculation',
-        fields=['numerator_field', 'denominator_field', 'note_field']
+        fields=['numerator_field', 'denominator_field', 'notes_field']
         )
 
     form.fieldset(

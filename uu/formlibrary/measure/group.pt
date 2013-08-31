@@ -59,7 +59,7 @@
           </a>
         </li>
         <li class="browse">
-          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
+          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents?show_all=1">
             <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/measurelib.png" />
             Browse all measures in group</a>
         </li>
@@ -74,7 +74,7 @@
     </div>
     <div id="library-info">
 
-      <div class="recent" tal:define="recent python:view.recent(limit=8); count view/count">
+      <div class="recent" tal:define="recent python:view.recent(limit=20); count view/count">
         <h3>Most-recently modified measure definitions:</h3>
         <p tal:condition="python: not count">There are no measure definitions contained in this group.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
@@ -87,7 +87,7 @@
             </li>
         </ul>
         <div tal:condition="count">
-          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
+          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents?show_all=1">
             See all measure definitions. 
           </a>
           (<span tal:replace="count"></span>).
@@ -95,7 +95,7 @@
         <hr style="border-top:none; border:1px solid #aaa; width:97%; margin-botton:0.5em; padding:0;" />
       </div>
       
-      <div class="recent" tal:define="recent python:view.recent(limit=8, portal_type=view.dataset_type); count python:view.count(portal_type=view.dataset_type)">
+      <div class="recent" tal:define="recent python:view.recent(limit=20, portal_type=view.dataset_type); count python:view.count(portal_type=view.dataset_type)">
         <h3>Most-recently modified data sets:</h3>
         <p tal:condition="python: not count">There are no data sets contained in this group.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
@@ -108,7 +108,7 @@
             </li>
         </ul>
         <div tal:condition="count">
-          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents">
+          <a href="" tal:attributes="href string:${context/absolute_url}/folder_contents?show_all=1">
             See all items
           </a>
           (<span tal:replace="count"></span>).

@@ -6,5 +6,8 @@
   <index name="target_uids" meta_type="KeywordIndex">
     <indexed_attr value="query_selected" />
   </index>
+  <index name="references" meta_type="KeywordIndex">
+    <indexed_attr value="references" />
+  </index>
 </object>
 

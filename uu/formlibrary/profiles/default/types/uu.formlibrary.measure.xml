@@ -65,5 +65,11 @@
          visible="True" insert-before="data_view">
   <permission value="Modify portal content"/>
  </action>
+ <action title="In Use (by)" action_id="in_use" category="object"
+    condition_expr="context/@@in_use_by/in_use" icon_expr=""
+    link_target="" url_expr="string:${object_url}/@@in_use_by"
+    visible="True">
+    <permission value="View"/>
+ </action>
 </object>
 

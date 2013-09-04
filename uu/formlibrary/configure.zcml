@@ -120,6 +120,18 @@
     handler=".handlers.definition_delete_integrity"
     />
   
+  <subscriber
+    for=".measure.interfaces.IMeasureDefinition
+         zope.lifecycleevent.interfaces.IObjectRemovedEvent"
+    handler=".handlers.delete_integrity"
+    />
+  
+  <subscriber
+    for=".measure.interfaces.IFormDataSetSpecification
+         zope.lifecycleevent.interfaces.IObjectRemovedEvent"
+    handler=".handlers.delete_integrity"
+    />
+  
   <!-- shim to make definition_delete_integrity not cause issues
        when deleting a Plone site -->
   <subscriber

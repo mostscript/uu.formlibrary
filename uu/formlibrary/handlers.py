@@ -7,10 +7,12 @@ from OFS.interfaces import IObjectManager
 from Products.CMFCore.utils import getToolByName
 from plone.app.linkintegrity.exceptions import (
     LinkIntegrityNotificationException)
+from plone.app.linkintegrity.interfaces import ILinkIntegrityInfo
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.dynamicschema.schema import parse_schema
+from uu.formlibrary.browser.usedby import InUseBy
 from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
 from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup, IBaseForm
 from uu.formlibrary.interfaces import IFormComponents, IMultiForm
@@ -64,6 +66,22 @@ def definition_delete_integrity(context, event):
             msg = 'Item in use, cannot be removed while form instances '\
                   'are using this definition.'
             raise LinkIntegrityNotificationException(msg)
+
+
+def delete_integrity(context, event):
+    request = getRequest()
+    if request is not None:
+        path = context.getPhysicalPath()
+        for base in _ignorepaths(request):
+            if tuple(path[:len(base)]) == base:
+                # allow deletion of Plone site marked by before_site_delete()
+                return
+        used_by = InUseBy(context, request)
+        if len(used_by) > 0:
+            info = ILinkIntegrityInfo(request)
+            for brain in used_by._brainmap.values():
+                info.addBreach(brain._unrestrictedGetObject(), context)
+            raise LinkIntegrityNotificationException(context)
 
 
 def handle_copypaste_local_roles(context, event):

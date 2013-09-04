@@ -31,10 +31,11 @@ class MeasureFactory(object):
     def _make_measure(self, data):
         kw = {}   # field values for new measure
         # use defaults for rounding, display_precision, infer if percentage
+        use_pct = self.data_implies_percentage(data)
         kw.update({
             'rounding': '',
-            'display_precision': 1,
-            'express_as_percentage': self.data_implies_percentage(data),
+            'display_precision': 1 if use_pct else 0,
+            'express_as_percentage': use_pct,
             })
         if self.context.source_type == MULTI_FORM_TYPE:
             calc = data.get('IMeasureWizardMRCriteria')

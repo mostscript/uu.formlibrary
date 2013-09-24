@@ -7,6 +7,7 @@ from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 
 from uu.formlibrary.interfaces import IFormSet, IFormDefinition
+from uu.formlibrary.interfaces import MULTI_FORM_TYPE, SIMPLE_FORM_TYPE
 
 
 # form set adapters:
@@ -168,7 +169,13 @@ class DefinitionFormSet(BaseFormSet):
             raise ValueError(
                 'context %s does not provide IFormDefinition' % context)
         BaseFormSet.__init__(self, context, name=u'definition')
-        r = self.catalog.search({'definition': IUUID(self.context)})
+        r = self.catalog.search({
+            'definition': IUUID(self.context),
+            'portal_type': {
+                'query': (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE),
+                'operator': 'or',
+                },
+            })
         self.contents = set([b.UID for b in r])
 
 

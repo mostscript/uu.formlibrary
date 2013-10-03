@@ -77,7 +77,10 @@ class FormSeriesListing(object):
                 local_query(
                     self.context,
                     {
-                        'review_state': 'submitted',
+                        'review_state': {
+                            'query': ('submitted', 'archived'),
+                            'operator': 'or',
+                        },
                         'modified': {
                             'query': DateTime() - 60,  # last 60 days
                             'range': 'min',

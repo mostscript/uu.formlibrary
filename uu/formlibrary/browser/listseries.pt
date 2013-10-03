@@ -31,9 +31,11 @@
                                        alt item/Type"
                        />
                   <a href=""
-                     tal:attributes="href item/getURL"
+                     tal:attributes="href item/getURL;
+                                     class string:state-${item/review_state}"
                      tal:content="item/Title">
                   </a>
+                  <em tal:condition="python: item.review_state=='archived'">(archived)</em>
               </span>
             </dt>
             <dd tal:condition="item/Description">

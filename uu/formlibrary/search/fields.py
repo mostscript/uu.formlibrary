@@ -6,12 +6,18 @@ from zope.interface import implements
 from zope.publisher.interfaces.browser import IBrowserPublisher
 from zope.publisher.interfaces import NotFound
 from zope.schema import getFieldNamesInOrder
+from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 from uu.retrieval.schema import schema_index_types
 
 from uu.formlibrary.interfaces import IFormDefinition
 from interfaces import ISearchableFields
 
+# vocabulary for Bool fields
+YESNO = SimpleVocabulary([
+        SimpleTerm(True, title=u'yes'),
+        SimpleTerm(False, title=u'no'),
+    ])
 
 _u = lambda v: v if isinstance(v, unicode) else str(v).decode('utf-8')
 
@@ -33,6 +39,8 @@ class FieldInfo(object):
             self.value_type = self.value_type.__class__.__name__
         if self.fieldtype == 'Choice':
             self.vocabulary = [t.value for t in field.vocabulary]
+        if self.fieldtype == 'Bool':
+            self.vocabulary = [t.title for t in YESNO]
         if self.value_type == 'Choice':
             self.vocabulary = [t.value for t in field.value_type.vocabulary]
         self.index_types = schema_index_types(field)

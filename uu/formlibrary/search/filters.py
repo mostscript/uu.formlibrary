@@ -260,6 +260,8 @@ class FilterJSONAdapter(object):
         self.context = context
 
     def normalize_value(self, field, value):
+        if schema.interfaces.IBool.providedBy(field):
+            return True if value.lower() == 'yes' else False
         if schema.interfaces.IDate.providedBy(field):
             if isinstance(value, basestring):
                 usa_date = normalize_usa_date(value)

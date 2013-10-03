@@ -229,7 +229,11 @@ formsearch.criteria = formsearch.criteria || {};
         this.isChoice = function () {
             var fieldtype = this.fieldtype,
                 valuetype = this.value_type;
-            return (fieldtype === 'Choice' || valuetype === 'Choice');
+            return (
+                fieldtype === 'Choice' ||
+                valuetype === 'Choice' ||
+                fieldtype === 'Bool'
+                );
         };
 
         this.init(context, name, data);
@@ -574,7 +578,7 @@ formsearch.criteria = formsearch.criteria || {};
                     self.value = select.val();
                 });
             };
-            if (field.fieldtype === 'Choice') {
+            if (field.fieldtype === 'Choice' || field.fieldtype === 'Bool') {
                 if (comparator === 'Any') {
                     implSelections(cell, field, value);
                 } else {

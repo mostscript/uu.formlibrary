@@ -18,6 +18,12 @@ class SearchAPI(object):
 
     implements(IPublishTraverse, ISearchAPI)
 
+    # declare each capability attribute as class attr for any view
+    # instance attributes declared in allowed_attributes in ZCML
+    fields = None
+    criteria = None
+    comparators = None
+
     def __init__(self, context, request=None):
         self.context = context
         self.request = None

@@ -502,7 +502,7 @@ class IMeasureGroup(form.Schema,
     """
 
 
-class IMeasureLibrary(IOrderedContainer, form.Schema, IAttributeUUID):
+class IMeasureLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
     """
     Marker interface for library folder containing measure groups, which
     contain measure definitions (and topic/collections as data sets).

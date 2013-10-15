@@ -133,6 +133,8 @@ def make_replacement_form(series, oldform, definition):
     log('\t -- removing old form of id %s' % formid)
     series.manage_delObjects([formid])
     newform = flexform(series, formid, oldform.Title(), definition)
+    newform.start = oldform.start
+    newform.end = oldform.end
     log('\t -- created new form with id %s' % newform.getId())
     assert newform.getId() in series.objectIds()
     assert '' in newform.data.keys()    # default fieldset, unused, but...

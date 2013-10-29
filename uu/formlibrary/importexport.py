@@ -69,6 +69,7 @@ class CSVColumn(object):
         # mutliple-valued field types - no one-to-one value :
         idx = self.index or 0  # if None
         try:
+            v = list(v) if v else []
             element_value = v[idx]
             if isinstance(element_value, unicode):
                 element_value = element_value.encode('utf-8')

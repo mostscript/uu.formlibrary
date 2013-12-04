@@ -1,9 +1,7 @@
 import unittest2 as unittest
 
 from collective.z3cform.datagridfield.row import DictRow
-from plone.registry.interfaces import IRegistry
 from plone.app.testing import TEST_USER_ID, setRoles
-from Products.CMFPlone.utils import getToolByName
 from zope.component import queryUtility
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
@@ -82,7 +80,7 @@ class ComposedFormTest(unittest.TestCase):
         self.assertTrue(isinstance(o, cls))
         self.assertTrue(iface.providedBy(o))
         o.reindexObject()
-        return o # return constructed content for use in additional testing
+        return o  # return constructed content for use in additional testing
 
     def _fixtures(self):
         from uu.formlibrary.tests.fixtures import CreateContentFixtures
@@ -191,28 +189,33 @@ class ComposedFormTest(unittest.TestCase):
         assert dynamic is group_a.schema
 
         wrapper_signature = saver.signature(wrapper)
-        assert wrapper_signature not in saver.keys() # throw-away not stored
+        assert wrapper_signature not in saver.keys()  # throw-away not stored
 
         # default fieldset fields:
         composed_schema_fields = [f.field for f in composed.fields.values()]
         assert definition.schema in [
             field.interface for field in composed_schema_fields]
         for name, field in getFieldsInOrder(definition.schema):
-            assert name in composed.fields #keys
+            assert name in composed.fields  # keys
             assert field in composed_schema_fields
 
         # each field group
         for group in (group_a, group_b):
             schema = group.schema
             if group.group_usage == 'grid':
-                schema = wrapper # shortcut, we only have one grid in tests...
-                assert schema['data'].required == False
-            formgroup = [g for g in composed.groups
-                if g.__name__ == group.getId()][0]
+                schema = wrapper  # shortcut, we only have one grid in tests...
+                self.assertEqual(
+                    schema['data'].required,
+                    False
+                    )
+            formgroup = [
+                g for g in composed.groups
+                if g.__name__ == group.getId()
+                ][0]
             assert schema in [
                 field.field.interface for field in formgroup.fields.values()]
             for name, field in getFieldsInOrder(schema):
                 fullname = '.'.join((composed.getPrefix(schema), name))
-                assert fullname in formgroup.fields # prefixed name in keys
+                assert fullname in formgroup.fields  # prefixed name in keys
                 assert field in [f.field for f in formgroup.fields.values()]
 

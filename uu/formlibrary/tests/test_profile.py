@@ -55,7 +55,7 @@ class DefaultProfileTest(unittest.TestCase):
         CreateContentFixtures(self, self.layer).create()
 
     def _fixtures(self):
-        self.test_creation() # set
+        self.test_creation()  # set
         assert 'formlib' in self.portal.contentIds()
 
     def test_uuids(self):

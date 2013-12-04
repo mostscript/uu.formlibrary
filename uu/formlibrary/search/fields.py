@@ -15,8 +15,8 @@ from interfaces import ISearchableFields
 
 # vocabulary for Bool fields
 YESNO = SimpleVocabulary([
-        SimpleTerm(True, title=u'yes'),
-        SimpleTerm(False, title=u'no'),
+    SimpleTerm(True, title=u'yes'),
+    SimpleTerm(False, title=u'no'),
     ])
 
 _u = lambda v: v if isinstance(v, unicode) else str(v).decode('utf-8')

@@ -13,7 +13,9 @@ class DefinitionFormset(object):
         self.catalog = getToolByName(context, 'portal_catalog')
         self.formset = IFormSet(self.context)
         self.uid = IUUID(self.context)
-        _brains = self.catalog.search({'definition': self.uid})
+        _brains = self.catalog.unrestrictedSearchResults(
+            {'definition': self.uid}
+            )
         self._brainmap = dict([(b.UID, b) for b in _brains])
 
     def in_use(self):

@@ -12,7 +12,9 @@ class InUseBy(object):
         self.request = request
         self.catalog = getToolByName(context, 'portal_catalog')
         self.uid = IUUID(self.context)
-        _brains = self.catalog.search({self.INDEX: self.uid})
+        _brains = self.catalog.unrestrictedSearchResults(
+            {self.INDEX: self.uid}
+            )
         self._brainmap = dict([(b.UID, b) for b in _brains])
 
     def uuids(self):

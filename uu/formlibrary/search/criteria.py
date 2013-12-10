@@ -30,7 +30,7 @@ class BaseFilterView(object):
         q = {
             'getRawRelatedItems': uid,
             }
-        return tuple(catalog.search(q))
+        return tuple(catalog.unrestrictedSearchResults(q))
 
     def portalurl(self):
         return self.portal.absolute_url()

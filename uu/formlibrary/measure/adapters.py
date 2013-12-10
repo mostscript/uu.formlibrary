@@ -16,7 +16,7 @@ def group_form_definition(context):
         return None
     site = getSite()
     catalog = site.portal_catalog
-    r = catalog.search({'UID': form_definition_uid})
+    r = catalog.unrestrictedSearchResults({'UID': form_definition_uid})
     if not r:
         return None
     return r[0]._unrestrictedGetObject()

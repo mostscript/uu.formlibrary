@@ -30,7 +30,7 @@ class BaseFormSet(object):
     def get(self, key, default=None):
         if key not in self.keys():
             return default
-        r = self.catalog.search({'UID': str(key)})
+        r = self.catalog.unrestrictedSearchResults({'UID': str(key)})
         if not r:
             return default
         return r[0]._unrestrictedGetObject()
@@ -169,7 +169,7 @@ class DefinitionFormSet(BaseFormSet):
             raise ValueError(
                 'context %s does not provide IFormDefinition' % context)
         BaseFormSet.__init__(self, context, name=u'definition')
-        r = self.catalog.search({
+        r = self.catalog.unrestrictedSearchResults({
             'definition': IUUID(self.context),
             'portal_type': {
                 'query': (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE),

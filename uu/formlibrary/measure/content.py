@@ -404,7 +404,7 @@ class FormDataSetSpecification(Item):
         if not spec_uids:
             return None
         q = {'UID': {'query': spec_uids, 'operator': 'or', 'depth': 0}}
-        return catalog.search(q)
+        return catalog.unrestrictedSearchResults(q)
 
     def directly_included(self, spec):
         """
@@ -438,10 +438,10 @@ class FormDataSetSpecification(Item):
                 'operator': 'or',
                 },
             }
-        form_uids = [b.UID for b in catalog.search(filter_q)]
+        form_uids = [b.UID for b in catalog.unrestrictedSearchResults(filter_q)]
         folder_uids = list(set(spec_uids).difference(form_uids))
         folder_q = {'UID': {'query': folder_uids, 'operator': 'or'}}
-        folder_paths = [b.getPath() for b in catalog.search(folder_q)]
+        folder_paths = [b.getPath() for b in catalog.unrestrictedSearchResults(folder_q)]
         path_q = {
             'portal_type': form_type,
             'path': {
@@ -492,10 +492,12 @@ class FormDataSetSpecification(Item):
     def brains(self):
         folder_query, form_uids = self._query_spec()
         catalog = getSite().portal_catalog
-        directly_specified = catalog.search({
+        directly_specified = catalog.unrestrictedSearchResults({
             'UID': {'query': form_uids, 'operator': 'or'},
             })
-        forms_in_folders_specified = catalog.search(folder_query)
+        forms_in_folders_specified = catalog.unrestrictedSearchResults(
+            folder_query
+            )
         # get a LazyCat (concatenation of two results):
         unsorted_result = directly_specified + forms_in_folders_specified
         # might as well get all the results into list instead of LazyCat:

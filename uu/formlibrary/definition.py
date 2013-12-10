@@ -27,7 +27,8 @@ def form_definition(context, attr='definition'):
         raise ValueError('context lacks %s identifier' % attr)
     site = getSite()
     catalog = getToolByName(site, 'portal_catalog')
-    r = catalog.search({'UID': def_uid, 'portal_type': DEFINITION_TYPE})
+    find = catalog.unrestrictedSearchResults
+    r = find({'UID': def_uid, 'portal_type': DEFINITION_TYPE})
     if not r:
         raise ValueError('could not locate form definition')
     return r[0]._unrestrictedGetObject()

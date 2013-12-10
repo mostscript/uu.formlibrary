@@ -12,7 +12,9 @@ def migrate_multiform_add_catalogs(app):
     for name in SITENAMES:
         site = app[name]
         setSite(site)
-        r = site.portal_catalog.search({'portal_type': FORMTYPE})
+        r = site.portal_catalog.unrestrictedSearchResults(
+            {'portal_type': FORMTYPE}
+            )
         forms = map(lambda b: b._unrestrictedGetObject(), r)
         for form in forms:
             notify(ObjectModifiedEvent(form))  # forces catalog creation, index

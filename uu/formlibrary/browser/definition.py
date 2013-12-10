@@ -85,7 +85,7 @@ class DefinitionPreview(FormInputView):
             if isinstance(types, basestring):
                 types = (str(types),)  # wrap in tuple
             q = self.sorted_query({}, types=types)
-        return self.catalog.search(q)
+        return self.catalog.unrestrictedSearchResults(q)
 
     def more_contents_url(self, spec):
         portal_state = self.context.unrestrictedTraverse('@@plone_portal_state')

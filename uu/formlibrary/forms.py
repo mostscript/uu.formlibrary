@@ -1177,7 +1177,7 @@ class MultiForm(Item, RecordContainer):
         """
         if 'notes' in data:
             notes = unicode(data['notes']).strip()
-            if notes.strip():
+            if notes.strip() or self.entry_notes:
                 self.entry_notes = notes
                 return True
         return False

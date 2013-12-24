@@ -6,6 +6,7 @@ from AccessControl import getSecurityManager
 from ZPublisher.Iterators import IStreamIterator
 
 from uu.formlibrary.interfaces import IMultiFormCSV, IMultiForm, IFormSeries
+from uu.formlibrary.measure.interfaces import IFormDataSetSpecification
 
 
 class MultiFormCSVDownload(object):
@@ -75,10 +76,13 @@ class SeriesCSVArchiveView(object):
         self.context = context
         self.request = request
 
+    def _forms(self):
+        include = lambda o: IMultiForm.providedBy(o)
+        return [o for o in self.context.objectValues() if include(o)]
+
     def __call__(self, *args, **kwargs):
         secmgr = getSecurityManager()
-        include = lambda o: IMultiForm.providedBy(o)
-        forms = [o for o in self.context.objectValues() if include(o)]
+        forms = self._forms()
         output = tempfile.TemporaryFile(mode='w+b')
         archive = zipfile.ZipFile(output, mode='w')
         for form in forms:
@@ -98,4 +102,18 @@ class SeriesCSVArchiveView(object):
             self.DISP % filename
             )
         return stream
+
+
+class DatasetCSVArchiveView(SeriesCSVArchiveView):
+    """View for a dataset for zip file of CSV output"""
+    
+    def __init__(self, context, request):
+        if not IFormDataSetSpecification.providedBy(context):
+            raise ValueError('Not data set')
+        self.context = context
+        self.request = request
+
+    def _forms(self):
+        include = lambda o: IMultiForm.providedBy(o)
+        return [o for o in self.context.forms() if include(o)]
 

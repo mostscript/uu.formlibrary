@@ -8,6 +8,9 @@ from zope.schema import getFieldsInOrder
 from uu.formlibrary.interfaces import IMultiForm, ICSVColumn, IMultiFormCSV
 
 
+_str = lambda v: v.encode('utf-8') if isinstance(v, unicode) else str(v)
+
+
 def multi_column_fields(names, form):
     """
     Return a dict with the number of columns per field...
@@ -32,12 +35,13 @@ def multi_column_fields(names, form):
 class CSVColumn(object):
     implements(ICSVColumn)
 
-    def __init__(self, field, index=None):
+    def __init__(self, field, index=None, dialect='csv'):
         self.field = field
         self.index = index
         self.multiple = self._is_multiple()
         self.name = self._name()
         self.title = self._title()
+        self.dialect = dialect
 
     def _is_multiple(self):
         return (
@@ -60,38 +64,38 @@ class CSVColumn(object):
     def get(self, record):
         fieldname = self.field.__name__
         v = getattr(record, fieldname, '')
+        normalize = _str
+        if self.dialect == 'xlwt':
+            # xlwt does value transformations itself
+            normalize = lambda v: v
         if v is None:
             return ''
         if not self.multiple:
-            if isinstance(v, unicode):
-                v = v.encode('utf-8')
-            return str(v)
+            return normalize(v)
         # mutliple-valued field types - no one-to-one value :
         idx = self.index or 0  # if None
         try:
             v = list(v) if v else []
             element_value = v[idx]
-            if isinstance(element_value, unicode):
-                element_value = element_value.encode('utf-8')
-            return str(element_value)
+            return normalize(element_value)
         except IndexError:
             return ''
 
 
-def _column_spec(form, schema):
+def column_spec(form, schema, dialect='csv'):
     """Return list of (name, CSVColumn instance) tuples"""
     names, fields = zip(*getFieldsInOrder(schema))
     multi_fields = multi_column_fields(names, form)
-    column_spec = []
+    colspec = []
     for field in fields:
         name = field.__name__
         if name in multi_fields:
             for idx in range(multi_fields[name]):
                 col = CSVColumn(field, idx)
-                column_spec.append((col.name, col))
+                colspec.append((col.name, col))
         else:
-            column_spec.append((name, CSVColumn(field)))
-    return column_spec
+            colspec.append((name, CSVColumn(field, dialect=dialect)))
+    return colspec
 
 
 @adapter(IMultiForm)
@@ -111,17 +115,17 @@ def csv_export(form, schema=None):
             raise ValueError('improper or no schema provided')
     out = StringIO()
     out.write(u'\ufeff'.encode('utf8'))     # UTF-8 BOM for MSExcel
-    column_spec = _column_spec(form, schema)
-    colnames = zip(*column_spec)[0]
+    colspec = column_spec(form, schema)
+    colnames = zip(*colspec)[0]
     writer = csv.DictWriter(out, colnames)
     # write first row: column names:
     writer.writerow(dict([(n, n) for n in colnames]))
     # write next row: column titles
     writer.writerow(dict([(name, col.title.encode('utf-8'))
-                          for name, col in column_spec]))
+                          for name, col in colspec]))
     for record in form.values():
         record_dict = {}
-        for name, col in column_spec:
+        for name, col in colspec:
             record_dict[name] = col.get(record)
         writer.writerow(record_dict)
     out.seek(0)

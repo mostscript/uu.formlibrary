@@ -122,6 +122,13 @@
     permission="zope2.View"
     />
 
+  <browser:page
+    name="export"
+    for="..measure.interfaces.IFormDataSetSpecification"
+    class=".csv.DatasetCSVArchiveView"
+    permission="zope2.View"
+    />
+
   <!-- json folder listing / search views -->
 
   <browser:page

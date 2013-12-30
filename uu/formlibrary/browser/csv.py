@@ -119,7 +119,7 @@ class SeriesCSVArchiveView(object):
         for form in forms:
             if not secmgr.checkPermission('View', form):
                 continue  # omit/skip form to which user has no View permission.
-            data = MultiFormCSVDownload(self.context, self.request).content()
+            data = MultiFormCSVDownload(form, self.request).content()
             filename = '%s.csv' % form.getId()
             archive.writestr(filename, data)
         archive.close()

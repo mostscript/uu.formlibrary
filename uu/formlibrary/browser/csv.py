@@ -20,12 +20,11 @@ def relpath(context):
 
 def csv_meta_header(context):
     out = StringIO()
-    title = urllib.quote(
-        '%s -- %s' % (
-            context.__parent__.Title(),
-            context.Title()
-            )
+    title = '%s -- %s' % (
+        context.__parent__.Title(),
+        context.Title()
         )
+    title = title.replace('"', '\x27')
     print >> out, "Form data export from: '%s'" % title
     print >> out, "Located at: %s" % urllib.quote(relpath(context))
     print >> out, "From site: %s" % getSite().absolute_url()

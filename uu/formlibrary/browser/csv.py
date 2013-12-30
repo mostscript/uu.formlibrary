@@ -3,6 +3,7 @@ from StringIO import StringIO
 import urllib
 import zipfile
 
+from plone.uuid.interfaces import IUUID
 from zope.component.hooks import getSite
 from zope.interface import implements
 from AccessControl import getSecurityManager
@@ -119,7 +120,10 @@ class SeriesCSVArchiveView(object):
             if not secmgr.checkPermission('View', form):
                 continue  # omit/skip form to which user has no View permission.
             data = MultiFormCSVDownload(form, self.request).content()
-            filename = '%s.csv' % form.getId()
+            filename = '%s-%s.csv' % (
+                form.getId(),
+                IUUID(form)[-12:],
+                )
             archive.writestr(filename, data)
         archive.close()
         output.seek(0)

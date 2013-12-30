@@ -114,7 +114,6 @@ def csv_export(form, schema=None):
         if schema is None:
             raise ValueError('improper or no schema provided')
     out = StringIO()
-    out.write(u'\ufeff'.encode('utf8'))     # UTF-8 BOM for MSExcel
     colspec = column_spec(form, schema)
     colnames = zip(*colspec)[0]
     writer = csv.DictWriter(out, colnames)

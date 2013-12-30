@@ -1,12 +1,37 @@
 import tempfile
+from StringIO import StringIO
+import urllib
 import zipfile
 
+from zope.component.hooks import getSite
 from zope.interface import implements
 from AccessControl import getSecurityManager
 from ZPublisher.Iterators import IStreamIterator
 
 from uu.formlibrary.interfaces import IMultiFormCSV, IMultiForm, IFormSeries
 from uu.formlibrary.measure.interfaces import IFormDataSetSpecification
+
+
+def relpath(context):
+    rootpath = getSite().getPhysicalPath()
+    path = context.getPhysicalPath()
+    return '/'.join(path[len(rootpath):])
+
+
+def csv_meta_header(context):
+    out = StringIO()
+    title = urllib.quote(
+        '%s -- %s' % (
+            context.__parent__.Title(),
+            context.Title()
+            )
+        )
+    print >> out, "Form data export from: '%s'" % title
+    print >> out, "Located at: %s" % urllib.quote(relpath(context))
+    print >> out, "From site: %s" % getSite().absolute_url()
+    print >> out, '-----'
+    out.seek(0)
+    return out.read()
 
 
 class MultiFormCSVDownload(object):
@@ -20,16 +45,22 @@ class MultiFormCSVDownload(object):
         self.context = context
         self.request = request
 
+    def content(self):
+        bom = u'\ufeff'.encode('utf8')  # UTF-8 BOM for MSExcel
+        meta = csv_meta_header(self.context)
+        csv = IMultiFormCSV(self.context)
+        return '\n'.join((bom, meta, csv))
+
     def __call__(self, *args, **kwargs):
         filename = '%s.csv' % self.context.getId()
-        csv = IMultiFormCSV(self.context)
+        output = self.content()
         self.request.response.setHeader('Content-Type', 'text/csv')
-        self.request.response.setHeader('Content-Length', str(len(csv)))
+        self.request.response.setHeader('Content-Length', str(len(output)))
         self.request.response.setHeader(
             'Content-Disposition',
             self.DISP % filename
             )
-        return csv
+        return output
 
 
 class TempFileStreamIterator(object):
@@ -88,7 +119,7 @@ class SeriesCSVArchiveView(object):
         for form in forms:
             if not secmgr.checkPermission('View', form):
                 continue  # omit/skip form to which user has no View permission.
-            data = IMultiFormCSV(form)
+            data = MultiFormCSVDownload(self.context, self.request).content()
             filename = '%s.csv' % form.getId()
             archive.writestr(filename, data)
         archive.close()

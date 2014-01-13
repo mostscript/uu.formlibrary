@@ -337,7 +337,7 @@ class MeasureDefinition(Container):
         if 'raw_numerator' in info and 'raw_denominator' in info:
             cumulative = info.get('cumulative_numerator', None)
             if cumulative is not None:
-                op = self.get('cumulative_fn', 'SUM')
+                op = getattr(self, 'cumulative_fn', 'SUM')
                 op = '+' if op == 'SUM' else ''
                 note += u'%s (%s%s) of %s' % (
                     cumulative,

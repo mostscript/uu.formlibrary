@@ -9,8 +9,8 @@ from zope.globalrequest import getRequest
 from zope.interface import implements, implementer
 from zope.publisher.interfaces.browser import IBrowserPublisher
 from zope.publisher.interfaces import NotFound
+from persistent.mapping import PersistentMapping
 from plone.dexterity.content import Item
-from plone.indexer import indexer
 from persistent import Persistent
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
@@ -25,7 +25,7 @@ from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
-from uu.formlibrary.search.interfaces import IRecordFilter, ICompositeFilter
+from uu.formlibrary.search.interfaces import IRecordFilter, IFilterGroup
 
 # field serialization, used by FieldQuery:
 field_id = lambda f: (identify_interface(f.interface), f.__name__)
@@ -351,20 +351,11 @@ class CriteriaJSONCapability(object):
         return self, ()
 
 
-class CompositeFilter(Item):
-    implements(ICompositeFilter)
+class FilterGroup(PersistentMapping):
 
-    @property
-    def externalEditorEnabled(self):
-        return False
+    implements(IFilterGroup)
 
-
-@indexer(ICompositeFilter)
-def directly_related_uids(context):
-    r = []
-    for name in ('filter_a', 'filter_b'):
-        v = getattr(context, name, None) or ''
-        if len(v) >= 32:
-            r.append(v)
-    return r
+    def __init__(self, operator='union', items=()):
+        self.operator = operator
+        super(FilterGroup, self).__init__(items)
 

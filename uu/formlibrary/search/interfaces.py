@@ -1,6 +1,3 @@
-from plone.directives import form
-from plone.formwidget.contenttree import ContentTreeFieldWidget
-from plone.formwidget.contenttree.source import UUIDSourceBinder
 from zope.interface import Interface, Invalid, invariant
 from zope.interface.common.mapping import IIterableMapping
 from zope.publisher.interfaces import IPublishTraverse
@@ -170,28 +167,7 @@ class IFieldQuery(Interface):
         """
 
 
-class IBaseFilter(form.Schema):
-    """Base interface for filters"""
-
-    title = schema.TextLine(
-        title=u'Title',
-        description=u'Title or name of filter.',
-        required=True,
-        )
-
-    description = schema.Text(
-        title=u'Description',
-        required=False,
-        )
-
-    def __call__(context):
-        """
-        Given a context of a form, return a matching result set for the
-        filter applied.
-        """
-
-
-class IRecordFilter(IBaseFilter, IIterableMapping):
+class IRecordFilter(IIterableMapping):
     """
     A record filter is a named item that stores a set of field queries
     for use on a search context -- this component represents queries as
@@ -244,26 +220,10 @@ class IRecordFilter(IBaseFilter, IIterableMapping):
         """
 
 
-class ICompositeFilter(IBaseFilter):
-    """A composite filter """
+class ISetOperationSpecifier(Interface):
+    """Mixin interface for set operation choice"""
 
-    form.widget(filter_a=ContentTreeFieldWidget)
-    filter_a = schema.Choice(
-        title=u'Filter A',
-        description=u'The first filter to consider for set operations.',
-        source=UUIDSourceBinder(object_provides=IBaseFilter.__identifier__),
-        required=True,
-        )
-
-    form.widget(filter_b=ContentTreeFieldWidget)
-    filter_b = schema.Choice(
-        title=u'Filter B',
-        description=u'The second filter to consider for set operations.',
-        source=UUIDSourceBinder(object_provides=IBaseFilter.__identifier__),
-        required=True,
-        )
-
-    set_operator = schema.Choice(
+    operator = schema.Choice(
         title=u'Set operation',
         description=u'The operation to perform to compute a given result '
                     u'set from the results of two specified filters.',
@@ -277,11 +237,61 @@ class ICompositeFilter(IBaseFilter):
         default='union',
         )
 
+
+class IFilterGroup(ISetOperationSpecifier):
+    """
+    A group/composite of multiple IRecordFilter objects. In cases
+    where more than one filter is a member of this group, a set
+    operation can be specified for compositing results.
+    """
+
+    filters = schema.Dict(
+        title=u'Filters',
+        description=u'Ordered mapping of record filters in group, '
+                    u'keyed by UUID.',
+        key_type=schema.Bytes(description=u'UUID string'),
+        value_type=schema.Object(schema=IRecordFilter),
+        required=True,
+        defaultFactory=list,
+        )
+
+    order = schema.List(
+        title=u'Filter order',
+        description=u'Ordered list of UUIDs to order keys for filters.',
+        value_type=schema.Bytes(description=u'UUID string'),
+        )
+
+    def __iter__():
+        """
+        Return iterable of record filters, matching the order specified
+        by UUID key in self.order.
+        """
+
+    def __len__():
+        """
+        Return count of filters within.
+        """
+
+    def move(uid, direction='top'):
+        """
+        Move the order of a filter up or down, or to top/bottom
+        given an UUID uid for a given filter.  Allowed directions:
+        'up', 'down', 'top', 'bottom'.  A full re-order should just
+        set self.order on the filter group component rather than
+        attempt multiple move() operations.
+        """
+
     @invariant
     def distinct_filters(data):
-        if data.filter_a and data.filter_b:
-            if data.filter_a == data.filter_b:
-                raise Invalid('Filters A and B must be distinct, not same.')
+        if data.filters and len(set(data.filters)) != len(data.filters):
+            raise Invalid('There is duplication of filters specified.')
+
+
+class IFilterGroups(IIterableMapping, ISetOperationSpecifier):
+    """
+    An iterable mapping of filter groups, with a set operation that can
+    be specified for use in composing a single query from the groups.
+    """
 
 
 class IJSONFilterRepresentation(Interface):

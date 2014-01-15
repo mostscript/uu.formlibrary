@@ -3,7 +3,7 @@ from Products.CMFCore.utils import getToolByName
 from zope.component.hooks import getSite
 from plone.uuid.interfaces import IUUID
 
-from uu.formlibrary.search.interfaces import IRecordFilter, ICompositeFilter
+from uu.formlibrary.search.interfaces import IRecordFilter
 from uu.formlibrary.search.filters import FilterJSONAdapter
 
 from comparators import Comparators
@@ -55,15 +55,6 @@ class FilterView(BaseFilterView):
 
     def comparator_symbol(self, comparator):
         return self.comparators.get(comparator).symbol
-
-
-class CompositeFilterView(BaseFilterView):
-    def __init__(self, context, request):
-        super(CompositeFilterView, self).__init__(context, request)
-
-    def setop_title(self, op):
-        field = ICompositeFilter['set_operator']
-        return [term.title for term in field.vocabulary if term.value == op][0]
 
 
 class BaseCriteriaView(object):

@@ -9,11 +9,17 @@
    <element value="uu.formlibrary.multiform" />
    <element value="uu.formlibrary.simpleform" />
    <element value="uu.formlibrary.series" />
+   <element value="uu.formlibrary.measuregroup" />
+   <element value="uu.formlibrary.measurelibrary" />
+   <element value="uu.formlibrary.setspecifier" />
+   <element value="uu.formlibrary.measure" />
   </linkable>
   <containsobjects purge="False">
    <element value="uu.formlibrary.library" />
    <element value="uu.formlibrary.definition" />
    <element value="uu.formlibrary.series" />
+   <element value="uu.formlibrary.measuregroup" />
+   <element value="uu.formlibrary.measurelibrary" />
   </containsobjects>
   <containsanchors purge="False">
    <!-- <element value="Event"/> -->

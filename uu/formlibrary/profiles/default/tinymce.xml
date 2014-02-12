@@ -8,10 +8,12 @@
    <element value="uu.formlibrary.setspecifier" />
    <element value="uu.formlibrary.multiform" />
    <element value="uu.formlibrary.simpleform" />
+   <element value="uu.formlibrary.series" />
   </linkable>
   <containsobjects purge="False">
    <element value="uu.formlibrary.library" />
    <element value="uu.formlibrary.definition" />
+   <element value="uu.formlibrary.series" />
   </containsobjects>
   <containsanchors purge="False">
    <!-- <element value="Event"/> -->

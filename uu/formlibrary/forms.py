@@ -23,7 +23,6 @@ from zope.lifecycleevent import ObjectModifiedEvent
 from zope.lifecycleevent import Attributes
 from zope.schema import getFieldsInOrder
 from zope.schema.interfaces import IDate, IChoice, ICollection
-from DateTime import DateTime
 from Products.CMFPlone.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
@@ -33,6 +32,8 @@ from uu.record.base import RecordContainer
 from uu.record.interfaces import IRecord
 from uu.smartdate.converter import ColloquialDateConverter
 from uu.smartdate.browser.widget import SmartdateFieldWidget
+from uu.workflows.utils import history_log
+
 from uu.formlibrary.definition import form_definition
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IBaseForm, IFormDefinition
@@ -320,9 +321,11 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             result[''] = dict([(k, v) for k, v in data.items()
                                if k not in group_keys])
             self._saveResult(result)
-            self.context.setModificationDate(DateTime())  # modified==now
             self.saved = True
-            transaction.get().note('Saved form data')
+            msg = 'Saved form data'
+            history_log(self.context, message=msg, set_modified=True)
+            notify(ObjectModifiedEvent(self.context))
+            transaction.get().note(msg)
         self._status.addStatusMessage('Saved form data', type='info')
 
     @button.buttonAndHandler(

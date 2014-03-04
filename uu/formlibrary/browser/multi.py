@@ -93,7 +93,11 @@ class MultiFormEntry(object):
             json = self.request.form.get('payload').strip()
             if json:
                 oldkeys = self.context.keys()
+                # save the data payload to records, also notifies
+                #  ObjectModifiedEvent, if data is modified:
                 self.context.update_all(json)
+                # now index the saved data in embedded index for
+                #  potential use by measures:
                 handle_multiform_savedata(self.context)
                 newkeys = self.context.keys()
                 count_new = len(set(newkeys) - set(oldkeys))
@@ -126,8 +130,8 @@ class MultiFormEntry(object):
                         self.request.RESPONSE.redirect(url)
             if self.has_metadata:
                 self.mdform.update()
-                msg = 'Saved metadata fields on multi-record form.'
-                self.mdform._handleSave(None, msg=msg)
+                md_msg = 'Saved metadata fields on multi-record form.'
+                self.mdform._handleSave(None, msg=md_msg)
         if msg:
             self._status.addStatusMessage(msg, type='info')
 

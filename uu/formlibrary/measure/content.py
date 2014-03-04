@@ -6,9 +6,11 @@ from Acquisition import aq_parent, aq_inner, aq_base
 from DateTime import DateTime
 from plone.dexterity.content import Container, Item
 from plone.indexer.decorator import indexer
+from plone.memoize import ram
 from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from plone.app.layout.navigation.root import getNavigationRoot
+from repoze.catalog import query
 from zope.component.hooks import getSite
 from zope.interface import implements
 
@@ -19,7 +21,8 @@ from uu.formlibrary.search.interfaces import IRecordFilter
 from interfaces import IMeasureDefinition, IMeasureGroup, IMeasureLibrary
 from interfaces import IFormDataSetSpecification
 from interfaces import AGGREGATE_FUNCTIONS, AGGREGATE_LABELS
-from utils import content_path
+from utils import content_path, isbrain, get
+from cache import datapoint_cache_key, DataPointCache
 
 
 # sentinel value:
@@ -32,7 +35,20 @@ def measure_subjects_indexer(context):
     if getattr(context, 'goal', None) is not None:
         base += ['goal_value_%s' % context.goal]
     return tuple(base)
-    
+
+
+def is_query_complete(q):
+    """
+    Checks for incomplete queries; if any part of the query
+    contains repoze.catalog.query.BoolOp queries that are not
+    completed, this should return False.
+    """
+    if isinstance(q, query.BoolOp):
+        if not q.queries:
+            return False
+        return all(map(is_query_complete, q.queries))
+    return True   # query.Comparator always must be complete
+
 
 # measure definition content type class:
 
@@ -42,6 +58,11 @@ class MeasureDefinition(Container):
     implements(IMeasureDefinition)
 
     portal_type = 'uu.formlibrary.measure'
+
+    def site(self):
+        if not getattr(self, '_site', None):
+            self._site = getSite()
+        return self._site
 
     def group(self):
         return aq_parent(aq_inner(self))  # folder containing
@@ -74,6 +95,8 @@ class MeasureDefinition(Container):
             if catalog is None:
                 return v
             q = filter_query(rfilter)           # repoze.catalog query object
+            if not is_query_complete(q):
+                return NOVALUE  # cannot perform query that is incomplete
             try:
                 v = catalog.rcount(q)           # result count from catalog
             except KeyError:
@@ -166,14 +189,24 @@ class MeasureDefinition(Container):
                 return d
         return None
 
-    def datapoint(self, context):
-        """Returns dict for data point given form context"""
+    def _indexed_datapoint(self, context):
+        key = datapoint_cache_key(None, self, context)
+        cache = DataPointCache(self.site())
+        return cache.get(key, None)
+
+    def _datapoint(self, context):
+        """uncached datapoint implementation"""
+        if isbrain(context):
+            context = get(context)
         n = m = None
         if (self._source_type() == MULTI_FORM_TYPE and
                 self.denominator_type != 'constant'):
             n, m = self._mr_values(context)
             divide = lambda a, b: float(a) / float(b) if b else NOVALUE
-            raw = divide(n, m)
+            if n is None or not m:
+                raw = NOVALUE
+            else:
+                raw = divide(n, m)
             normalized = self._normalize(raw)
         else:
             n, m = self._flex_values(context)
@@ -194,10 +227,21 @@ class MeasureDefinition(Container):
             point_record['raw_denominator'] = m
         return point_record
 
+    @ram.cache(datapoint_cache_key)
+    def datapoint(self, context):
+        """
+        Returns dict for data point given form context, or
+        given a catalog brain fronting for a form.
+        """
+        cached = self._indexed_datapoint(context)
+        if cached:
+            return cached
+        return self._datapoint(context)
+
     def points(self, seq):
         """
-        Given iterable seq of form instance contexts, return a list
-        of datapoints for each.
+        Given iterable seq of form instance contexts, or catalog brains
+        fronting for those context, return a list of datapoints for each.
         """
         return [self.datapoint(context) for context in seq]
 
@@ -250,10 +294,10 @@ class MeasureDefinition(Container):
     def _dataset_points(self, dataset):
         if getattr(dataset, 'use_aggregate', False):
             return []
-        forms = dataset.forms()
+        brains = dataset.brains()
         if getattr(self, 'cumulative', None):
-            return self._cumulative_points(forms)
-        return self.points(forms)
+            return self._cumulative_points(brains)
+        return self.points(brains)
 
     def _aggregate_dataset_points(self, aggregated, fn_name):
         """
@@ -441,7 +485,9 @@ class FormDataSetSpecification(Item):
         form_uids = [b.UID for b in catalog.unrestrictedSearchResults(filter_q)]
         folder_uids = list(set(spec_uids).difference(form_uids))
         folder_q = {'UID': {'query': folder_uids, 'operator': 'or'}}
-        folder_paths = [b.getPath() for b in catalog.unrestrictedSearchResults(folder_q)]
+        folder_paths = [
+            b.getPath() for b in catalog.unrestrictedSearchResults(folder_q)
+            ]
         path_q = {
             'portal_type': form_type,
             'path': {
@@ -509,6 +555,5 @@ class FormDataSetSpecification(Item):
 
     def forms(self):
         r = self.brains()
-        _get = lambda brain: brain._unrestrictedGetObject()
-        return [_get(b) for b in r]
+        return [get(b) for b in r]
 

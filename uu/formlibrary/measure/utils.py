@@ -2,8 +2,10 @@ import hashlib
 import hmac
 import base64
 import pickle
-
+from Products.CMFCore.utils import getToolByName
+from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from plone.app.layout.navigation.root import getNavigationRoot
+from zope.component.hooks import getSite
 
 
 class SignedDataStreamCodec(object):
@@ -74,4 +76,34 @@ def content_path(item):
     navroot_path = getNavigationRoot(item).split('/')
     exclude_count = len(navroot_path)
     return '/'.join(item.getPhysicalPath()[exclude_count:])  # rel. to root
+
+
+# utility functions for objects/brains:
+
+def isbrain(o):
+    """Is object a catalog brain?"""
+    return isinstance(o, AbstractCatalogBrain)
+
+
+def uid_get(uid, site=None):
+    """
+    Unlike implementation of plone.app.uuid.utils.uuidToObject(),
+    this function does not do permissions checks to obtain object.
+    """
+    site = site or getSite()
+    catalog = getToolByName(site, 'portal_catalog')
+    r = catalog.unrestrictedSearchResults({'UID': uid})
+    return r[0]._unrestrictedGetObject() if r else None
+
+
+def get(spec, site=None):
+    """Get object, given brain or UID"""
+    if isbrain(spec):
+        return spec._unrestrictedGetObject()
+    return uid_get(str(spec), site)
+
+
+def modified(context):
+    """Get modification date from catalog brain metadata or content."""
+    return context.modified if isbrain(context) else context.modified()
 

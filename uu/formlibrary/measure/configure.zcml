@@ -77,6 +77,31 @@
     factory=".content.measure_subjects_indexer"
     />
 
+  <adapter
+    factory=".cache.DataPointCache"
+    provides=".interfaces.IDataPointCache"
+    for="Products.CMFCore.interfaces.ISiteRoot"
+    />
+
+  <!-- subscribers -->
+  <subscriber
+    for="..interfaces.ISimpleForm
+         zope.lifecycleevent.interfaces.IObjectModifiedEvent"
+    handler=".cache.handle_simpleform_modify"
+    /> 
+
+  <subscriber
+    for=".interfaces.IMeasureDefinition
+         zope.lifecycleevent.interfaces.IObjectModifiedEvent"
+    handler=".cache.handle_measure_modify"
+    /> 
+
+  <subscriber
+    for=".interfaces.IMeasureDefinition
+         zope.lifecycleevent.interfaces.IObjectAddedEvent"
+    handler=".cache.handle_measure_modify"
+    /> 
+
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter
     for=".wizard.IMeasureWizardView

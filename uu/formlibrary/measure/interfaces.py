@@ -11,6 +11,7 @@ from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
 from zope.globalrequest import getRequest
 from zope.interface import Interface, Invalid, implements, invariant
+from zope.interface.common.mapping import IWriteMapping, IIterableMapping
 from zope import schema
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
@@ -668,4 +669,65 @@ class IMultiRecordMeasureFactory(Interface):
 
     def __call__(data):
         """Create measures based on wizard data, see wizard.py"""
+
+
+class IDataPointCache(IIterableMapping, IWriteMapping):
+    """
+    A global component that acts as a mapping of
+    tuple keys to datapoint mapping values, such that:
+    
+        * Keys are four-item tuples, with:
+            - Measure UID
+            - Measure modified date (ISO 8601 string date stamp)
+            - Form UID
+            - Form modified date (ISO 8601 string date stamp)
+        * Values are datapoint mappings, such as a dict or
+          PersistentMapping.
+    
+    Assume that this component has access to local site, whether
+    as a utility component using zope.component.hooks.getSite()
+    or as an adapter of the site.
+    
+    All writes to this cache are done by the cache component itself,
+    via reload() or invalidate() -- or explicitly by callers using
+    the equivalent store() or __setitem__() methods documented below.
+    """
+    
+    def select(uid):
+        """
+        Given UID of form or measure content items, return sequence
+        of all cache keys that match the UID of content items.
+        """
+    
+    def invalidate(uid):
+        """
+        Given the UID of either a measure or form, invalidate all
+        keys using those UIDs.
+        """
+    
+    def reload(uid):
+        """
+        Given UID of either a measure or a form, invalidate any
+        existing keys for that UID, then load/cache summarized
+        datapoints in the cache
+        """
+    
+    def store(key, value):
+        """
+        Given a four item tuple as a key, such that keys match
+        specification documented for this interface, set key/value
+        pair in cache, assuming value is a mapping such as a dict.
+        Implementations may re-cast value to PersistentMapping in
+        cases where the storage is persistent (ZODB).
+        """
+
+    def __setitem__(key, value):
+        """Alterate spelling for store(); validates accordingly."""
+    
+    def __delitem__(key):
+        """
+        Explicitly remove a four-item tuple key; validates key
+        before attempting to remove; key not found or invalid keys
+        will result in a raised KeyError.
+        """
 

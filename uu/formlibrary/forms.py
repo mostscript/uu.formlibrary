@@ -300,7 +300,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                 for fieldname, value in values.items():
                     setattr(group_record, fieldname, value)
 
-    def _handleSave(self, action):
+    def _handleSave(self, action, msg='Saved form data'):
         self.save_attempt = True
         data, errors = self.extractData()
         if errors or IFormDefinition.providedBy(self.context) or self.saved:
@@ -322,7 +322,6 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                                if k not in group_keys])
             self._saveResult(result)
             self.saved = True
-            msg = 'Saved form data'
             history_log(self.context, message=msg, set_modified=True)
             notify(ObjectModifiedEvent(self.context))
             transaction.get().note(msg)

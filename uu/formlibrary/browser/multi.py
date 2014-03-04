@@ -126,7 +126,8 @@ class MultiFormEntry(object):
                         self.request.RESPONSE.redirect(url)
             if self.has_metadata:
                 self.mdform.update()
-                self.mdform._handleSave(None)
+                msg = 'Saved metadata fields on multi-record form.'
+                self.mdform._handleSave(None, msg=msg)
         if msg:
             self._status.addStatusMessage(msg, type='info')
 

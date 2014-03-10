@@ -65,14 +65,7 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
 }
 
 
-.filtersummary h4 {
-    margin:0.2em 0.5em;
-    font-size:100%;
-    font-style:italic;
-    color:#068;
-}
-
-.filterdetail h5 {
+.composed-query h5 {
     width:100%;
     border-bottom:1px solid black;
     background-color:#444;
@@ -81,7 +74,7 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
     margin-left:-0.3em;
 }
 
-.filterdetail h5 a.filteredit {
+.composed-query h5 a.criteria-edit {
     font-size:100%;
     color:#aef !important;
     display:block;
@@ -91,7 +84,7 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
     text-decoration:underline;
 }
 
-.filterdetail {
+.composed-query {
     margin-left:0.7em;
     padding-left:0.3em;
     border:1px solid #999;
@@ -138,23 +131,26 @@ table.queries { border-bottom:1px solid #666; margin-top:0.8em; }
     width:84%;
 }
 
-div.filterview table.queries {
+div.record-filter table.queries {
     margin:0 !important;
 }
 
-div.filterview table.queries tr.headings {
-    display:none;
-}
-
-div.filterdetail:first-child table.queries tr.headings {
+/* only display the headings on the first row of filters */
+div.composed-query table.queries tr.headings { display:none; }
+div.composed-query:first-child table.queries tr.headings {
     display:table-row !important;
 }
 
-div.filterview div.oplabel {
+div.composed-query .noquery {
+    background-color:#fbb;
+    padding:1em;
+}
+
+div.record-filter div.oplabel {
     font-size:80%; color:#aaa;
 }
 
-.filtersummary {
+.criteria-summary {
     margin-bottom:0.4em;
 }
 </style>
@@ -232,58 +228,56 @@ div.filterview div.oplabel {
      </tbody>
     </table>
 
-    <div class="filtersummary">
-    <div class="filterdetail" tal:repeat="filter python:[o for o in context.objectValues() if o.portal_type=='uu.formlibrary.recordfilter']">
-        <h5><span tal:content="filter/Title" />
-        <a class="filteredit" href="" title="Edit criteria in new browser window/tab" tal:attributes="href string:${context/absolute_url}/@@measure_criteria">&#x270E; Edit query/criteria</a>
+   <tal:block condition="view/show_criteria">
+    <div class="criteria-summary" tal:define="criteriaview view/criteria_view">
+      <div class="composed-query" tal:repeat="composed criteriaview/composed_queries">
+        <h5>
+          <span tal:content="python:composed.name.upper()"></span>
+          <a class="criteria-edit" href="" title="Edit criteria in new browser window/tab" tal:attributes="href string:${context/absolute_url}/@@measure_criteria">&#x270E; Edit query/criteria</a>
         </h5>
-
-         <div class="filterview" tal:define="operator filter/operator;
-                          filterview python:view.filter_view(filter);">
-          <hr />
-          <table class="queries">
-           <tr class="headings">
-            <th class="display-queryop">&nbsp;</th>
-            <th>Field</th>
-            <th>Comparison operation</th>
-            <th>Query value</th>
-           </tr>
-           <tr tal:repeat="query filterview/queries">
-            <td class="display-queryop">
-              <span tal:condition="repeat/query/index" tal:content="operator">AND/OR</span>
-            </td>
-            <td tal:content="query/field/title">FIELDNAME</td>
-            <td>
-                <span class="comparator-symbol" tal:content="python: filterview.comparator_symbol(query.comparator)">*</span>
-                <span tal:content="python: filterview.comparator_title(query.comparator)">COMPARE</span>
-            </td>
-            <td tal:content="query/value" tal:condition="python:not isinstance(query.value, list)">VALUE</td>
-            <td tal:define="selected query/value"
-                tal:condition="python:isinstance(query.value, list)">
-                <ul>
-                    <li tal:repeat="element selected"><span tal:replace="element"></span></li>
-                </ul>
-            </td>
-           </tr>
-          </table>
-          <div class="oplabel" tal:condition="python:len(filterview.queries()) > 1"><label>Operator used across fields: </label><span tal:content="operator">OP</span></div>
-          <tal:block define="used_by filterview/used_by">
-           <div tal:condition="used_by">
-            <h4>This filter is also used by:</h4>
-            <ul>
-              <li tal:repeat="brain used_by">
-                <img src="" tal:attributes="src brain/getIcon; alt brain/Type" />
-                <a href="" tal:attributes="href brain/getURL" target="_blank">
-                  <span tal:content="string:${brain/Title} (${brain/Type})">TITLE</span> 
-                </a>
-              </li>
-            </ul>
-           </div>
-          </tal:block>
-         </div>
+        <div class="filter-groups">
+          <div class="filter-group" tal:repeat="group composed">
+            <div class="record-filter" tal:repeat="filter group">
+              <div class="noquery" tal:condition="python: len(filter) == 0">
+                <strong>This query is not yet defined!</strong>
+                Please edit the query <a href="@@measure_critieria" tal:attributes="href string:${context/absolute_url}/@@measure_criteria">here</a>.
+              </div>
+              <tal:block define="operator filter/operator">
+                <table class="queries">
+                  <tr class="headings">
+                    <th class="display-queryop">&nbsp;</th>
+                    <th>Field</th>
+                    <th>Comparison operation</th>
+                    <th>Query value</th>
+                  </tr>
+                  <tr tal:repeat="query python:filter.values()">
+                    <td class="display-queryop">
+                      <span tal:condition="repeat/query/index" tal:content="filter/operator">AND/OR</span>
+                    </td>
+                    <td tal:content="query/field/title">FIELDNAME</td>
+                    <td>
+                      <span class="comparator-symbol" tal:content="python: criteriaview.comparator_symbol(query.comparator)">*</span>
+                      <span tal:content="python: criteriaview.comparator_title(query.comparator)">COMPARE</span>
+                    </td>
+                    <td tal:content="query/value" tal:condition="python:not isinstance(query.value, list)">VALUE</td>
+                    <td tal:define="selected query/value"
+                        tal:condition="python:isinstance(query.value, list)">
+                      <ul>
+                        <li tal:repeat="element selected"><span tal:replace="element"></span></li>
+                      </ul>
+                    </td>
+                  </tr>
+                </table>
+              </tal:block>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+   </tal:block><!-- condition: show_criteria -->
+
   </div>
+
   <div class="measuredetail measuredisplay">
     <h3>Measure display and value adjustment</h3>
     <table class="fieldinfo">

@@ -1,20 +1,23 @@
+from datetime import date
 import itertools
 import json
-from datetime import date
+import uuid
 
-from Acquisition import aq_inner, aq_parent
+from persistent import Persistent
+from persistent.list import PersistentList
+from persistent.mapping import PersistentMapping
+from plone.dexterity.content import Item
+from plone.uuid.interfaces import IUUID
+from repoze.catalog import query
+import transaction
 from zope.component import adapts, adapter
 from zope.dottedname.resolve import resolve
 from zope.globalrequest import getRequest
 from zope.interface import implements, implementer
+from zope.location.location import LocationProxy
+from zope.proxy import ProxyBase, removeAllProxies, non_overridable
 from zope.publisher.interfaces.browser import IBrowserPublisher
 from zope.publisher.interfaces import NotFound
-from persistent.mapping import PersistentMapping
-from plone.dexterity.content import Item
-from persistent import Persistent
-from persistent.dict import PersistentDict
-from persistent.list import PersistentList
-from repoze.catalog import query
 from zope import schema
 from zope.schema.interfaces import ITextLine, IBytesLine, ISequence
 
@@ -26,6 +29,10 @@ from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
 from uu.formlibrary.search.interfaces import IRecordFilter, IFilterGroup
+from uu.formlibrary.search.interfaces import IComposedQuery
+
+from uu.formlibrary.measure.interfaces import IMeasureDefinition
+
 
 # field serialization, used by FieldQuery:
 field_id = lambda f: (identify_interface(f.interface), f.__name__)
@@ -33,6 +40,101 @@ resolvefield = lambda t: resolve(t[0])[t[1]]  # (name, fieldname) -> schema
 
 # comparator class resolution from identifier:
 comparator_cls = lambda v: getattr(query, v) if v in COMPARATORS else None
+
+
+# proxy used for aq/location breadcrumbs on stored query components' context:
+
+class BaseProxy(LocationProxy):
+    """
+    A location proxy that is deferrent to the __name__ of the proxied object,
+    if it is non-None value.
+    """
+    
+    @property
+    def __name__(self):
+        if self._name is not None:
+            return self._name
+        return removeAllProxies(self).__name__
+    
+    @__name__.setter
+    def __name__(self, value):
+        self._name = value
+    
+    def __init__(self, o):
+        ProxyBase.__init__(self, o)
+        self._name = getattr(o, '__name__', None)
+
+
+class FilterProxy(BaseProxy):
+    """
+    Special proxy for IRecordFilter objects, the purpose of this is
+    to work around limitations of zope.proxy when the class of a
+    proxied object binds 'self' to the unwrapped object.  Here, we
+    need to have schema() -- and validate(), add() methods, which call
+    it -- bind the wrapped proxy as self before calling, which is
+    unfortunately necessary to make the __parent__ acquisition work
+    from the filter all the way to the containing measure definition.
+    """
+
+    @non_overridable
+    def schema(self):
+        return CoreFilter.schema(self)
+
+    @non_overridable
+    def validate(self, *args, **kwargs):
+        return CoreFilter.validate(self, *args, **kwargs)
+
+    @non_overridable
+    def add(self, *args, **kwargs):
+        return CoreFilter.add(self, *args, **kwargs)
+
+
+class SequenceIterator(object):
+    """
+    An iterator for a sequence that uses __getitem__ to fetch elements of
+    the sequence.
+    """
+    
+    def __init__(self, context):
+        self.context = context
+        self._cursor = 0
+
+    def next(self):
+        try:
+            v = self.context[self._cursor]
+            self._cursor += 1
+        except IndexError:
+            raise StopIteration()
+        return v
+
+    def __iter__(self):
+        return self
+
+
+class SequenceLocationProxy(BaseProxy):
+    """
+    A location proxy that behaves much like implicit acquisition for
+    nested persistent lists.  This means that traversal over listed
+    persistent or listed elements should yield a way to walk back up
+    parent objects to the root proxy (which may yet have its __parent__)
+    set too (this supports walking with Acquisition.aq_parent() too).
+    """
+    
+    def __getitem__(self, i, proxy=None):
+        v = super(SequenceLocationProxy, self).__getitem__(i)
+        if IRecordFilter.providedBy(v):
+            proxy = FilterProxy(v)
+        elif isinstance(v, PersistentList):
+            proxy = SequenceLocationProxy(v)
+        elif isinstance(v, Persistent):
+            proxy = BaseProxy(v)
+        if proxy is not None:
+            proxy.__parent__ = self
+            return proxy
+        return v
+
+    def __iter__(self):
+        return SequenceIterator(self)
 
 
 # get index type from FieldQuery
@@ -95,6 +197,42 @@ def filter_query(f):
     return op(*queries)
 
 
+def diffquery(*queries):
+    """
+    Factory for relative complement of results for queries A \ B \ ...
+    Or A minus anything matching any of the subsequent queries.
+    """
+    if len(queries) == 0:
+        raise ValueError('empty query arguments')
+    if len(queries) == 1:
+        return queries[0]
+    return query.And(queries[0], query.Not(query.Or(*queries[1:])))
+
+
+def setop_query(operator):
+    """Return query class or factory callable for operator name"""
+    return {
+        'union': query.Or,
+        'intersection': query.And,
+        'difference': diffquery,
+        }[operator]
+
+
+def grouped_query(group):
+    """
+    Given group as either an IFilterGroup or IComposedQuery
+    callable object that returns a query, compose using the set
+    operator for that object.
+    """
+    if len(group) == 1:
+        # avoid unneccessary wrapping when only one item in group
+        if IComposedQuery.providedBy(group):
+            return grouped_query(group[0])
+        else:
+            return filter_query(group[0])
+    return setop_query(group.operator)(*[item.build() for item in group])
+
+
 class FieldQuery(Persistent):
     """
     FieldQuery is field / value / comparator entry.  Field is persisted
@@ -109,6 +247,9 @@ class FieldQuery(Persistent):
         self._field_id = field_id(field)
         self.comparator = str(comparator)
         self.value = value
+
+    def build(self):
+        return query_object(self)
 
     def _get_field(self):
         if not getattr(self, '_v_field', None):
@@ -137,20 +278,31 @@ class FieldQuery(Persistent):
 @implementer(IFormDefinition)
 @adapter(IRecordFilter)
 def filter_definition(context):
-    measure_definition = aq_parent(aq_inner(context))
+    # get composed query, which contains, group, then filter context:
+    composed_query = context.__parent__.__parent__
+    measure_definition = composed_query.__parent__
     return IFormDefinition(measure_definition)
 
 
-class RecordFilter(Item):
+class CoreFilter(Persistent):
+    """Core persistent record filter implementation"""
+
     implements(IRecordFilter)
 
-    def __init__(self, id=None, *args, **kwargs):
-        super(RecordFilter, self).__init__(id, *args, **kwargs)
+    __parent__ = None
+
+    def __init__(self, *args, **kwargs):
+        super(CoreFilter, self).__init__(*args, **kwargs)
+        self._uid = str(uuid.uuid4())
         self.reset(**kwargs)
+
+    @property
+    def __name__(self):
+        return self._uid
 
     def reset(self, **kwargs):
         self.operator = kwargs.get('operator', 'AND')
-        self._queries = PersistentDict()
+        self._queries = PersistentMapping()
         self._order = PersistentList()
 
     def schema(self):
@@ -165,6 +317,9 @@ class RecordFilter(Item):
         schema = self.schema()
         for query in self._queries.values():
             query.validate(schema)
+
+    def build(self):
+        return filter_query(self)
 
     def add(self, query=None, **kwargs):
         if query is None:
@@ -229,6 +384,20 @@ class RecordFilter(Item):
 
     def items(self):
         return list(self.iteritems())
+
+
+class RecordFilter(CoreFilter, Item):
+    """
+    Contentish record filter BBB.
+
+    MRO note: CoreFilter defined as first superclass to avoid collection
+    methods such as OFS.__len__() via Item.
+    """
+
+    def __init__(self, id=None, *args, **kwargs):
+        Item.__init__(self, id, *args, **kwargs)
+        CoreFilter.__init__(self, *args, **kwargs)
+        self.reset(**kwargs)
 
     @property
     def externalEditorEnabled(self):
@@ -328,7 +497,7 @@ class CriteriaJSONCapability(object):
         self.context = context
         self.request = getRequest() if request is None else request
 
-    def __call__(self, *args, **kwargs):
+    def build(self, *args, **kwargs):
         return FilterJSONAdapter(self.context).serialize(use_json=False)
 
     def publish_json(self):
@@ -351,11 +520,122 @@ class CriteriaJSONCapability(object):
         return self, ()
 
 
-class FilterGroup(PersistentMapping):
+class BaseGroup(PersistentList):
 
-    implements(IFilterGroup)
+    __parent__ = None
 
     def __init__(self, operator='union', items=()):
         self.operator = operator
-        super(FilterGroup, self).__init__(items)
+        # UUID is relevant to FilterGroup, safe to ignore on ComposedQuery
+        self._uid = str(uuid.uuid4())
+        super(BaseGroup, self).__init__(items)
+
+    @property
+    def __name__(self):
+        return self._uid
+
+    def move(self, item, direction='top'):
+        """
+        Move item (uid or filter) to direction specified,
+        up/down/top/bottom
+        """
+        if direction not in ('top', 'bottom', 'up', 'down'):
+            raise ValueError('invalid direction')
+        if isinstance(item, basestring):
+            found = [f for f in self if f._uid == item]
+            if not found:
+                raise ValueError('item %s not found' % item)
+            item = found[0]
+        idx = self.index(item)
+        d_idx = {
+            'up': 0 if idx == 0 else (idx - 1),
+            'down': idx + 1,
+            'top': 0,
+            'bottom': len(self),
+            }[direction]
+        self.insert(d_idx, self.pop(idx))
+
+    def build(self):
+        """construct a repoze.catalog query"""
+        return grouped_query(self)
+
+
+class FilterGroup(BaseGroup):
+
+    implements(IFilterGroup)
+
+
+class ComposedQuery(BaseGroup):
+    
+    implements(IComposedQuery)
+
+    def __init__(self, name, operator='union', items=()):
+        super(ComposedQuery, self).__init__(operator, items)
+        self.name = str(name)
+
+
+# UUID adapters for IRecordFilter, IFilterGroup:
+
+def _getuid(context):
+    return getattr(context, '_uid', None)
+
+
+@implementer(IUUID)
+@adapter(IRecordFilter)
+def filter_uid(context):
+    return _getuid(context)
+
+
+@implementer(IUUID)
+@adapter(IFilterGroup)
+def group_uid(context):
+    return _getuid(context)
+
+
+def empty_query(name):
+    """Scaffolding"""
+    f = CoreFilter()
+    g = FilterGroup(items=(f,))
+    f.__parent__ = g
+    q = ComposedQuery(name, items=(g,))
+    g.__parent__ = q
+    return q
+
+
+def composed_storage():
+    storage = PersistentMapping()
+    storage['numerator'] = empty_query('numerator')
+    storage['denominator'] = empty_query('denominator')
+    return storage
+
+
+def _measure_composed_query(context, name):
+    _attr = '_composed_queries'
+    if name not in ('numerator', 'denominator'):
+        raise ValueError('invalid composed query name')
+    if not hasattr(context, _attr):
+        setattr(context, _attr, composed_storage())
+        transaction.get().note('Added composed query storage to measure')
+    composed = SequenceLocationProxy(getattr(context, _attr).get(name))
+    composed.__parent__ = context
+    return composed
+
+    
+@implementer(IComposedQuery)
+@adapter(IMeasureDefinition)
+def measure_numerator(context):
+    if not getattr(context, '_v_q_numerator', None):
+        context._v_q_numerator = _measure_composed_query(context, 'numerator')
+    return context._v_q_numerator
+
+
+@implementer(IComposedQuery)
+@adapter(IMeasureDefinition)
+def measure_denominator(context):
+    if not getattr(context, '_v_q_denominator', None):
+        context._v_q_denominator = _measure_composed_query(
+            context,
+            'denominator',
+            )
+    return context._v_q_denominator
 

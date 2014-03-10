@@ -11,12 +11,13 @@ from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from plone.app.layout.navigation.root import getNavigationRoot
 from repoze.catalog import query
+from zope.component import queryAdapter
 from zope.component.hooks import getSite
 from zope.interface import implements
 
 from uu.formlibrary.interfaces import MULTI_FORM_TYPE
-from uu.formlibrary.search.filters import filter_query
-from uu.formlibrary.search.interfaces import IRecordFilter
+from uu.formlibrary.search.interfaces import IComposedQuery
+from uu.formlibrary.search.filters import composed_storage
 
 from interfaces import IMeasureDefinition, IMeasureGroup, IMeasureLibrary
 from interfaces import IFormDataSetSpecification
@@ -52,12 +53,16 @@ def is_query_complete(q):
 
 # measure definition content type class:
 
-class MeasureDefinition(Container):
+class MeasureDefinition(Item):
     """Metadata about a measure"""
 
     implements(IMeasureDefinition)
 
     portal_type = 'uu.formlibrary.measure'
+
+    def __init__(self, id=None, **kwargs):
+        super(MeasureDefinition, id, **kwargs)
+        self._composed_queries = composed_storage()
 
     def site(self):
         if not getattr(self, '_site', None):
@@ -75,6 +80,9 @@ class MeasureDefinition(Container):
             return NOVALUE
         return self._flex_field_value(context, path)
 
+    def get_query(self, name):
+        return queryAdapter(self, IComposedQuery, name=name)
+
     def _mr_get_value(self, context, name):
         """Get raw value for numerator or denominator"""
         assert name in ('numerator', 'denominator')
@@ -87,14 +95,14 @@ class MeasureDefinition(Container):
         if vtype == 'multi_total':
             v = len(context)
         if vtype == 'multi_filter':
-            rfilter = self.get(name)            # get contained filter
-            if rfilter is None or not IRecordFilter.providedBy(rfilter):
+            q = self.get_query(name)      # gets IComposedQuery object
+            if not IComposedQuery.providedBy(q):
                 return v
             # get embedded catalog for the form:
             catalog = getattr(aq_base(context), 'catalog', None)
             if catalog is None:
                 return v
-            q = filter_query(rfilter)           # repoze.catalog query object
+            q = q.build()       # IComposedQuery -> repoze.catalog query
             if not is_query_complete(q):
                 return NOVALUE  # cannot perform query that is incomplete
             try:

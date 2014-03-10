@@ -1,5 +1,7 @@
-from zope.interface import Interface, Invalid, invariant
+from plone.uuid.interfaces import IUUIDAware
+from zope.interface import Interface
 from zope.interface.common.mapping import IIterableMapping
+from zope.interface.common.sequence import ISequence
 from zope.publisher.interfaces import IPublishTraverse
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
@@ -43,7 +45,7 @@ class ISearchAPICapability(IPublishTraverse):
         capability.
         """
 
-    def index_html(self, REQUEST=None):
+    def index_html(REQUEST=None):
         """
         Return JSON representation of data returned from call.
         Used over-the-web for HTTP APIs.
@@ -158,6 +160,13 @@ class IFieldQuery(Interface):
         required=True,
         )  # arbitrary, duck-typed value
 
+    def build():
+        """
+        Construct and return a repoze.catalog query object for
+        the field query; this query object should always be a
+        comparator query, not a boolean operation.
+        """
+
     def validate(iface):
         """
         Given an interface, validate that the configured field
@@ -167,7 +176,7 @@ class IFieldQuery(Interface):
         """
 
 
-class IRecordFilter(IIterableMapping):
+class IRecordFilter(IIterableMapping, IUUIDAware):
     """
     A record filter is a named item that stores a set of field queries
     for use on a search context -- this component represents queries as
@@ -185,6 +194,12 @@ class IRecordFilter(IIterableMapping):
             ),
         default='AND',
         )
+
+    def build():
+        """
+        Construct and return a repoze.catalog query object for the
+        filter and its contained field queries.
+        """
 
     def add(query=None, **kwargs):
         """
@@ -238,60 +253,66 @@ class ISetOperationSpecifier(Interface):
         )
 
 
-class IFilterGroup(ISetOperationSpecifier):
+class IFilterGroup(ISetOperationSpecifier, ISequence, IUUIDAware):
     """
-    A group/composite of multiple IRecordFilter objects. In cases
-    where more than one filter is a member of this group, a set
-    operation can be specified for compositing results.
+    A group is an iterable, writable sequence of IRecordFilter objects
+    that can be composed by a set operation into a query.  Groups are
+    identified by UUID.
     """
 
-    filters = schema.Dict(
-        title=u'Filters',
-        description=u'Ordered mapping of record filters in group, '
-                    u'keyed by UUID.',
-        key_type=schema.Bytes(description=u'UUID string'),
-        value_type=schema.Object(schema=IRecordFilter),
-        required=True,
-        defaultFactory=list,
+    def move(item, direction='top'):
+        """
+        Given item as either UUID for a record filter, or as a filter
+        object contained wihtin this group, move its order according
+        to the specified direction, which must be one of:
+        'up', 'down', 'top', 'bottom'.
+        """
+
+    def build():
+        """
+        Construct and return a repoze.catalog query for this group,
+        and all its contained filters, composed using the set operation
+        specified for this group.
+        """
+
+
+class IComposedQuery(ISetOperationSpecifier, ISequence):
+    """
+    An iterable sequence containing filter groups, with a set operation
+    that be specified for use in composing a final query from the
+    groups for use in repoze.catalog (when called).
+
+    The composition relationships of all the parts is shown below:
+
+                    IComposedQuery <>-.
+                                      :  (sequence)
+                .--<> IFilterGroup ---'
+    (sequence)  :
+                `--- IRecordFilter <>-.
+                                      :  (ordered mapping)
+                      IFieldQuery ----'
+    """
+
+    name = schema.BytesLine(
+        title=u'Query name',
+        description=u'Query name, either numerator or denominator.',
+        constraint=lambda v: str(v) in ('numerator', 'denominator'),
         )
 
-    order = schema.List(
-        title=u'Filter order',
-        description=u'Ordered list of UUIDs to order keys for filters.',
-        value_type=schema.Bytes(description=u'UUID string'),
-        )
-
-    def __iter__():
+    def move(item, direction='top'):
         """
-        Return iterable of record filters, matching the order specified
-        by UUID key in self.order.
+        Given item as either UUID for a filter group, or as a group
+        object contained wihtin this composed query sequence, move its
+        order according to the specified direction, which must be one
+        of: 'up', 'down', 'top', 'bottom'.
         """
 
-    def __len__():
+    def build():
         """
-        Return count of filters within.
+        Construct and return a repoze.catalog query for all groups
+        by composing the query for each group using the set operation
+        specified for this composed query.
         """
-
-    def move(uid, direction='top'):
-        """
-        Move the order of a filter up or down, or to top/bottom
-        given an UUID uid for a given filter.  Allowed directions:
-        'up', 'down', 'top', 'bottom'.  A full re-order should just
-        set self.order on the filter group component rather than
-        attempt multiple move() operations.
-        """
-
-    @invariant
-    def distinct_filters(data):
-        if data.filters and len(set(data.filters)) != len(data.filters):
-            raise Invalid('There is duplication of filters specified.')
-
-
-class IFilterGroups(IIterableMapping, ISetOperationSpecifier):
-    """
-    An iterable mapping of filter groups, with a set operation that can
-    be specified for use in composing a single query from the groups.
-    """
 
 
 class IJSONFilterRepresentation(Interface):

@@ -1,4 +1,7 @@
+from plone.uuid.interfaces import IUUID
+
 from uu.retrieval.catalog import SimpleCatalog
+from uu.formlibrary.measure.cache import DataPointCache
 
 
 def handle_multiform_modify(context, event):
@@ -16,6 +19,7 @@ def handle_multiform_modify(context, event):
             print 'Cound not index record for context: %s' % context
             print 'Record %s' % record.record_uid
             print record.__dict__
+    DataPointCache().reload(IUUID(context))
 
 
 def handle_multiform_savedata(context):

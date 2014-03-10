@@ -165,9 +165,6 @@ class MeasureBaseView(object):
             vocab = vocab(self.context)
         return vocab.getTerm(v).title
 
-    def filter_view(self, filter):
-        return getMultiAdapter((filter, self.request), name="filter_view")
-
     def _datasets(self):
         group = aq_parent(aq_inner(self.context))
         ftiname = DATASET_TYPE
@@ -176,7 +173,13 @@ class MeasureBaseView(object):
     def source_type(self):
         return aq_parent(aq_inner(self.context)).source_type
 
-    def show_criteria_tab(self):
+    def criteria_view(self):
+        return getMultiAdapter(
+            (self.context, self.request),
+            name='measure_criteria',
+            )
+
+    def show_criteria(self):
         group = aq_parent(aq_inner(self.context))
         return group.source_type == MULTI_FORM_TYPE
 

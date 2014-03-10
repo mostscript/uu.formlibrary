@@ -16,19 +16,21 @@
  <link rel="recordfilter"
        title=""
        href=""
-       tal:attributes="href rfilter/getId;
-                       title rfilter/Title;"
+       tal:attributes="href rfilter/uid;
+                       title rfilter/title;"
        />
 </tal:block>
   </metal:block>
 </head>
 <body>
  <div metal:fill-slot="content-core">
-  <h3>Define the filter criteria for your measure below:</h3>
-  <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.  Fields may be selected only once for each filter below.</p>
+  <h3>Define the query criteria for your measure below:</h3>
+  <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.</p>
+
   <div id="filter-manager">
    <!-- placeholder for critiera forms managed and populated via AJAX -->
   </div>
+
   <div style="clear:both"></div>
   <form id="payloads" method="POST">
    <div class="payload-container" style="display:none">
@@ -37,9 +39,9 @@
                id="payload-"
                name="payload-"
                value=""
-               tal:attributes="id string:payload-${rfilter/getId};
-                               name string:payload-${rfilter/getId};
-                               value python:view.json(rfilter.getId());" />
+               tal:attributes="id string:payload-${rfilter/uid};
+                               name string:payload-${rfilter/uid};
+                               value python:view.json(rfilter.get('uid'));" />
                                 
      </tal:block>
    </div>

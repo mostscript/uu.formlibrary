@@ -12,6 +12,14 @@
     for=".interfaces.IRecordFilter"
     /> 
 
+  <!-- IUUID adapters for IRecordFilter, IFilterGroup -->
+  <adapter factory=".filters.filter_uid" />
+  <adapter factory=".filters.group_uid" />
+
+  <!-- measure composed query adapters -->
+  <adapter name="numerator" factory=".filters.measure_numerator" />
+  <adapter name="denominator" factory=".filters.measure_denominator" />
+
   <!-- subscribers -->
 
   <subscriber
@@ -26,28 +34,6 @@
     handler=".handlers.handle_multiform_modify"
     />
 
-  <!-- summary views -->
-  
-  <browser:page
-    name="filter_view"
-    for="uu.formlibrary.search.interfaces.IRecordFilter"
-    class=".criteria.FilterView"
-    template="filter.pt"
-    permission="zope2.View"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    />
-  
-  <!-- filter definition/criteria form (consumer for API) -->
-  
-  <browser:page
-    name="filter_criteria"
-    for="uu.formlibrary.search.interfaces.IRecordFilter"
-    class=".criteria.FilterCriteriaView"
-    template="criteria_editor.pt"
-    permission="cmf.ModifyPortalContent"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    />
- 
   <!-- criteria editor for measure, consumes API -->
   <browser:page
     name="measure_criteria"
@@ -59,15 +45,6 @@
     />
  
   <!-- search API supports definition and multi-form contexts -->  
-  
-  <browser:page
-    name="searchapi"
-    for="uu.formlibrary.search.interfaces.IRecordFilter"
-    class=".api.SearchAPI"
-    permission="zope2.View"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    allowed_attributes="fields comparators"
-    />
  
   <browser:page
     name="searchapi"

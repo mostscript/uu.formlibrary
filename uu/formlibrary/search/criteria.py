@@ -1,68 +1,23 @@
-from Products.statusmessages.interfaces import IStatusMessage
-from Products.CMFCore.utils import getToolByName
-from zope.component.hooks import getSite
 from plone.uuid.interfaces import IUUID
+from Products.statusmessages.interfaces import IStatusMessage
+from zope.component import queryAdapter
+from zope.component.hooks import getSite
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
 
-from uu.formlibrary.search.interfaces import IRecordFilter
+from uu.formlibrary.search.interfaces import IComposedQuery
 from uu.formlibrary.search.filters import FilterJSONAdapter
 
 from comparators import Comparators
 
 
-class BaseFilterView(object):
+class MeasureCriteriaView(object):
 
     def __init__(self, context, request):
         self.context = context
         self.request = request
         self.portal = getSite()
-
-    def used_by(self):
-        """
-        returns sequence of catalog brains for all content
-        (esp. composite filters) referencing/using this filter.
-        Uses the getRawRelatedItems index rather than a
-        purpose-specific index.
-        """
-        catalog = getToolByName(self.context, 'portal_catalog')
-        uid = IUUID(self.context, None)
-        if not uid:
-            return ()
-        q = {
-            'getRawRelatedItems': uid,
-            }
-        return tuple(catalog.unrestrictedSearchResults(q))
-
-    def portalurl(self):
-        return self.portal.absolute_url()
-
-
-class FilterView(BaseFilterView):
-    """
-    Summary view for IRecordFilter.
-    """
-
-    def __init__(self, context, request):
-        if not IRecordFilter.providedBy(context):
-            raise ValueError('Context must be a record filter')
-        super(FilterView, self).__init__(context, request)
         self.comparators = Comparators(request)
-
-    def queries(self):
-        return self.context.values()
-
-    def comparator_title(self, comparator):
-        return self.comparators.get(comparator).label
-
-    def comparator_symbol(self, comparator):
-        return self.comparators.get(comparator).symbol
-
-
-class BaseCriteriaView(object):
-
-    def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.portal = getSite()
         self.status = IStatusMessage(self.request)
 
     def update(self, *args, **kwargs):
@@ -81,9 +36,11 @@ class BaseCriteriaView(object):
                 continue
             adapter = FilterJSONAdapter(rfilter)
             adapter.update(str(payload))
-            msg = u'Updated criteria for %s' % rfilter.title
+            queryname = rfilter.__parent__.__parent__.name
+            msg = u'Updated criteria for %s' % queryname
             self.status.addStatusMessage(msg, type='info')
         req.response.redirect(self.context.absolute_url())  # to view tab
+        notify(ObjectModifiedEvent(self.context))
 
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
@@ -92,48 +49,61 @@ class BaseCriteriaView(object):
     def portalurl(self):
         return self.portal.absolute_url()
 
-    def filters(self):
-        raise NotImplementedError('base class method')
+    def include_queries(self):
+        include = []
+        if self.context.numerator_type == 'multi_filter':
+            include.append('numerator')
+        if self.context.denominator_type == 'multi_filter':
+            include.append('denominator')
+        return include
 
-    def json(self, name):
-        """Get JSON payload for record filter, by name"""
-        raise NotImplementedError('base class method')
+    def composed_query(self, name):
+        return queryAdapter(self.context, IComposedQuery, name=name)
 
-    def get_filter(self, name):
-        raise NotImplementedError('base class method')
-
-
-class FilterCriteriaView(BaseCriteriaView):
-    """
-    Criteria search form view for a record filter context.
-    """
+    def composed_queries(self):
+        return [self.composed_query(name) for name in self.include_queries()]
 
     def get_filter(self, name):
-        return self.context
-
-    def filters(self):
-        return [self.context]
-
-    def json(self, name):
-        """Get JSON payload for record filter, by name"""
-        return FilterJSONAdapter(self.context).serialize()
-
-
-class MeasureCriteriaView(BaseCriteriaView):
-
-    def get_filter(self, name):
-        if name not in self.context.objectIds():
+        match = [info for info in self.filters() if info.get('uid') == name]
+        if not match:
             return None
-        return self.context.get(name)
+        return match[0].get('filter')
+
+    def find_filters(self, composed):
+        r = []
+        for group in composed:
+            for rfilter in group:
+                r.append(rfilter)
+        return r
 
     def filters(self):
-        _isrfilter = lambda o: o.portal_type == 'uu.formlibrary.recordfilter'
-        return filter(_isrfilter, self.context.contentValues())
+        if not hasattr(self, '_filters'):
+            self._filters = []
+            included = self.include_queries()
+            for name in included:
+                title = name.title()
+                composed = self.composed_query(name)
+                found = self.find_filters(composed)
+                if found:
+                    rfilter = found[0]
+                    self._filters.append({
+                        'uid': IUUID(rfilter),
+                        'title': title,
+                        'filter': rfilter,
+                        })
+        return self._filters
 
     def json(self, name):
-        """Get JSON payload for record filter, by name"""
-        if name not in self.context.objectIds():
-            return '{}'
-        rfilter = self.context.get(name)
+        """Get JSON payload for record filter, by name (uid)"""
+        match = [info for info in self.filters() if info.get('uid') == name]
+        if not match:
+            return '{}'   # no matching filter
+        rfilter = match[0].get('filter')
         return FilterJSONAdapter(rfilter).serialize()
+
+    def comparator_title(self, comparator):
+        return self.comparators.get(comparator).label
+
+    def comparator_symbol(self, comparator):
+        return self.comparators.get(comparator).symbol
 

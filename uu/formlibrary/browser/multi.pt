@@ -8,8 +8,6 @@
 
 <metal:block fill-slot="javascript_head_slot">
 
-<meta name="VIEWNAME" content="" tal:attributes="content view/VIEWNAME" />
-
 <script type="text/javascript"
         src=""
         tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/json2.js"></script>
@@ -66,7 +64,7 @@
 </head>
 
 <body>
-  <div metal:fill-slot="main">
+  <div id="formcore" metal:fill-slot="main" tal:attributes="data-viewname view/VIEWNAME">
 
  <tal:globals define="series view/seriesinfo;
                       fields view/fields;">

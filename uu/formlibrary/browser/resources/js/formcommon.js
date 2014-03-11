@@ -5,7 +5,7 @@
     "use strict";
 
     $(document).ready(function(){
-        var viewname = $('meta[name=VIEWNAME]').attr('content');
+        var viewname = $('#formcore').attr('data-viewname');
         if (viewname == 'edit') {
             /* hide portlet columns via deco.gs class removal */
             $('#portal-column-content').removeClass('position-1:4');

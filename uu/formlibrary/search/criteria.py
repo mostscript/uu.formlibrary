@@ -5,6 +5,7 @@ from zope.component.hooks import getSite
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
+from uu.workflows.utils import history_log
 from uu.formlibrary.search.interfaces import IComposedQuery
 from uu.formlibrary.search.filters import FilterJSONAdapter
 
@@ -30,6 +31,7 @@ class MeasureCriteriaView(object):
             return
         _info = lambda name: (name.replace(prefix, ''), req.get(name))
         payloads = map(_info, payload_keys)
+        log_messages = []
         for name, payload in payloads:
             rfilter = self.get_filter(name)
             if rfilter is None:
@@ -39,8 +41,14 @@ class MeasureCriteriaView(object):
             queryname = rfilter.__parent__.__parent__.name
             msg = u'Updated criteria for %s' % queryname
             self.status.addStatusMessage(msg, type='info')
-        req.response.redirect(self.context.absolute_url())  # to view tab
+            log_messages.append(msg)
+        history_log(
+            self.context,
+            message='\n'.join(log_messages),
+            set_modified=True,
+            )
         notify(ObjectModifiedEvent(self.context))
+        req.response.redirect(self.context.absolute_url())  # to view tab
 
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)

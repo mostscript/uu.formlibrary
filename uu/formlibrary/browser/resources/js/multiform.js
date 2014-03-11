@@ -290,17 +290,6 @@ uu.formlibrary.multiform.clean_form_display = function() {
 
 
 jq(document).ready(function(){
-    var viewname = jq('meta[name=VIEWNAME]').attr('content');
-    if (viewname == 'edit') {
-        /* hide portlet columns via deco.gs class removal */
-        jq('#portal-column-content').removeClass('position-1:4');
-        jq('#portal-column-content').removeClass('width-3:4');
-        jq('#portal-column-two').removeClass('position-3:4');
-        jq('#portal-column-two').removeClass('width-1:4');
-        /* change deco.gs classes for main column to full-width */
-        jq('#portal-column-content').addClass('position-0');
-        jq('#portal-column-content').addClass('width-full');
-        }
     jq('input#btn-addrow').click(uu.formlibrary.multiform.handle_new_row);
     uu.formlibrary.multiform.rowhandlers();
     jq('#coredata').submit(uu.formlibrary.multiform.submit);
@@ -310,16 +299,6 @@ jq(document).ready(function(){
             jq(this).val('');
             }
     });
-    jq('a.meta-toggle').click(function() {
-        var clicklink = jq(this);
-        if (clicklink.text() == '[HIDE metadata and instructions.]') {
-            clicklink.text('[SHOW metadata and instructions.]');
-        }
-        else {
-            clicklink.text('[HIDE metadata and instructions.]');
-        }
-        clicklink.parents('div.form-meta').children('div.wrapper').slideToggle();
-        });
     uu.formlibrary.multiform.clean_form_display(); /* only for stacked; for record divs in DOM at page load */
 });
 

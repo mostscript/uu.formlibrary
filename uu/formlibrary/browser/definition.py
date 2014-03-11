@@ -6,17 +6,15 @@ from zope.interface import alsoProvides
 from zope.schema import getFieldNamesInOrder
 from Products.CMFCore.utils import getToolByName
 
-from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.forms import ComposedForm
 from uu.formlibrary.utils import local_query
+from common import BaseFormView
 
 
-class FormInputView(object):
+class FormInputView(BaseFormView):
 
     def __init__(self, context, request):
-        self.context = context
-        self.request = request
-        self.definition = IFormDefinition(self.context)
+        super(FormInputView, self).__init__(context, request)
         self._form = ComposedForm(self.context, request)
         # non-intuitive, but the way to tell the renderer not to wrap
         # the form is to tell it that it is already wrapped.
@@ -43,10 +41,6 @@ class FormInputView(object):
 
     def update(self, *args, **kwargs):
         self._form.update(*args, **kwargs)
-
-    def __call__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
-        return self.index(*args, **kwargs)
 
 
 class DefinitionPreview(FormInputView):
@@ -148,6 +142,8 @@ class DefinitionPreview(FormInputView):
 
 class FormDisplayView(FormInputView):
     """ Display form: Form view in display mode without buttons """
+
+    VIEWNAME = 'view'
 
     def __init__(self, context, request):
         super(FormDisplayView, self).__init__(context, request)

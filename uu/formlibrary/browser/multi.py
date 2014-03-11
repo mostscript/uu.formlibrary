@@ -2,16 +2,17 @@ import uuid
 
 from z3c.form import form, field
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
-from zope.schema import getFieldsInOrder, getFieldNamesInOrder
+from zope.schema import getFieldsInOrder
 from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
 from uu.workflows.utils import history_log
 
-from uu.formlibrary.interfaces import IFormSeries, IFormDefinition
 from uu.formlibrary.forms import ComposedForm, common_widget_updates
 from uu.formlibrary.search.handlers import handle_multiform_savedata
+
+from common import BaseFormView
 
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
@@ -62,19 +63,10 @@ class DivRowDisplayForm(RowDisplayForm):
     template = DIV_TEMPLATE
 
 
-class MultiFormEntry(object):
-
-    VIEWNAME = 'edit'
+class MultiFormEntry(BaseFormView):
 
     def __init__(self, context, request):
-        self.series = context.__parent__
-        self.context = context.__of__(self.series)
-        self.definition = IFormDefinition(self.context)
-        self.request = request
-        self.seriesinfo = dict(
-            [(k, v) for k, v in self.series.__dict__.items()
-                if v is not None and k in getFieldNamesInOrder(IFormSeries)])
-        self.title = '%s: %s' % (self.series.Title().strip(), context.Title())
+        super(MultiFormEntry, self).__init__(context, request)
         self._fields = []
         self._status = IStatusMessage(self.request)
         self.has_metadata = bool(self.definition.metadata_definition)

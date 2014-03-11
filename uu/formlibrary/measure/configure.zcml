@@ -96,12 +96,6 @@
     handler=".cache.handle_measure_modify"
     /> 
 
-  <subscriber
-    for=".interfaces.IMeasureDefinition
-         zope.lifecycleevent.interfaces.IObjectAddedEvent"
-    handler=".cache.handle_measure_modify"
-    /> 
-
   <!-- ++widget++ traversal adapter for wizard view -->
   <adapter
     for=".wizard.IMeasureWizardView

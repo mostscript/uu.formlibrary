@@ -40,10 +40,11 @@
             to <span tal:content="context/end">END</span>.
       </div>
 
-      <tal:block condition="python: (not is_series) and view.VIEWNAME=='edit'">
-        <div class="instructions" tal:condition="python: getattr(view, 'instructions', None)">
+      <tal:block condition="python: (not is_series) and view.VIEWNAME=='edit'" define="instructions python: getattr(view, 'instructions', str)()">
+        <div class="instructions"
+             tal:condition="python: instructions.strip()">
           <h4>Instructions</h4>
-          <div class="instructions-content" tal:content="structure view/instructions">
+          <div class="instructions-content" tal:content="structure instructions">
             Instructions HTML here.
           </div>
         </div>

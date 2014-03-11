@@ -81,13 +81,23 @@ class MeasureDefinition(Item):
         return self._flex_field_value(context, path)
 
     def get_query(self, name):
-        return queryAdapter(self, IComposedQuery, name=name)
+        attr = '_v_query_%s' % name
+        q = getattr(self, attr, None)
+        if q is None:
+            composed = queryAdapter(self, IComposedQuery, name=name)
+            if not IComposedQuery.providedBy(composed):
+                return None
+            q = composed.build()
+            if not is_query_complete(q):
+                return None  # cannot perform query that is incomplete
+            setattr(self, attr, q)  # cache success
+        return q
 
     def _mr_get_value(self, context, name):
         """Get raw value for numerator or denominator"""
         assert name in ('numerator', 'denominator')
         vtype = getattr(self, '%s_type' % name, None)
-        v = 1 if vtype == 'constant' else None  # initial value
+        v = 1 if vtype == 'constant' else NOVALUE  # initial value
         if vtype == 'multi_metadata':
             specname = '%s_field' % name
             fieldpath = getattr(self, specname, None)
@@ -95,16 +105,13 @@ class MeasureDefinition(Item):
         if vtype == 'multi_total':
             v = len(context)
         if vtype == 'multi_filter':
-            q = self.get_query(name)      # gets IComposedQuery object
-            if not IComposedQuery.providedBy(q):
-                return v
+            q = self.get_query(name)  # gets repoze.catalog query
+            if q is None:
+                return NOVALUE
             # get embedded catalog for the form:
             catalog = getattr(aq_base(context), 'catalog', None)
             if catalog is None:
-                return v
-            q = q.build()       # IComposedQuery -> repoze.catalog query
-            if not is_query_complete(q):
-                return NOVALUE  # cannot perform query that is incomplete
+                return NOVALUE
             try:
                 v = catalog.rcount(q)           # result count from catalog
             except KeyError:

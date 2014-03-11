@@ -10,6 +10,7 @@ from zope.component import adapts
 from zope.component.hooks import getSite
 from zope.interface import implements
 
+from uu.workflows.utils import history_log
 from uu.formlibrary.interfaces import FORM_TYPES
 from uu.formlibrary.measure.interfaces import MEASURE_DEFINITION_TYPE
 from uu.formlibrary.measure.interfaces import GROUP_TYPE
@@ -268,9 +269,26 @@ class DataPointCache(object):
 
 
 def handle_simpleform_modify(context, event):
+    # invalidate all cached data points to which the form is relevant:
     DataPointCache().reload(IUUID(context))
 
 
 def handle_measure_modify(context, event):
+    # set modification time and a history log message:
+    msg = 'Updated modification timestamp, which invalidates stale '\
+          'cached queries, datapoints.'
+    history_log(context, message=msg, set_modified=True)
+    # Invalidate IComposedQuery adapter lookups for measure for
+    # both numerator and denominator:
+    context._v_q_numerator = None
+    context._v_q_denominator = None
+    # invalidate cache of built repoze.catalog query:
+    context._v_query_numerator = None
+    context._v_query_denominator = None
+    # ensure that all connections, instances, threads have fresh objects,
+    # with no stale _v_ prefixed volatile attributes -- invalidates the
+    # measure for all ZODB connections:
+    context._p_changed = True
+    # invalidate all cached data points to which the measure is relevant:
     DataPointCache().reload(IUUID(context))
 

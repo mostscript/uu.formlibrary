@@ -12,12 +12,9 @@ from repoze.catalog import query
 import transaction
 from zope.component import adapts, adapter
 from zope.dottedname.resolve import resolve
-from zope.globalrequest import getRequest
 from zope.interface import implements, implementer
 from zope.location.location import LocationProxy
 from zope.proxy import ProxyBase, removeAllProxies, non_overridable
-from zope.publisher.interfaces.browser import IBrowserPublisher
-from zope.publisher.interfaces import NotFound
 from zope import schema
 from zope.schema.interfaces import ITextLine, IBytesLine, ISequence
 
@@ -486,38 +483,6 @@ class FilterJSONAdapter(object):
         if use_json:
             return json.dumps(data, indent=4)
         return data
-
-
-class CriteriaJSONCapability(object):
-    """API capability for JSON output"""
-
-    implements(IBrowserPublisher)
-
-    def __init__(self, context, request=None):
-        self.context = context
-        self.request = getRequest() if request is None else request
-
-    def build(self, *args, **kwargs):
-        return FilterJSONAdapter(self.context).serialize(use_json=False)
-
-    def publish_json(self):
-        msg = FilterJSONAdapter(self.context).serialize()
-        if self.request is not None:
-            self.request.response.setHeader('Content-type', 'application/json')
-            self.request.response.setHeader('Content-length', str(len(msg)))
-        return msg
-
-    def publishTraverse(self, request, name):
-        if name == 'publish_json':
-            if self.request is not request:
-                self.request = request
-            return self.publish_json  # callable method
-        raise NotFound(self, name, request)
-
-    def browserDefault(self, request):
-        if request:
-            return self, ('publish_json',)
-        return self, ()
 
 
 class BaseGroup(PersistentList):

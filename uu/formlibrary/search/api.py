@@ -6,7 +6,6 @@ from zope.publisher.interfaces import IPublishTraverse, NotFound
 from uu.formlibrary.search.interfaces import ISearchAPI, API_VERSION
 from comparators import Comparators
 from fields import SearchableFields
-from filters import CriteriaJSONCapability
 
 
 class SearchAPI(object):
@@ -14,14 +13,13 @@ class SearchAPI(object):
     Browser view entry point for API capabilities.
     """
 
-    CAPABILITIES = ['comparators', 'fields', 'criteria']
+    CAPABILITIES = ['comparators', 'fields']
 
     implements(IPublishTraverse, ISearchAPI)
 
     # declare each capability attribute as class attr for any view
     # instance attributes declared in allowed_attributes in ZCML
     fields = None
-    criteria = None
     comparators = None
 
     def __init__(self, context, request=None):
@@ -30,7 +28,6 @@ class SearchAPI(object):
         self.version = API_VERSION
         self.comparators = Comparators(request)
         self.fields = SearchableFields(context, request)
-        self.criteria = CriteriaJSONCapability(context, request)
         self._capabilities_security_context()
 
     def _capabilities_security_context(self):

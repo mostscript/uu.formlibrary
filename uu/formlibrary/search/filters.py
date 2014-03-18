@@ -14,15 +14,12 @@ from zope.component import adapts, adapter
 from zope.dottedname.resolve import resolve
 from zope.interface import implements, implementer
 from zope.interface.interfaces import IInterface
-from zope.location.location import LocationProxy
-from zope.proxy import ProxyBase, removeAllProxies, non_overridable
-from zope.schema import getFieldNamesInOrder
+from zope.schema import getFieldNamesInOrder, ValidationError
 from zope.schema import interfaces as fieldtypes
 
 from uu.retrieval.utils import identify_interface
 from uu.smartdate.converter import normalize_usa_date
 
-from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
@@ -40,105 +37,11 @@ resolvefield = lambda t: resolve(t[0])[t[1]]  # (name, fieldname) -> schema
 comparator_cls = lambda v: getattr(query, v) if v in COMPARATORS else None
 
 
-# proxy used for aq/location breadcrumbs on stored query components' context:
-
-class BaseProxy(LocationProxy):
-    """
-    A location proxy that is deferrent to the __name__ of the proxied object,
-    if it is non-None value.
-    """
-    
-    @property
-    def __name__(self):
-        if self._name is not None:
-            return self._name
-        return removeAllProxies(self).__name__
-    
-    @__name__.setter
-    def __name__(self, value):
-        self._name = value
-    
-    def __init__(self, o):
-        ProxyBase.__init__(self, o)
-        self._name = getattr(o, '__name__', None)
-
-
-class FilterProxy(BaseProxy):
-    """
-    Special proxy for IRecordFilter objects, the purpose of this is
-    to work around limitations of zope.proxy when the class of a
-    proxied object binds 'self' to the unwrapped object.  Here, we
-    need to have schema() -- and validate(), add() methods, which call
-    it -- bind the wrapped proxy as self before calling, which is
-    unfortunately necessary to make the __parent__ acquisition work
-    from the filter all the way to the containing measure definition.
-    """
-
-    @non_overridable
-    def schema(self):
-        return CoreFilter.schema(self)
-
-    @non_overridable
-    def validate(self, *args, **kwargs):
-        return CoreFilter.validate(self, *args, **kwargs)
-
-    @non_overridable
-    def add(self, *args, **kwargs):
-        return CoreFilter.add(self, *args, **kwargs)
-
-
-class SequenceIterator(object):
-    """
-    An iterator for a sequence that uses __getitem__ to fetch elements of
-    the sequence.
-    """
-    
-    def __init__(self, context):
-        self.context = context
-        self._cursor = 0
-
-    def next(self):
-        try:
-            v = self.context[self._cursor]
-            self._cursor += 1
-        except IndexError:
-            raise StopIteration()
-        return v
-
-    def __iter__(self):
-        return self
-
-
-class SequenceLocationProxy(BaseProxy):
-    """
-    A location proxy that behaves much like implicit acquisition for
-    nested persistent lists.  This means that traversal over listed
-    persistent or listed elements should yield a way to walk back up
-    parent objects to the root proxy (which may yet have its __parent__)
-    set too (this supports walking with Acquisition.aq_parent() too).
-    """
-    
-    def __getitem__(self, i, proxy=None):
-        v = super(SequenceLocationProxy, self).__getitem__(i)
-        if IRecordFilter.providedBy(v):
-            proxy = FilterProxy(v)
-        elif isinstance(v, PersistentList):
-            proxy = SequenceLocationProxy(v)
-        elif isinstance(v, Persistent):
-            proxy = BaseProxy(v)
-        if proxy is not None:
-            proxy.__parent__ = self
-            return proxy
-        return v
-
-    def __iter__(self):
-        return SequenceIterator(self)
-
-
 # get index type from FieldQuery
-def query_idxtype(q):
+def query_idxtype(fieldquery, schema):
     """Get index type for specific comparator, field combination"""
-    comparator, field = q.comparator, q.field
+    comparator, fieldname = fieldquery.comparator, fieldquery.fieldname
+    field = schema[fieldname]
 
     # for text, whether to use text index or field index depends on the
     # comparator saved on the query:
@@ -170,29 +73,29 @@ def query_idxtype(q):
     return 'field'  # fallback default
 
 
-def query_object(q):
+def query_object(fieldquery, schema):
     """
-    Get a repoze.catalog query object for a field query, using
-    contentions for index naming from uu.retrieval.
+    Get a repoze.catalog query object for a field query and schema,
+    using conventions for index naming from uu.retrieval.
     """
-    idxtype = query_idxtype(q)
-    idxname = '%s_%s' % (idxtype, q.field.__name__)
-    return comparator_cls(q.comparator)(idxname, q.value)
+    idxtype = query_idxtype(fieldquery, schema)
+    idxname = '%s_%s' % (idxtype, fieldquery.fieldname)
+    return comparator_cls(fieldquery.comparator)(idxname, fieldquery.value)
 
 
-def filter_query(f):
+def filter_query(f, schema):
     """
-    Given a record filter, get repoze.catalog query object
+    Given a record filter and a schema, get repoze.catalog query object
     representative of filter and contained field queries.
     """
     if len(f) == 1:
         # no BoolOp for single field, just comparator query:
-        return query_object(f.values()[0])
+        return query_object(f.values()[0], schema)
     op = query.Or
     opname = f.operator
     if opname == 'AND':
         op = query.And
-    queries = [query_object(q) for q in f.values()]
+    queries = [query_object(q, schema) for q in f.values()]
     return op(*queries)
 
 
@@ -217,19 +120,19 @@ def setop_query(operator):
         }[operator]
 
 
-def grouped_query(group):
+def grouped_query(group, schema):
     """
-    Given group as either an IFilterGroup or IComposedQuery
-    callable object that returns a query, compose using the set
-    operator for that object.
+    Given group as either an IFilterGroup or IComposedQuery, and a
+    schema context to apply to, compose a repoze.catalog query using the
+    set operator for the group/query object.
     """
     if len(group) == 1:
         # avoid unneccessary wrapping when only one item in group
         if IComposedQuery.providedBy(group):
-            return grouped_query(group[0])
+            return grouped_query(group[0], schema)
         else:
-            return filter_query(group[0])
-    return setop_query(group.operator)(*[item.build() for item in group])
+            return filter_query(group[0], schema)
+    return setop_query(group.operator)(*[item.build(schema) for item in group])
 
 
 class FieldQuery(Persistent):
@@ -240,29 +143,39 @@ class FieldQuery(Persistent):
     """
     implements(IFieldQuery)
 
+    _field_id = None   # BBB two-item tuple of schema dottedname, fieldname
+    _fieldname = None
+
     def __init__(self, field, comparator, value):
-        if not fieldtypes.IField.providedBy(field):
-            raise ValueError('field provided must be schema field')
-        self._field_id = field_id(field)
+        if fieldtypes.IField.providedBy(field):
+            field = field.__name__    # store fieldname, not field
+        self._fieldname = str(field)  # fieldname
         self.comparator = str(comparator)
-        self.value = value
+        self._value = value
 
-    def build(self):
-        return query_object(self)
+    def _get_fieldname(self):
+        return self._fieldname or self._field_id[1]  # _field_id for BBB
 
-    def _get_field(self):
-        if not getattr(self, '_v_field', None):
-            self._v_field = resolvefield(self._field_id)
-        return self._v_field
+    def _set_fieldname(self, name):
+        self._fieldname = name
 
-    def _set_field(self, field):
-        self._field_id = field_id(field)
-        self._v_field = field
+    fieldname = property(_get_fieldname, _set_fieldname)
 
-    field = property(_get_field, _set_field)
+    def field(self, schema):
+        name = self.fieldname
+        if name in getFieldNamesInOrder(schema):
+            return schema[name]
+        return None
+
+    def build(self, schema):
+        # Validate that the fieldname is known the the schema and the
+        # saved query value validates properly before building the
+        # query object:
+        if not self.validate(schema):
+            raise ValidationError('Unable to validate "%s"' % self.fieldname)
+        return query_object(self, schema)
 
     def _set_value(self, value):
-        self._get_field().validate(value)
         self._value = value
 
     def _get_value(self):
@@ -270,17 +183,15 @@ class FieldQuery(Persistent):
 
     value = property(_get_value, _set_value)
 
-    def validate(self, iface):
-        return (self._get_field().interface is iface)
-
-
-@implementer(IFormDefinition)
-@adapter(IRecordFilter)
-def filter_definition(context):
-    # get composed query, which contains, group, then filter context:
-    composed_query = context.__parent__.__parent__
-    measure_definition = composed_query.__parent__
-    return IFormDefinition(measure_definition)
+    def validate(self, schema):
+        field = self.field(schema)
+        if field is None:
+            return False
+        try:
+            field.validate(self.value)
+        except ValidationError:
+            return False
+        return True
 
 
 class CoreFilter(Persistent):
@@ -288,37 +199,24 @@ class CoreFilter(Persistent):
 
     implements(IRecordFilter)
 
-    __parent__ = None
-
     def __init__(self, *args, **kwargs):
         super(CoreFilter, self).__init__(*args, **kwargs)
         self._uid = str(uuid.uuid4())
         self.reset(**kwargs)
-
-    @property
-    def __name__(self):
-        return self._uid
 
     def reset(self, **kwargs):
         self.operator = kwargs.get('operator', 'AND')
         self._queries = PersistentMapping()
         self._order = PersistentList()
 
-    def schema(self):
-        """
-        Assume definition bound to RecordFilter always provides schema
-        at attribute name of 'schema'.
-        """
-        definition = IFormDefinition(self)
-        return definition.schema
-
-    def validate(self):
-        schema = self.schema()
+    def validate(self, schema):
         for query in self._queries.values():
-            query.validate(schema)
+            if not query.validate(schema):
+                raise ValidationError(query.fieldname)
 
-    def build(self):
-        return filter_query(self)
+    def build(self, schema):
+        self.validate(schema)
+        return filter_query(self, schema)
 
     def add(self, query=None, **kwargs):
         if query is None:
@@ -328,21 +226,20 @@ class CoreFilter(Persistent):
             fieldname = kwargs.get('fieldname', None)
             if not (field or fieldname):
                 raise ValueError('Field missing for query construction')
-            if field is None and fieldname:
-                field = self.schema()[fieldname]
+            if fieldname is None and field:
+                fieldname = field.__name__
             comparator = kwargs.get('comparator', None)
             value = kwargs.get('value', None)
             if not (value and comparator):
                 raise ValueError('Missing value or comparator')
-            query = FieldQuery(field, comparator, value)
-        query.validate(self.schema())
-        fieldname = query.field.__name__
+            query = FieldQuery(fieldname, comparator, value)
+        fieldname = query.fieldname
         self._queries[fieldname] = query
         self._order.append(fieldname)
 
     def remove(self, query):
         if IFieldQuery.providedBy(query):
-            query = query.field.__name__
+            query = query.fieldname
         if query not in self._queries:
             raise KeyError('Query not found (fieldname: %s)' % query)
         del(self._queries[query])
@@ -465,7 +362,7 @@ class FilterJSONAdapter(object):
                 field,
                 query_row.get('value'),
                 )
-            queries.append(FieldQuery(field, comparator, value))
+            queries.append(FieldQuery(fieldname, comparator, value))
         self.context.reset()  # clear queries
         self.context.operator = data.get('operator', 'AND')
         r = map(self.context.add, queries)  # add all  # noqa
@@ -476,9 +373,10 @@ class FilterJSONAdapter(object):
         return value
 
     def _mkrow(self, query):
+        field = query.field(self.schema)
         row = {}
-        row['fieldname'] = query.field.__name__
-        row['value'] = self._serialize_value(query.field, query.value)
+        row['fieldname'] = query.fieldname
+        row['value'] = self._serialize_value(field, query.value)
         row['comparator'] = query.comparator
         return row
 
@@ -497,17 +395,11 @@ class FilterJSONAdapter(object):
 
 class BaseGroup(PersistentList):
 
-    __parent__ = None
-
     def __init__(self, operator='union', items=()):
         self.operator = operator
         # UUID is relevant to FilterGroup, safe to ignore on ComposedQuery
         self._uid = str(uuid.uuid4())
         super(BaseGroup, self).__init__(items)
-
-    @property
-    def __name__(self):
-        return self._uid
 
     def move(self, item, direction='top'):
         """
@@ -530,9 +422,9 @@ class BaseGroup(PersistentList):
             }[direction]
         self.insert(d_idx, self.pop(idx))
 
-    def build(self):
+    def build(self, schema):
         """construct a repoze.catalog query"""
-        return grouped_query(self)
+        return grouped_query(self, schema)
 
 
 class FilterGroup(BaseGroup):
@@ -568,12 +460,10 @@ def group_uid(context):
 
 
 def empty_query(name):
-    """Scaffolding"""
+    """Scaffolding: query contains group contains (empty) filter"""
     f = CoreFilter()
     g = FilterGroup(items=(f,))
-    f.__parent__ = g
     q = ComposedQuery(name, items=(g,))
-    g.__parent__ = q
     return q
 
 
@@ -589,11 +479,10 @@ def _measure_composed_query(context, name):
     if name not in ('numerator', 'denominator'):
         raise ValueError('invalid composed query name')
     if not hasattr(context, _attr):
+        # note: may write on otherwise read-txn for BBB
         setattr(context, _attr, composed_storage())
         transaction.get().note('Added composed query storage to measure')
-    composed = SequenceLocationProxy(getattr(context, _attr).get(name))
-    composed.__parent__ = context
-    return composed
+    return getattr(context, _attr).get(name)
 
     
 @implementer(IComposedQuery)

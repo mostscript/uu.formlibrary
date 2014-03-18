@@ -9,6 +9,7 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectCopiedEvent
 
 from uu.formlibrary.interfaces import MULTI_FORM_TYPE
+from uu.formlibrary.interfaces import IFormDefinition
 from interfaces import IMeasureDefinition
 from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
 from interfaces import AGGREGATE_LABELS
@@ -150,6 +151,7 @@ class MeasureBaseView(object):
         self.request = request
         self.datasets = []
         self.datapoints = {}
+        self.schema = IFormDefinition(self.context).schema
 
     def use_percent(self):
         vtype, multiplier = self.context.value_type, self.context.multiplier

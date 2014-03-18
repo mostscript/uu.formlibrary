@@ -16,6 +16,7 @@ from zope.component.hooks import getSite
 from zope.interface import implements
 
 from uu.formlibrary.interfaces import MULTI_FORM_TYPE
+from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.search.interfaces import IComposedQuery
 from uu.formlibrary.search.filters import composed_storage
 
@@ -84,10 +85,11 @@ class MeasureDefinition(Item):
         attr = '_v_query_%s' % name
         q = getattr(self, attr, None)
         if q is None:
+            schema = IFormDefinition(self).schema
             composed = queryAdapter(self, IComposedQuery, name=name)
             if not IComposedQuery.providedBy(composed):
                 return None
-            q = composed.build()
+            q = composed.build(schema)
             if not is_query_complete(q):
                 return None  # cannot perform query that is incomplete
             setattr(self, attr, q)  # cache success

@@ -21,7 +21,7 @@ class MeasureCriteriaView(object):
         self.portal = getSite()
         self.comparators = Comparators(request)
         self.status = IStatusMessage(self.request)
-        self.schema = IFormDefinition(self).schema
+        self.schema = IFormDefinition(self.context).schema
 
     def update(self, *args, **kwargs):
         req = self.request
@@ -40,7 +40,7 @@ class MeasureCriteriaView(object):
                 continue
             adapter = FilterJSONAdapter(rfilter, self.schema)
             adapter.update(str(payload))
-            queryname = rfilter.__parent__.__parent__.name
+            queryname = self.filter_groupname(rfilter)
             msg = u'Updated criteria for %s' % queryname
             self.status.addStatusMessage(msg, type='info')
             log_messages.append(msg)
@@ -86,6 +86,11 @@ class MeasureCriteriaView(object):
                 r.append(rfilter)
         return r
 
+    def filter_groupname(self, rfilter):
+        uid = IUUID(rfilter)
+        r = [d.get('groupname') for d in self._filters if d.get('uid') == uid]
+        return r[0]
+
     def filters(self):
         if not hasattr(self, '_filters'):
             self._filters = []
@@ -97,6 +102,7 @@ class MeasureCriteriaView(object):
                 if found:
                     rfilter = found[0]
                     self._filters.append({
+                        'groupname': name,
                         'uid': IUUID(rfilter),
                         'title': title,
                         'filter': rfilter,

@@ -254,7 +254,7 @@ div.record-filter div.oplabel {
                     <td class="display-queryop">
                       <span tal:condition="repeat/query/index" tal:content="filter/operator">AND/OR</span>
                     </td>
-                    <td tal:content="query/field/title">FIELDNAME</td>
+                    <td tal:content="python:query.field(view.schema).title">FIELDNAME</td>
                     <td>
                       <span class="comparator-symbol" tal:content="python: criteriaview.comparator_symbol(query.comparator)">*</span>
                       <span tal:content="python: criteriaview.comparator_title(query.comparator)">COMPARE</span>

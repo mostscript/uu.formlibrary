@@ -139,11 +139,15 @@ class ISearchAPI(IIterableMapping, IPublishTraverse):
 
 
 class IFieldQuery(Interface):
-    """Represent query of a single field"""
+    """
+    Represent query of a single field.  A field query is incomplete without
+    application to a specific schema, which is bound late in the build()
+    and validate() methods of the field query.
+    """
 
-    field = schema.Object(
-        title=u'Field',
-        description=u'Field on schema for some context.',
+    fieldname = schema.Object(
+        title=u'Field name',
+        description=u'Field name on schema for some context.',
         required=True,
         schema=schema.interfaces.IField,
         )
@@ -160,19 +164,27 @@ class IFieldQuery(Interface):
         required=True,
         )  # arbitrary, duck-typed value
 
-    def build():
+    def field(schema):
         """
-        Construct and return a repoze.catalog query object for
-        the field query; this query object should always be a
-        comparator query, not a boolean operation.
+        Get associated field named by self.fieldname in the passed
+        schema interface.  Returns None if fieldname is not found.
         """
 
-    def validate(iface):
+    def build(schema):
         """
-        Given an interface, validate that the configured field
-        name / type / value_type are included in the interface.  May
-        be used for generating warnings to users about compatibility
-        of a query with an interface.
+        Construct and return a repoze.catalog query object for the
+        field query, given a schema to apply it to; returned query
+        will always be a comparator query, not a boolean operation.
+        Should validate self.value against bound schema, and raise
+        a ValidationError if there are issues with the saved query
+        value.
+        """
+
+    def validate(schema):
+        """
+        Given an schema, validate that the fieldname for this query
+        is known to the schema passed, and that self.value is a
+        valid value for that field; returns boolean.
         """
 
 
@@ -195,10 +207,11 @@ class IRecordFilter(IIterableMapping, IUUIDAware):
         default='AND',
         )
 
-    def build():
+    def build(schema):
         """
         Construct and return a repoze.catalog query object for the
-        filter and its contained field queries.
+        filter and its contained field queries, given a specific schema
+        context to apply to.
         """
 
     def add(query=None, **kwargs):
@@ -227,10 +240,10 @@ class IRecordFilter(IIterableMapping, IUUIDAware):
         otherwise return False.
         """
 
-    def validate():
+    def validate(schema):
         """
         For the given schema context, validate each query in self.queries,
-        using the validate(iface) method of each query object and the
+        using the validate(schema) method of each query object and the
         interface/schema bound to the context of this filter.
         """
 
@@ -268,11 +281,12 @@ class IFilterGroup(ISetOperationSpecifier, ISequence, IUUIDAware):
         'up', 'down', 'top', 'bottom'.
         """
 
-    def build():
+    def build(schema):
         """
         Construct and return a repoze.catalog query for this group,
         and all its contained filters, composed using the set operation
-        specified for this group.
+        specified for this group.  This is done in the context of the
+        schema passed, which is passed to IRecordFilter.build().
         """
 
 
@@ -307,11 +321,12 @@ class IComposedQuery(ISetOperationSpecifier, ISequence):
         of: 'up', 'down', 'top', 'bottom'.
         """
 
-    def build():
+    def build(schema):
         """
         Construct and return a repoze.catalog query for all groups
         by composing the query for each group using the set operation
-        specified for this composed query.
+        specified for this composed query. This is done in the context
+        of the schema passed, which is passed to IRecordFilter.build().
         """
 
 
@@ -329,6 +344,9 @@ class IJSONFilterRepresentation(Interface):
                                 | comparator : str  |
                                 | value             |
                                  -------------------
+
+    The expectation is that one must have an IRecordFilter and a schema
+    object to have complete context necessary to construct such JSON.
     """
 
     def update(data):

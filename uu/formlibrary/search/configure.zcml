@@ -3,15 +3,6 @@
   xmlns:browser="http://namespaces.zope.org/browser"
   i18n_domain="uu.formlibrary">
 
-
-  <!-- adapters -->
-  
-  <adapter 
-    factory=".filters.filter_definition"
-    provides="uu.formlibrary.interfaces.IFormDefinition"
-    for=".interfaces.IRecordFilter"
-    /> 
-
   <!-- IUUID adapters for IRecordFilter, IFilterGroup -->
   <adapter factory=".filters.filter_uid" />
   <adapter factory=".filters.group_uid" />

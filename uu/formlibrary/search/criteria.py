@@ -6,6 +6,7 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
 from uu.workflows.utils import history_log
+from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.search.interfaces import IComposedQuery
 from uu.formlibrary.search.filters import FilterJSONAdapter
 
@@ -20,6 +21,7 @@ class MeasureCriteriaView(object):
         self.portal = getSite()
         self.comparators = Comparators(request)
         self.status = IStatusMessage(self.request)
+        self.schema = IFormDefinition(self).schema
 
     def update(self, *args, **kwargs):
         req = self.request
@@ -36,7 +38,7 @@ class MeasureCriteriaView(object):
             rfilter = self.get_filter(name)
             if rfilter is None:
                 continue
-            adapter = FilterJSONAdapter(rfilter)
+            adapter = FilterJSONAdapter(rfilter, self.schema)
             adapter.update(str(payload))
             queryname = rfilter.__parent__.__parent__.name
             msg = u'Updated criteria for %s' % queryname
@@ -107,7 +109,7 @@ class MeasureCriteriaView(object):
         if not match:
             return '{}'   # no matching filter
         rfilter = match[0].get('filter')
-        return FilterJSONAdapter(rfilter).serialize()
+        return FilterJSONAdapter(rfilter, self.schema).serialize()
 
     def comparator_title(self, comparator):
         return self.comparators.get(comparator).label

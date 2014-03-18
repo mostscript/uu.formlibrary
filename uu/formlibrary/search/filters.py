@@ -13,10 +13,11 @@ import transaction
 from zope.component import adapts, adapter
 from zope.dottedname.resolve import resolve
 from zope.interface import implements, implementer
+from zope.interface.interfaces import IInterface
 from zope.location.location import LocationProxy
 from zope.proxy import ProxyBase, removeAllProxies, non_overridable
-from zope import schema
-from zope.schema.interfaces import ITextLine, IBytesLine, ISequence
+from zope.schema import getFieldNamesInOrder
+from zope.schema import interfaces as fieldtypes
 
 from uu.retrieval.utils import identify_interface
 from uu.smartdate.converter import normalize_usa_date
@@ -141,12 +142,13 @@ def query_idxtype(q):
 
     # for text, whether to use text index or field index depends on the
     # comparator saved on the query:
-    if ITextLine.providedBy(field) or IBytesLine.providedBy(field):
+    line_types = (fieldtypes.ITextLine, fieldtypes.IBytesLine)
+    if any([iface.providedBy(field) for iface in line_types]):
         if comparator in ('Contains', 'DoesNotContain'):
             return 'keyword'
         return 'field'
     # special-case overlapping comparators used in multiple field types
-    if ISequence.providedBy(field) and comparator == 'Any':
+    if fieldtypes.ISequence.providedBy(field) and comparator == 'Any':
         return 'keyword'
     # for all other field types, use 1:1 mapping:
     idxtypes = {
@@ -239,7 +241,7 @@ class FieldQuery(Persistent):
     implements(IFieldQuery)
 
     def __init__(self, field, comparator, value):
-        if not schema.interfaces.IField.providedBy(field):
+        if not fieldtypes.IField.providedBy(field):
             raise ValueError('field provided must be schema field')
         self._field_id = field_id(field)
         self.comparator = str(comparator)
@@ -403,8 +405,10 @@ class RecordFilter(CoreFilter, Item):
 
 class FilterJSONAdapter(object):
     """
-    Update/serialize an IRecordFilter object from/to JSON data or
-    equivalent dict, matching the destination object format:
+    Multi-adapts a filter and a schema to serialize the filter in
+    that schema's context to appropriate JSON, and to marshal JSON
+    back into a filter containing field queries.  Also supports
+    constructing and consuming equivalent python dict to JSON.
 
           ________________
          |      DATA      |
@@ -418,25 +422,28 @@ class FilterJSONAdapter(object):
                                  -------------------
     """
     implements(IJSONFilterRepresentation)
-    adapts(IRecordFilter)
+    adapts(IRecordFilter, IInterface)
 
-    def __init__(self, context):
+    def __init__(self, context, schema):
         if not IRecordFilter.providedBy(context):
             raise ValueError('context must provide IRecordFilter')
+        if not IInterface.providedBy(schema):
+            raise ValueError('schema provided must be interface')
         self.context = context
+        self.schema = schema
 
     def normalize_value(self, field, value):
-        if schema.interfaces.IBool.providedBy(field):
+        if fieldtypes.IBool.providedBy(field):
             return True if value.lower() == 'yes' else False
-        if schema.interfaces.IDate.providedBy(field):
+        if fieldtypes.IDate.providedBy(field):
             if isinstance(value, basestring):
                 usa_date = normalize_usa_date(value)
                 if usa_date is not None:
                     return usa_date  # M/D/YYYY -> date
                 return date(*(map(lambda v: int(v), value.split('-'))))  # ISO
-        if schema.interfaces.IInt.providedBy(field):
+        if fieldtypes.IInt.providedBy(field):
             return int(value)
-        if schema.interfaces.IFloat.providedBy(field):
+        if fieldtypes.IFloat.providedBy(field):
             return float(value)
         return value
 
@@ -447,10 +454,13 @@ class FilterJSONAdapter(object):
         if isinstance(data, basestring):
             data = json.loads(data)
         queries = []
+        fieldnames = getFieldNamesInOrder(self.schema)
         for query_row in data.get('rows', []):
             fieldname = query_row.get('fieldname')
+            if fieldname not in fieldnames:
+                continue  # ignore possibly removed fields
+            field = self.schema[fieldname]
             comparator = query_row.get('comparator')
-            field = self.context.schema()[fieldname]
             value = self.normalize_value(
                 field,
                 query_row.get('value'),
@@ -461,7 +471,7 @@ class FilterJSONAdapter(object):
         r = map(self.context.add, queries)  # add all  # noqa
 
     def _serialize_value(self, field, value):
-        if value and schema.interfaces.IDate.providedBy(field):
+        if value and fieldtypes.IDate.providedBy(field):
             return value.strftime('%Y-%m-%d')
         return value
 

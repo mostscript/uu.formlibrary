@@ -241,9 +241,9 @@ def commit(context, msg):
     # so use the hostname used to access all Plone sites.
     # TODO UNCOMMENT BELOW TODO
     assert txn  # TODO noqa remove this
-    #txn.note('%s%s' % (BASEPATH, '/'.join(context.getPhysicalPath())))
-    #txn.note(msg)
-    #txn.commit()
+    txn.note('%s%s' % (BASEPATH, '/'.join(context.getPhysicalPath())))
+    txn.note(msg)
+    txn.commit()
 
 
 def migrate(site):

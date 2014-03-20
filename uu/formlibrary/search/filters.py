@@ -300,6 +300,61 @@ class RecordFilter(CoreFilter, Item):
         return False
 
 
+class BaseGroup(PersistentList):
+
+    def __init__(self, operator='union', items=()):
+        self.operator = operator
+        # UUID is relevant to FilterGroup, safe to ignore on ComposedQuery
+        self._uid = str(uuid.uuid4())
+        super(BaseGroup, self).__init__(items)
+
+    def reset(self):
+        self.operator = 'union'  # default
+        while len(self) > 0:
+            self.pop()
+
+    def move(self, item, direction='top'):
+        """
+        Move item (uid or filter) to direction specified,
+        up/down/top/bottom
+        """
+        if direction not in ('top', 'bottom', 'up', 'down'):
+            raise ValueError('invalid direction')
+        if isinstance(item, basestring):
+            found = [f for f in self if f._uid == item]
+            if not found:
+                raise ValueError('item %s not found' % item)
+            item = found[0]
+        idx = self.index(item)
+        d_idx = {
+            'up': 0 if idx == 0 else (idx - 1),
+            'down': idx + 1,
+            'top': 0,
+            'bottom': len(self),
+            }[direction]
+        self.insert(d_idx, self.pop(idx))
+
+    def build(self, schema):
+        """construct a repoze.catalog query"""
+        return grouped_query(self, schema)
+
+
+class FilterGroup(BaseGroup):
+
+    implements(IFilterGroup)
+
+
+class ComposedQuery(BaseGroup):
+    
+    implements(IComposedQuery)
+
+    def __init__(self, name, operator='union', items=()):
+        super(ComposedQuery, self).__init__(operator, items)
+        self.name = str(name)
+
+
+# JSON Adapters for filter, group, composed query:
+
 class FilterJSONAdapter(object):
     """
     Multi-adapts a filter and a schema to serialize the filter in
@@ -393,52 +448,71 @@ class FilterJSONAdapter(object):
         return data
 
 
-class BaseGroup(PersistentList):
+class FilterGroupJSONAdapter(object):
 
-    def __init__(self, operator='union', items=()):
-        self.operator = operator
-        # UUID is relevant to FilterGroup, safe to ignore on ComposedQuery
-        self._uid = str(uuid.uuid4())
-        super(BaseGroup, self).__init__(items)
+    def __init__(self, context, schema):
+        if not IFilterGroup.providedBy(context):
+            raise ValueError('context must provide IFilterGroup')
+        if not IInterface.providedBy(schema):
+            raise ValueError('schema provided must be interface')
+        self.context = context
+        self.schema = schema
 
-    def move(self, item, direction='top'):
-        """
-        Move item (uid or filter) to direction specified,
-        up/down/top/bottom
-        """
-        if direction not in ('top', 'bottom', 'up', 'down'):
-            raise ValueError('invalid direction')
-        if isinstance(item, basestring):
-            found = [f for f in self if f._uid == item]
-            if not found:
-                raise ValueError('item %s not found' % item)
-            item = found[0]
-        idx = self.index(item)
-        d_idx = {
-            'up': 0 if idx == 0 else (idx - 1),
-            'down': idx + 1,
-            'top': 0,
-            'bottom': len(self),
-            }[direction]
-        self.insert(d_idx, self.pop(idx))
+    def update(self, data):
+        if isinstance(data, basestring):
+            data = json.loads(data)
+        self.context.reset()
+        self.context.operator = data.get('operator', 'union')
+        for filter_spec in data.get('filters', []):
+            rfilter = CoreFilter()
+            self.context.append(rfilter)
+            FilterJSONAdapter(rfilter, self.schema).update(filter_spec)
 
-    def build(self, schema):
-        """construct a repoze.catalog query"""
-        return grouped_query(self, schema)
+    def _filterJSON(self, f):
+        return FilterJSONAdapter(f, self.schema).serialize(use_json=0)
+
+    def serialize(self, use_json=True):
+        data = {}  # ComposedQuery
+        data['operator'] = self.context.operator  # set operator
+        data['filters'] = map(self._filterJSON, list(self.context))
+        if use_json:
+            return json.dumps(data, indent=4)
+        return data
 
 
-class FilterGroup(BaseGroup):
-
-    implements(IFilterGroup)
-
-
-class ComposedQuery(BaseGroup):
+class ComposedQueryJSONAdapter(object):
+    """
+    Adapter to create and marshal JSON from an IComposedQuery object.
+    """
     
-    implements(IComposedQuery)
+    def __init__(self, context, schema):
+        if not IComposedQuery.providedBy(context):
+            raise ValueError('context must provide IComposedQuery')
+        if not IInterface.providedBy(schema):
+            raise ValueError('schema provided must be interface')
+        self.context = context
+        self.schema = schema
 
-    def __init__(self, name, operator='union', items=()):
-        super(ComposedQuery, self).__init__(operator, items)
-        self.name = str(name)
+    def update(self, data):
+        if isinstance(data, basestring):
+            data = json.loads(data)
+        self.context.reset()
+        self.context.operator = data.get('operator', 'union')
+        for group_spec in data.get('groups', []):
+            group = FilterGroup()
+            self.context.append(group)
+            FilterGroupJSONAdapter(group, self.schema).update(group_spec)
+
+    def _groupJSON(self, g):
+        return FilterGroupJSONAdapter(g, self.schema).serialize(use_json=0)
+
+    def serialize(self, use_json=True):
+        data = {}  # ComposedQuery
+        data['operator'] = self.context.operator  # set operator
+        data['groups'] = map(self._groupJSON, list(self.context))
+        if use_json:
+            return json.dumps(data, indent=4)
+        return data
 
 
 # UUID adapters for IRecordFilter, IFilterGroup:

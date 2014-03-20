@@ -207,6 +207,12 @@ class IRecordFilter(IIterableMapping, IUUIDAware):
         default='AND',
         )
 
+    def reset():
+        """
+        Empty filter contents of all queries and set operator to
+        default of 'AND'.
+        """
+
     def build(schema):
         """
         Construct and return a repoze.catalog query object for the
@@ -273,6 +279,12 @@ class IFilterGroup(ISetOperationSpecifier, ISequence, IUUIDAware):
     identified by UUID.
     """
 
+    def reset():
+        """
+        Empty filter contents of all queries and set operator to
+        default of 'union'.
+        """
+
     def move(item, direction='top'):
         """
         Given item as either UUID for a record filter, or as a filter
@@ -312,6 +324,12 @@ class IComposedQuery(ISetOperationSpecifier, ISequence):
         description=u'Query name, either numerator or denominator.',
         constraint=lambda v: str(v) in ('numerator', 'denominator'),
         )
+
+    def reset():
+        """
+        Empty filter contents of all queries and set operator to
+        default of 'union'.
+        """
 
     def move(item, direction='top'):
         """

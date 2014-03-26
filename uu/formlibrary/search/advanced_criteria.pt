@@ -5,11 +5,6 @@
       metal:use-macro="context/main_template/macros/master"
       i18n:domain="uu.formlibrary">
 <head>
-  <metal:block fill-slot="base">
-    <base href=""
-          tal:attributes="href string:${context/absolute_url}/"
-          />
-  </metal:block>
   <metal:block fill-slot="javascript_head_slot">
 <script type="text/javascript"
         src=""
@@ -30,17 +25,14 @@
 <body>
  <div metal:fill-slot="content-core">
   <h3>Define the query criteria for your measure below:</h3>
-  <p class="helptext">
-    Add filters, choose fields, and select a comparison and value for each query.
-    Should you require more complex grouping and boolean logic, click 
-    <a href="@@advanced_criteria">here</a> to visit the advanced query editor.
-  </p>
+  <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.</p>
+
   <div id="filter-manager">
    <!-- placeholder for critiera forms managed and populated via AJAX -->
   </div>
 
   <div style="clear:both"></div>
-  <form id="payloads" method="POST" data-edtor="basic">
+  <form id="payloads" method="POST" data-editor="advanced">
    <div class="payload-container" style="display:none">
      <tal:block repeat="rfilter view/filters">
         <input type="hidden"

@@ -352,6 +352,18 @@ class ComposedQuery(BaseGroup):
         super(ComposedQuery, self).__init__(operator, items)
         self.name = str(name)
 
+    def requires_advanced_editing(self):
+        """
+        Returns True/False for UI use; see IComposedQuery docs.
+        """
+        if len(self) > 1:
+            return True
+        if len(self) == 0:
+            return False
+        if len(self[0]) > 1:
+            return True
+        return False
+
 
 # JSON Adapters for filter, group, composed query:
 

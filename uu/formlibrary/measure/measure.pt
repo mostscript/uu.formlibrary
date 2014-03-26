@@ -228,7 +228,7 @@ div.record-filter div.oplabel {
      </tbody>
     </table>
 
-   <tal:block condition="view/show_criteria">
+   <tal:block condition="context/@@criteria_actions/show_criteria">
     <div class="criteria-summary" tal:define="criteriaview view/criteria_view">
       <div class="composed-query" tal:repeat="composed criteriaview/composed_queries">
         <h5>

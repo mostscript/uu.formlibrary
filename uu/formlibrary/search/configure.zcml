@@ -26,11 +26,30 @@
     />
 
   <!-- criteria editor for measure, consumes API -->
+
+  <browser:page
+    name="criteria_actions"
+    for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
+    class=".criteria.MeasureCriteriaActions"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    allowed_attributes="show_criteria show_advanced"
+    />
+
   <browser:page
     name="measure_criteria"
     for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
     class=".criteria.MeasureCriteriaView"
     template="criteria_editor.pt"
+    permission="cmf.ModifyPortalContent"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+ 
+  <browser:page
+    name="advanced_criteria"
+    for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
+    class=".criteria.MeasureCriteriaView"
+    template="advanced_criteria.pt"
     permission="cmf.ModifyPortalContent"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />

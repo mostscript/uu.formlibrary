@@ -347,6 +347,18 @@ class IComposedQuery(ISetOperationSpecifier, ISequence):
         of the schema passed, which is passed to IRecordFilter.build().
         """
 
+    def requires_advanced_editing():
+        """
+        Return True if query requires advanced editor to support
+        nested groups.  Should return False if there is only one
+        group contained, and that group has fewer than two record
+        filters.
+
+        The theory here is that flat is better than nested, when
+        80% of users don't need nested queries, so we try to detect
+        when advanced editing is actually needed.
+        """
+
 
 class IJSONFilterRepresentation(Interface):
     """

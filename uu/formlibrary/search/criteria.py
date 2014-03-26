@@ -1,3 +1,4 @@
+from Acquisition import aq_parent, aq_inner
 from plone.uuid.interfaces import IUUID
 from Products.statusmessages.interfaces import IStatusMessage
 from zope.component import queryAdapter
@@ -7,10 +8,35 @@ from zope.lifecycleevent import ObjectModifiedEvent
 
 from uu.workflows.utils import history_log
 from uu.formlibrary.interfaces import IFormDefinition
+from uu.formlibrary.interfaces import MULTI_FORM_TYPE
 from uu.formlibrary.search.interfaces import IComposedQuery
 from uu.formlibrary.search.filters import FilterJSONAdapter
 
 from comparators import Comparators
+
+
+class MeasureCriteriaActions(object):
+    """
+    Helper methods for object tab action conditions; show_criteria()
+    and show_advanced() should be mututally exclusive.
+    """
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.adv = 'advanced' in self.request.get('PATH_INFO').split('/')[-1]
+
+    def show_criteria(self):
+        if self.adv:
+            return False
+        group = aq_parent(aq_inner(self.context))
+        return group.source_type == MULTI_FORM_TYPE
+
+    def show_advanced(self):
+        return self.adv
+
+    def __call__(self, *args, **kwargs):
+        return 'Actions helper'
 
 
 class MeasureCriteriaView(object):
@@ -22,6 +48,8 @@ class MeasureCriteriaView(object):
         self.comparators = Comparators(request)
         self.status = IStatusMessage(self.request)
         self.schema = IFormDefinition(self.context).schema
+        print self.request.get('PATH_INFO')  # TODO remove
+        self.advanced, self.redirect = self.requires_advanced()
 
     def update(self, *args, **kwargs):
         req = self.request
@@ -52,7 +80,39 @@ class MeasureCriteriaView(object):
         notify(ObjectModifiedEvent(self.context))
         req.response.redirect(self.context.absolute_url())  # to view tab
 
+    def _query(self, name):
+        return queryAdapter(
+            self.context,
+            IComposedQuery,
+            name=name,
+            )
+
+    def requires_advanced(self, names=(u'numerator', u'denominator')):
+        """
+        Returns a two-boolean tuple, the first for whether the query
+        requires advanced, the second if the view requires a redirect
+        to the advanced editor.
+
+        If either numerator or denominator needs adavanced (nested)
+        editor, the first element should return True.  Likewise, if
+        the view dictates use of advanced.
+
+        The second element should only return True (redirect needed) if
+        the query requires advanced editing, but the view is basic.
+        """
+        adv = 'advanced' in self.request.get('PATH_INFO').split('/')[-1]
+        _useadv = lambda q: q.requires_advanced_editing()
+        adv_query = any(map(_useadv, map(self._query, names)))
+        return (adv or adv_query, adv_query and not adv)
+
     def __call__(self, *args, **kwargs):
+        if self.redirect:
+            url = '%s/%s' % (
+                self.context.absolute_url(),
+                '@@advanced_criteria',
+                )
+            self.request.response.redirect(url)
+            return
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
 

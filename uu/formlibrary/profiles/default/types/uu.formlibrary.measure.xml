@@ -59,8 +59,14 @@
     <permission value="View"/>
  </action>
  <action title="Criteria" action_id="measure_criteria" category="object"
-         condition_expr="context/@@measure_view/show_criteria"
+         condition_expr="python:context.restrictedTraverse('@@criteria_actions/show_criteria')()"
          url_expr="string:${object_url}/@@measure_criteria"
+         visible="True" insert-before="data_view">
+  <permission value="Modify portal content"/>
+ </action>
+ <action title="Criteria" action_id="advanced_criteria" category="object"
+         condition_expr="python:context.restrictedTraverse('@@criteria_actions/show_advanced')()"
+         url_expr="string:${object_url}/@@advanced_criteria"
          visible="True" insert-before="data_view">
   <permission value="Modify portal content"/>
  </action>

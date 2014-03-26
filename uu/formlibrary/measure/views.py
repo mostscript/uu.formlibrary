@@ -8,7 +8,6 @@ from zope.component import getMultiAdapter
 from zope.event import notify
 from zope.lifecycleevent import ObjectCopiedEvent
 
-from uu.formlibrary.interfaces import MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import IFormDefinition
 from interfaces import IMeasureDefinition
 from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
@@ -180,10 +179,6 @@ class MeasureBaseView(object):
             (self.context, self.request),
             name='measure_criteria',
             )
-
-    def show_criteria(self):
-        group = aq_parent(aq_inner(self.context))
-        return group.source_type == MULTI_FORM_TYPE
 
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()

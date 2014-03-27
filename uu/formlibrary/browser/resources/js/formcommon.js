@@ -26,6 +26,8 @@
             }
             clicklink.parents('div.form-meta').children('div.wrapper').slideToggle();
             });
+        // finally remove any z3cformInlineValidation classes from ANY elements
+        $('.z3cformInlineValidation').removeClass('z3cformInlineValidation');
     });
 
 }(jQuery));

@@ -317,9 +317,10 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                     fieldname = field.field.__name__
                     default = getattr(field.field, 'default', None)
                     field_data = form_group_data.get(name, default)
-                    if isinstance(field.field.value_type, DictRow):
-                        is_nonempty_row = lambda v: any(v.values())
-                        field_data = filter(is_nonempty_row, field_data)
+                    if ICollection.providedBy(field.field):
+                        if isinstance(field.field.value_type, DictRow):
+                            is_nonempty_row = lambda v: any(v.values())
+                            field_data = filter(is_nonempty_row, field_data)
                     groupdata[fieldname] = field_data
                 result[group.__name__] = groupdata
             # filter default fieldset values, ignore group values in data dict:

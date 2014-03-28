@@ -39,6 +39,11 @@ def measure_subjects_indexer(context):
     return tuple(base)
 
 
+@indexer(IMeasureGroup)
+def group_references(context):
+    return [context.definition]
+
+
 def is_query_complete(q):
     """
     Checks for incomplete queries; if any part of the query

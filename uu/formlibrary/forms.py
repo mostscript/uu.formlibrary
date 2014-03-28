@@ -131,6 +131,11 @@ def title_indexer(context):
     return '%s %s' % (title, supplement)
 
 
+@indexer(IBaseForm)
+def form_references(context):
+    return [context.definition]
+
+
 class ComposedForm(AutoExtensibleForm, form.Form):
     """
     A form composed from multiple schema adapting a form definition.

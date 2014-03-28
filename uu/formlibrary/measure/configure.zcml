@@ -78,6 +78,11 @@
     />
 
   <adapter
+    name="references"
+    factory=".content.group_references"
+    />
+
+  <adapter
     factory=".cache.DataPointCache"
     provides=".interfaces.IDataPointCache"
     for="Products.CMFCore.interfaces.ISiteRoot"

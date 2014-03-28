@@ -93,7 +93,12 @@
     name="Title"
     factory=".forms.title_indexer"
     />
-  
+
+  <adapter
+    name="references"
+    factory=".forms.form_references"
+    />
+
   <!-- event subscribers -->
 
   <subscriber

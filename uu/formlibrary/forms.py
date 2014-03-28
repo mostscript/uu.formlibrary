@@ -2,6 +2,7 @@ from datetime import datetime, date
 
 from Acquisition import aq_base
 from collective.z3cform.datagridfield.interfaces import IDataGridField
+from collective.z3cform.datagridfield.row import DictRow
 import transaction
 from persistent.dict import PersistentDict
 from plone.dexterity.content import Item
@@ -315,7 +316,11 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                     group_keys.append(name)
                     fieldname = field.field.__name__
                     default = getattr(field.field, 'default', None)
-                    groupdata[fieldname] = form_group_data.get(name, default)
+                    field_data = form_group_data.get(name, default)
+                    if isinstance(field.field.value_type, DictRow):
+                        is_nonempty_row = lambda v: any(v.values())
+                        field_data = filter(is_nonempty_row, field_data)
+                    groupdata[fieldname] = field_data
                 result[group.__name__] = groupdata
             # filter default fieldset values, ignore group values in data dict:
             result[''] = dict([(k, v) for k, v in data.items()

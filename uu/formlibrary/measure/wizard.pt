@@ -15,7 +15,7 @@
 
     var guideOpen = false;  // hidden
 
-    function toggleGuide() {
+    function toggleGuide () {
         var guide = $('#content .guide'),
             form = $('#content form');
         if (guideOpen) {
@@ -29,7 +29,7 @@
         }
     };
 
-    function initGuide() {
+    function initGuide () {
         var link = $('<a href="javascript:void(0)" class="guidelink">Tips / help &gt;&gt;&gt;</a>'),
             labelNum = $('label[for=form-widgets-numerator_type] .formHelp'),
             labelDen = $('label[for=form-widgets-denominator_type] .formHelp'),
@@ -39,8 +39,13 @@
        link2.click(toggleGuide); 
     };
 
+    function disableInlneValidation () {
+        $('.z3cformInlineValidation').removeClass('z3cformInlineValidation');
+    };
+
     $(document).ready(function () {
         initGuide();
+        disableInlineValidation();
     });
 }(jQuery));
 

@@ -53,21 +53,6 @@ def copyroles(source, dest):
                 copyroles(contained, dest[name])
 
 
-def definition_delete_integrity(context, event):
-    request = getRequest()
-    if request is not None:
-        path = context.getPhysicalPath()
-        for base in _ignorepaths(request):
-            if tuple(path[:len(base)]) == base:
-                # allow deletion of Plone site marked by before_site_delete()
-                return
-        formset = IFormSet(context)
-        if len(formset) > 0:
-            msg = 'Item in use, cannot be removed while form instances '\
-                  'are using this definition.'
-            raise LinkIntegrityNotificationException(msg)
-
-
 def delete_integrity(context, event):
     request = getRequest()
     if request is not None:

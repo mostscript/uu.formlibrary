@@ -122,7 +122,7 @@
   <subscriber
     for=".interfaces.IFormDefinition
          zope.lifecycleevent.interfaces.IObjectRemovedEvent"
-    handler=".handlers.definition_delete_integrity"
+    handler=".handlers.delete_integrity"
     />
   
   <subscriber

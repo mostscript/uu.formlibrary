@@ -60,10 +60,10 @@
   </action>
   <!-- conditional action: "In Use" tab only shows up when
         definition is actually in use (via reference) by a
-        form instance elsewhere in the site. -->
+        form instance or measure group in the site. -->
   <action title="In Use (by)" action_id="in_use" category="object"
-    condition_expr="context/@@definition_forms/in_use" icon_expr=""
-    link_target="" url_expr="string:${object_url}/@@definition_forms"
+    condition_expr="context/@@in_use_by/in_use" icon_expr=""
+    link_target="" url_expr="string:${object_url}/@@in_use_by"
     visible="True">
     <permission value="View"/>
   </action>

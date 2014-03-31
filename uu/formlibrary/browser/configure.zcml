@@ -32,14 +32,6 @@
     />
 
   <browser:page
-    name="definition_forms"
-    for="uu.formlibrary.interfaces.IFormDefinition"
-    class=".definition_forms.DefinitionFormset"
-    template="definition_forms.pt"
-    permission="zope2.View"
-    />
-
-  <browser:page
     name="in_use_by"
     for="*"
     class=".usedby.InUseBy"

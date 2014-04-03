@@ -20,7 +20,7 @@ setup(
     keywords='',
     author='Sean Upton',
     author_email='sean.upton@hsc.utah.edu',
-    url='http://launchpad.net/upiq',
+    url='http://github.com/upiq',
     license='GPL',
     packages=find_packages(exclude=['ez_setup']),
     namespace_packages=['uu'],

@@ -170,7 +170,7 @@ class DefinitionFormSet(BaseFormSet):
                 'context %s does not provide IFormDefinition' % context)
         BaseFormSet.__init__(self, context, name=u'definition')
         r = self.catalog.unrestrictedSearchResults({
-            'definition': IUUID(self.context),
+            'references': IUUID(self.context),
             'portal_type': {
                 'query': (MULTI_FORM_TYPE, SIMPLE_FORM_TYPE),
                 'operator': 'or',

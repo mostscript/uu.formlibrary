@@ -23,7 +23,7 @@ from zope.globalrequest import getRequest
 from zope.lifecycleevent import ObjectModifiedEvent
 from zope.lifecycleevent import Attributes
 from zope.schema import getFieldsInOrder
-from zope.schema.interfaces import IDate, IChoice, ICollection
+from zope.schema.interfaces import IDate, IChoice, ICollection, IBool
 from Products.CMFPlone.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
@@ -87,12 +87,14 @@ def common_widget_updates(context):
     is_collection = lambda formfield: ICollection.providedBy(formfield.field)
     is_multi = lambda formfield: is_collection(formfield) and v_choice(formfield)  # noqa
     is_date = lambda formfield: IDate.providedBy(formfield.field)
+    is_bool = lambda formfield: IBool.providedBy(formfield.field)
 
     # filtered lists of form fields by type
     formfields = context.fields.values()
     choicefields = filter(is_choice, formfields)
     multifields = filter(is_multi, formfields)
     datefields = filter(is_date, formfields)
+    boolfields = filter(is_bool, formfields)
 
     for formfield in choicefields:
         vocab = formfield.field.vocabulary
@@ -106,6 +108,9 @@ def common_widget_updates(context):
 
     for formfield in datefields:
         formfield.widgetFactory = SmartdateFieldWidget
+
+    for formfield in boolfields:
+        formfield.widgetFactory = RadioFieldWidget
 
 
 # form-related adapters:

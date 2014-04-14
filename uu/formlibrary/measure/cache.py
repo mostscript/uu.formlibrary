@@ -204,7 +204,7 @@ class DataPointCache(object):
         group = measure.__parent__
         formdefn_uid = group.definition
         form_query = {
-            'definition': formdefn_uid,
+            'references': formdefn_uid,
             'portal_type': FORM_TYPES,
             }
         form_uids = map(lambda b: b.UID, self.search(form_query))

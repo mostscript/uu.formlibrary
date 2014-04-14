@@ -1,7 +1,9 @@
 from plone.supermodel import serializeSchema
 from zope.annotation.interfaces import IAnnotations
 from zope.component import queryUtility
+from zope.event import notify
 from zope.globalrequest import getRequest
+from zope.lifecycleevent import ObjectModifiedEvent
 from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
 from Products.CMFCore.utils import getToolByName
@@ -109,6 +111,7 @@ def sync_multi_form(form, definition):
             modified = True
     if modified:
         history_log(form, 'Schema updated for form entries.')
+        notify(ObjectModifiedEvent(form))
 
 
 def form_configuration_modified(context, event):

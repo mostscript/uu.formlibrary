@@ -121,7 +121,7 @@ class MeasureDefinition(Item):
                 return NOVALUE
             try:
                 v = catalog.rcount(q)           # result count from catalog
-            except KeyError:
+            except (KeyError, TypeError):
                 # could not perform query against catalog, likely because the
                 # form in question does not have the necessary field(s), so
                 # return a sentinel value safe for raw_value() to use.

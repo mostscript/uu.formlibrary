@@ -27,7 +27,7 @@
            guide.show();
            guideOpen = true;
         }
-    };
+    }
 
     function initGuide () {
         var link = $('<a href="javascript:void(0)" class="guidelink">Tips / help &gt;&gt;&gt;</a>'),
@@ -37,11 +37,11 @@
             link2 = link.clone().insertBefore(labelDen);
        link1.click(toggleGuide); 
        link2.click(toggleGuide); 
-    };
+    }
 
-    function disableInlneValidation () {
+    function disableInlineValidation () {
         $('.z3cformInlineValidation').removeClass('z3cformInlineValidation');
-    };
+    }
 
     $(document).ready(function () {
         initGuide();

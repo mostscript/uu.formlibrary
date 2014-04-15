@@ -48,7 +48,6 @@ class MeasureCriteriaView(object):
         self.comparators = Comparators(request)
         self.status = IStatusMessage(self.request)
         self.schema = IFormDefinition(self.context).schema
-        print self.request.get('PATH_INFO')  # TODO remove
         self.advanced, self.redirect = self.requires_advanced()
 
     def update(self, *args, **kwargs):

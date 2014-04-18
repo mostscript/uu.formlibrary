@@ -58,6 +58,10 @@ class RowDisplayForm(form.DisplayForm):
         self.fields = field.Fields(schema)
         super(RowDisplayForm, self).__init__(record, request)
 
+    def updateWidgets(self):
+        common_widget_updates(self)
+        super(RowDisplayForm, self).updateWidgets()
+
 
 class DivRowDisplayForm(RowDisplayForm):
     template = DIV_TEMPLATE

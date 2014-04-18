@@ -1121,6 +1121,8 @@ class MultiForm(Item, RecordContainer):
                 continue
             if name in data:
                 value = data.get(name, None)
+                if value in (u'true', u'false') and IBool.providedBy(field):
+                    value = True if value == 'true' else False  # radio widget
                 cast_type = field_type(field)
                 if cast_type:
                     if cast_type is int and isinstance(value, basestring):

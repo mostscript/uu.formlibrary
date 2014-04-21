@@ -153,7 +153,7 @@ formsearch.criteria = formsearch.criteria || {};
             return this._keys.length;
         };
 
-        // mapping enumeration:  keys(), values(), items(), forEach()
+        // mapping enumeration:  keys(), values(), entries(), forEach()
         this.keys = function () {
             return this._keys.slice(0);  // return copy
         };
@@ -169,7 +169,7 @@ formsearch.criteria = formsearch.criteria || {};
             return r;
         };
 
-        this.items = function () {
+        this.entries = function () {
             return this.values(
                 function (value) {
                     return [value.name, value];
@@ -439,7 +439,7 @@ formsearch.criteria = formsearch.criteria || {};
             $(ns.snippets.NOVALUE).appendTo(select);
             select.val(ns.NOVALUE);
             // options, given params
-            fields.items().forEach(function (pair) {
+            fields.entries().forEach(function (pair) {
                 var fieldname = pair[0],
                     field = pair[1],
                     isSelected = (self.field && self.field.name === fieldname),

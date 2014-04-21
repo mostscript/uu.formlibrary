@@ -211,11 +211,11 @@ formsearch.criteria = formsearch.criteria || {};
     // Field: Class for object representing a field's metadata:
     ns.Field = function Field(context, name, data) {
 
-        // ctor: (adapted) context is a CriteriaForm object
+        // ctor: (adapted) context is a RecordFilter object
         this.init = function (context, name, data) {
             var self = this;
-            if (!context instanceof ns.CriteriaForm) {
-                throw new TypeError('Field context must be a CriteriaForm');
+            if (!context instanceof ns.RecordFilter) {
+                throw new TypeError('Field context must be a RecordFilter');
             }
             this.context = context;
             this.name = name;
@@ -375,8 +375,8 @@ formsearch.criteria = formsearch.criteria || {};
             // every FieldQuery gets a unique, random UUID that should be
             // considered stable throughout its life
             //this.id = ns.uuid4();
-            if (!context instanceof ns.CriteriaForm) {
-                throw new TypeError('FieldQuery context must be CriteriaForm');
+            if (!context instanceof ns.RecordFilter) {
+                throw new TypeError('FieldQuery context must be RecordFilter');
             }
             if (!field instanceof ns.Field) {
                 if (typeof field === 'string') {
@@ -628,7 +628,7 @@ formsearch.criteria = formsearch.criteria || {};
             return $('#' + this.rowname, table);
         };
 
-        // should be called by CriteriaForm before removing:
+        // should be called by RecordFilter before removing:
         this.tearDown = function () {
             this.getRow().remove();
         };
@@ -672,9 +672,9 @@ formsearch.criteria = formsearch.criteria || {};
     ns.Fields.prototype = new ns.OrderedMapping();
 
 
-    // CriteriaForm: Class for object representing a criteria form; acts as
+    // RecordFilter: Class for object representing a form for record filter;
     //               an ordered mapping of UUID keys to FieldQuery instances
-    ns.CriteriaForm = function CriteriaForm(name, title) {
+    ns.RecordFilter = function RecordFilter(name, title) {
 
         // Get container for target: outer div holds wrapper divs with forms
         this._container = function (name) {
@@ -912,7 +912,7 @@ formsearch.criteria = formsearch.criteria || {};
             });
             this.comparators = null;  // set async after load of fields
             this._loadFields();
-            ns.CriteriaForm.prototype.init.call(this, []);
+            ns.RecordFilter.prototype.init.call(this, []);
             this.initUIEvents();
             this.afterAdd = [_toggleQueryOp];
             this.afterDelete = [_toggleQueryOp];
@@ -925,7 +925,7 @@ formsearch.criteria = formsearch.criteria || {};
         this.init(name, title);
     };
 
-    ns.CriteriaForm.prototype = new ns.OrderedMapping();
+    ns.RecordFilter.prototype = new ns.OrderedMapping();
 
 
     // Comparators: object fronting for access to comparators
@@ -971,10 +971,10 @@ formsearch.criteria = formsearch.criteria || {};
         this.init(fields);
     };
 
-    // CriteriaForms:   Class for FIFO collection of CriteriaForms;
+    // FilterGroup:   Class for FIFO collection of FilterGroup;
     //                  singleton utility and houses global functions,
-    //                  which may adapt / act on CriteriaForm instances.
-    ns.CriteriaForms = function CriteriaForms() {
+    //                  which may adapt / act on RecordFilter instances.
+    ns.FilterGroup = function FilterGroup() {
 
         this.init = function () {
             var manager = $('#filter-manager'),
@@ -987,9 +987,9 @@ formsearch.criteria = formsearch.criteria || {};
             if (!this.wrapper.length) {
                 this.wrapper = $(elem).appendTo(manager);
             }
-            ns.CriteriaForms.prototype.init.apply(this, []);
+            ns.FilterGroup.prototype.init.apply(this, []);
 
-            // CriteriaForms container event handler callback hooks:
+            // FilterGroup container event handler callback hooks:
             this.afterDelete = [this._afterDelete];
         };
 
@@ -998,13 +998,13 @@ formsearch.criteria = formsearch.criteria || {};
         };
 
         this.create = function (name, title) {
-            return new ns.CriteriaForm(name, title);
+            return new ns.RecordFilter(name, title);
         };
 
         this.add = function (form) {
             var name;
-            if (!form instanceof ns.CriteriaForm) {
-                throw new TypeError('Item not CriteriaForm; cannot add.');
+            if (!form instanceof ns.RecordFilter) {
+                throw new TypeError('Item not RecordFilter; cannot add.');
             }
             if (!form.name) {
                 throw new Error('Unnamed forms not allowed.');
@@ -1014,13 +1014,13 @@ formsearch.criteria = formsearch.criteria || {};
         };
 
         this.has = function (key) {
-            var name = (key instanceof ns.CriteriaForm) ? key.name : key;
-            return ns.CriteriaForms.prototype.has.apply(this, [name]);
+            var name = (key instanceof ns.RecordFilter) ? key.name : key;
+            return ns.FilterGroup.prototype.has.apply(this, [name]);
         };
 
         this.init();
     };
-    ns.CriteriaForms.prototype = new ns.OrderedMapping();
+    ns.FilterGroup.prototype = new ns.OrderedMapping();
 
     // discover record filters for measure from template;
     //  --> return name/title pairs
@@ -1038,7 +1038,7 @@ formsearch.criteria = formsearch.criteria || {};
 
     // main application invocation:
     $(document).ready(function () {
-        ns.forms = new ns.CriteriaForms();
+        ns.forms = new ns.FilterGroup();
         ns.discoverFilters().forEach(function (pair) {
             ns.forms.add(ns.forms.create(pair[0], pair[1]));
         });

@@ -447,12 +447,14 @@ class FilterJSONAdapter(object):
         row['comparator'] = query.comparator
         return row
 
-    def serialize(self, use_json=True):
+    def serialize(self, use_json=True, include_uid=False):
         """
         Serialze queries of context to JSON, or if use_json is False, to an
         equivalent dict of data.
         """
         data = {}
+        if include_uid:
+            data['uid'] = IUUID(self.context)
         data['operator'] = self.context.operator
         data['rows'] = [self._mkrow(q) for q in self.context.values()]
         if use_json:
@@ -481,10 +483,15 @@ class FilterGroupJSONAdapter(object):
             FilterJSONAdapter(rfilter, self.schema).update(filter_spec)
 
     def _filterJSON(self, f):
-        return FilterJSONAdapter(f, self.schema).serialize(use_json=0)
+        adapter = FilterJSONAdapter(f, self.schema)
+        return adapter.serialize(
+            use_json=False,
+            include_uid=True,
+            )
 
     def serialize(self, use_json=True):
         data = {}  # ComposedQuery
+        data['uid'] = IUUID(self.context)
         data['operator'] = self.context.operator  # set operator
         data['filters'] = map(self._filterJSON, list(self.context))
         if use_json:
@@ -520,6 +527,7 @@ class ComposedQueryJSONAdapter(object):
 
     def serialize(self, use_json=True):
         data = {}  # ComposedQuery
+        data['name'] = self.context.name
         data['operator'] = self.context.operator  # set operator
         data['groups'] = map(self._groupJSON, list(self.context))
         if use_json:

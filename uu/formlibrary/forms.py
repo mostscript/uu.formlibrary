@@ -315,7 +315,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         self.save_attempt = True
         data, errors = self.extractData()
         if errors or IFormDefinition.providedBy(self.context) or self.saved:
-            return  # just validate if errors, or if context if defn
+            return False  # just validate if errors, or if context if defn
         if not self.saved:
             result = {}  # submitted data. k: group name; v: dict of name/value
             group_keys = []
@@ -342,6 +342,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             notify(ObjectModifiedEvent(self.context))
             transaction.get().note(msg)
         self._status.addStatusMessage('Saved form data', type='info')
+        return True
 
     @button.buttonAndHandler(
         u'\u2714 Save draft',
@@ -355,7 +356,9 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         condition=lambda form: form.mode == 'input'
         )
     def handleSaveSubmit(self, action):
-        self._handleSave(action)
+        saved = self._handleSave(action)
+        if not saved:
+            return   # no status change, no 302 -- validation errors to user
         wftool = getToolByName(self.context, 'portal_workflow')
         chain = wftool.getChainFor(self.context)[0]
         state = wftool.getStatusOf(chain,

@@ -1,0 +1,202 @@
+
+form.record-queries {
+    display:block;
+    background-color:#ddd;
+    width:100%;
+    margin-bottom:0.6em;
+}
+
+table.queries {
+    width:100%;
+}
+
+table.queries tr:nth-child(2n) td {
+    background-color:#eee;
+}
+
+table.queries th, table.queries td {
+    width:28%;
+    color:#889;
+    padding:0.3em 0.1em;
+}
+
+table.queries th {
+    background-color:#667;
+    color:#eee;
+}
+
+table.queries th.display-queryop, table.queries td.display-queryop {
+    max-width:7%;
+    font-size:60%;
+    font-weight:bold;
+    padding-right:0.2em;
+    text-align:right;
+}
+
+table.queries th.rowcontrol, table.queries td.rowcontrol {
+    width:7%;
+    text-align:right;
+}
+
+table.queries td.fieldspec {
+    max-width:40% !important;
+}
+
+table.queries td.fieldspec select {
+    max-width:20em;
+}
+
+table.queries td.value div.error:before {
+    content:">>> ";
+}
+
+table.queries td.value div.error {
+    background-color:#f73;
+    color:black;
+    font-weight:bold;
+}
+
+.addquery, .addfilter {
+    display:block;
+    font-size:100%;
+    max-width:2em;
+    border-radius: 0.3em 0.3em;
+    border:1px solid #555;
+    background-color:#eee;
+    padding:0.1em 0.3em;
+    margin:0.2em;
+    cursor:pointer;
+    color:#072;
+}
+
+.addquery span strong, .addfilter span strong {
+    font-size:210%;
+    padding-right:0.1em;
+}
+
+div#criteriaforms {
+    border:0.1em solid #6f7a73;
+    padding:0.5em 0.3;
+    background-color:#eee;
+}
+
+div#criteriaforms h3 {
+    color:#132;
+    background-color:#cfdfd0;
+    padding-left: 0.8em;
+    padding-top:0.2em;
+}
+
+form#payloads {
+    display: block;
+    text-align:center;
+    background-color:#6f7a73;
+    padding:0.1em;
+}
+
+form.record-queries {
+    margin-left:1em;
+    width:98%;
+}
+
+.savequery {
+    font-size:130%;
+    display:block;
+    max-width:15em;
+    border:1px solid #999;
+    border-radius: 0.3em 0.3em;
+    background-color:#eee;
+    padding:0.2em;
+    margin:0.5em;
+    margin-right:1em;
+    cursor:pointer;
+    color:black;
+}
+
+p.helptext {
+    color:#999;
+    font-size:80%;
+    font-style:italic;
+}
+
+div.queryop-selection {
+    clear:both;
+    font-size:85%;
+    margin-top:1.0em !important;
+    margin-left:1.0em;
+    padding:0.3em 1em;
+    border-left:0.5em solid #009;
+}
+
+form.record-queries div.queryop-selection {
+    display:none; /* initially hidden */
+}
+
+.filter-group {
+    border:1px solid #aaa;
+    background-color:#ccd;
+    padding:0.4em;
+}
+
+.groupcontrol {
+    border: 1px solid #555;
+    background-color:#f0f0e0;
+}
+
+.groupcontrol a.addfilter {
+    float:left;
+    max-width:6em !important;
+}
+
+.groupcontrol .groupop-selection {
+    text-align:right;
+    margin-right:1em;
+    color:#466;
+    font-size:85%;
+}
+
+.filter-group .groupop {
+    padding:0.1em 0.5em;
+    color:#ffa;
+    margin:0.4em 1.5em;
+    border-left:0.5em solid white;
+    background-color:#065;
+    width:22em;
+}
+
+.filter-group {
+    min-height:3em;
+}
+
+.record-filter {
+    clear:both;
+    border:1px solid #999;
+    background-color:white;
+    margin-top:0.2em;
+}
+
+table.queries th.rowcontrol {
+    position:relative;
+}
+
+table.queries th.rowcontrol a.removefilter {
+    display:none;
+}
+
+div.filter-group table.queries th.rowcontrol a.removefilter {
+    display:block;
+}
+
+table.queries a.removefilter {
+    background-color:white;
+    border-radius:100%;
+    border:0.03em solid #aaa;
+    display:block;
+    width:0.5em;
+    height:0.5em;
+    padding:0.2em 0.7em 0.6em 0.1em;
+    box-shadow:-0.3em 0 0.4em #333;
+    position:absolute;
+    right:0.5em;
+    margin-top:-1em;
+}

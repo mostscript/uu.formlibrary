@@ -269,6 +269,11 @@ div.record-filter div.oplabel {
                   </tr>
                 </table>
               </tal:block>
+            <div class="group-opdisplay" tal:condition="python: len(group) > 1 and group[-1] != filter">
+                <em tal:condition="python: group.operator == 'union'">OR</em>
+                <em tal:condition="python: group.operator == 'intersection'">AND</em>
+                <em tal:condition="python: group.operator == 'difference'">MINUS</em>
+            </div>
             </div>
           </div>
         </div>

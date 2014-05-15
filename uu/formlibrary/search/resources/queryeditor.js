@@ -498,7 +498,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             if (!complete) {
                 return {};
             }
-            payload.field = this.field.name;
+            payload.fieldname = this.field.name;
             payload.comparator = this.comparator;
             payload.value = this.normalizedValue(this.value);
             return payload;
@@ -1100,7 +1100,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     // application initialization
 
     ns.initQuery = function (name, data) {
-        var managerDiv = $('div.filter-manager'),
+        var managerDiv = $('#filter-manager'),
             wrapper = $('<div class="querywrap">').appendTo(managerDiv),
             h3title = $('<h3>' + name + '</h3>').appendTo(wrapper),
             target = $('<div>').appendTo(wrapper),
@@ -1111,7 +1111,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                         composedExport = {
                             'name': name,
                             'operator': 'union',
-                            'groups': groupExport
+                            'groups': [groupExport]
                         },
                         json = JSON.stringify(composedExport, null, 2),
                         form = $('#payloads'),
@@ -1126,11 +1126,13 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                 operator: data.operator,
                 context: saveContext
             });
+        ns.groups[name] = group;
+        console.log(5);
         (data.filters || []).forEach(function (rf_data) {
             var rfilter = group.newFilter();
             rfilter.operator = rf_data.operator || 'AND';
-            (rfilter.rows || []).forEach(function (rowdata) {
-                var field = ns.schema.get(rowdata.field),
+            (rf_data.rows || []).forEach(function (rowdata) {
+                var field = ns.schema.get(rowdata.fieldname),
                     opts = {
                         field: field,
                         comparator: rowdata.comparator,
@@ -1146,12 +1148,13 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     };
 
     ns.advancedEditorReady = function () {
-        var managerDiv = $('div.filter-manager'),
+        var managerDiv = $('#filter-manager'),
             numq = $('form#payloads input#payload-query-numerator'),
             denq = $('form#payloads input#payload-query-denominator'),
             hasNum = (!!numq.length),
             hasDen = (!!denq.length),
             group;
+        console.log(4);
         // get JSON data from (hidden) form inputs
         if (hasNum) {
             // setup numerator query, load
@@ -1175,10 +1178,12 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     ns.initAdvancedEditor = function () {
         // load global configuration for editor, then call editorReady
         // as callback.
-        ns.queries = {};
+        console.log(2);
+        ns.groups = {};
         cAjax({
             url: schemaURL(),
             success: function (data) {
+                console.log(3);
                 ns.schema = new uu.queryschema.Schema(data);
                 ns.comparators = new uu.queryschema.Comparators(ns.schema);
                 ns.advancedEditorReady();
@@ -1212,6 +1217,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     };
 
     $(document).ready(function () {
+        console.log(1);
         if ($('body').attr('data-appname') === 'querytest') {
             ns.initTesting();
         }

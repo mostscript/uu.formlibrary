@@ -476,7 +476,7 @@ class FilterGroupJSONAdapter(object):
         if isinstance(data, basestring):
             data = json.loads(data)
         self.context.reset()
-        self.context.operator = data.get('operator', 'union')
+        self.context.operator = str(data.get('operator', 'union'))
         for filter_spec in data.get('filters', []):
             rfilter = CoreFilter()
             self.context.append(rfilter)
@@ -516,7 +516,7 @@ class ComposedQueryJSONAdapter(object):
         if isinstance(data, basestring):
             data = json.loads(data)
         self.context.reset()
-        self.context.operator = data.get('operator', 'union')
+        self.context.operator = str(data.get('operator', 'union'))
         for group_spec in data.get('groups', []):
             group = FilterGroup()
             self.context.append(group)

@@ -11,6 +11,7 @@ from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.interfaces import MULTI_FORM_TYPE
 from uu.formlibrary.search.interfaces import IComposedQuery
 from uu.formlibrary.search.filters import FilterJSONAdapter
+from uu.formlibrary.search.filters import ComposedQueryJSONAdapter
 
 from comparators import Comparators
 
@@ -50,11 +51,9 @@ class MeasureCriteriaView(object):
         self.schema = IFormDefinition(self.context).schema
         self.advanced, self.redirect = self.requires_advanced()
 
-    def update(self, *args, **kwargs):
+    def update_basic(self, *args, **kwargs):
         req = self.request
         prefix = 'payload-'
-        if req.get('REQUEST_METHOD') != 'POST':
-            return
         payload_keys = [k for k in self.request.form if k.startswith(prefix)]
         if not payload_keys:
             return
@@ -76,15 +75,44 @@ class MeasureCriteriaView(object):
             message='\n'.join(log_messages),
             set_modified=True,
             )
-        notify(ObjectModifiedEvent(self.context))
-        req.response.redirect(self.context.absolute_url())  # to view tab
+        return True   # updated
 
-    def _query(self, name):
-        return queryAdapter(
+    def update_advanced(self, *args, **kwargs):
+        req = self.request
+        prefix = 'payload-query-'
+        payload_keys = [k for k in self.request.form if k.startswith(prefix)]
+        if not payload_keys:
+            return
+        _info = lambda name: (name.replace(prefix, ''), req.get(name))
+        payloads = map(_info, payload_keys)
+        log_messages = []
+        for name, payload in payloads:
+            composed = self.composed_query(name)
+            if not composed:
+                raise ValueError('unknown query name')
+            adapter = ComposedQueryJSONAdapter(composed, self.schema)
+            adapter.update(str(payload))
+            msg = u'Updated query criteria for %s' % name
+            self.status.addStatusMessage(msg, type='info')
+            log_messages.append(msg)
+        history_log(
             self.context,
-            IComposedQuery,
-            name=name,
+            message='\n'.join(log_messages),
+            set_modified=True,
             )
+        return True   # updated
+
+    def update(self, *args, **kwargs):
+        req = self.request
+        if req.get('REQUEST_METHOD') != 'POST':
+            return
+        if self.advanced:
+            updated = self.update_advanced(*args, **kwargs)
+        else:
+            updated = self.update_basic(*args, **kwargs)
+        if updated:
+            notify(ObjectModifiedEvent(self.context))
+            req.response.redirect(self.context.absolute_url())  # to view tab
 
     def requires_advanced(self, names=(u'numerator', u'denominator')):
         """
@@ -101,7 +129,7 @@ class MeasureCriteriaView(object):
         """
         adv = 'advanced' in self.request.get('PATH_INFO').split('/')[-1]
         _useadv = lambda q: q.requires_advanced_editing()
-        adv_query = any(map(_useadv, map(self._query, names)))
+        adv_query = any(map(_useadv, map(self.composed_query, names)))
         return (adv or adv_query, adv_query and not adv)
 
     def __call__(self, *args, **kwargs):
@@ -168,13 +196,22 @@ class MeasureCriteriaView(object):
                         })
         return self._filters
 
-    def json(self, name):
+    def filter_json(self, name):
         """Get JSON payload for record filter, by name (uid)"""
         match = [info for info in self.filters() if info.get('uid') == name]
         if not match:
             return '{}'   # no matching filter
         rfilter = match[0].get('filter')
         return FilterJSONAdapter(rfilter, self.schema).serialize()
+
+    def composed_json(self, name):
+        composed = self.composed_query(name)
+        return ComposedQueryJSONAdapter(composed, self.schema).serialize()
+
+    def json(self, name):
+        if self.advanced:
+            return self.composed_json(name)
+        return self.filter_json(name)
 
     def comparator_title(self, comparator):
         return self.comparators.get(comparator).label

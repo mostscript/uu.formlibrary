@@ -253,7 +253,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                     group.update()  # will populate group.widgets
                 if group_data and fieldgroup.group_usage == 'grid':
                     data_widget = group.widgets.values()[0]
-                    data_widget.value = group_data.data
+                    data_widget.value = getattr(group_data, 'data', [])
                     continue
 
             if group_data is not None:

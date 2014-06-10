@@ -6,7 +6,8 @@ from zope.component import queryUtility
 
 from uu.dynamicschema.interfaces import ISchemaSaver, DEFAULT_SIGNATURE
 from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
-from uu.formlibrary.interfaces import IDefinitionBase
+from uu.formlibrary.interfaces import IDefinitionBase, IFormSet
+from uu.formlibrary.interfaces import IMultiForm, IFormDefinition
 
 
 PKGNAME = 'uu.formlibrary'
@@ -32,15 +33,39 @@ def commit(context, msg):
     # so use the hostname used to access all Plone sites.
     txn.note('%s%s' % (BASEPATH, '/'.join(context.getPhysicalPath())))
     txn.note(msg)
-    txn.commit()
+    #txn.commit()
+
+
+def form_signature(form, definition):
+    if IMultiForm.providedBy(form) and len(form):
+        return form.values()[0].signature
+    return definition.signature  # fallback for form with no records
+
+
+def all_forms_signatures(definition):
+    forms = IFormSet(definition).values()
+    return set(form_signature(form, definition) for form in forms)
 
 
 def verify(site):
     """Verify that nothing we need is gone!"""
+    actively_used = set()
     saver = queryUtility(ISchemaSaver)
-    actively_used = [o.signature for o in map(get, search(site, TYPEQUERY))]
+    schema_contexts = map(get, search(site, TYPEQUERY))
+    definitions = filter(IFormDefinition.providedBy, schema_contexts)
+    actively_used.update(o.signature for o in schema_contexts)
+    current = len(actively_used)
+    actively_used.update(
+        *[all_forms_signatures(defn) for defn in definitions]
+        )
+    archived = len(actively_used) - current
+    # sufficient:
     for signature in actively_used:
         assert signature in saver
+    # only necessary: counts of schemas in saver should match actively_used
+    assert len(saver) == len(actively_used)
+    if archived:
+        print '\t\tNote: %s schemas preserved for archival.' % archived
 
 
 def cleanup_stored_schemas(site):
@@ -54,7 +79,13 @@ def cleanup_stored_schemas(site):
     for context in content:
         assert IDefinitionBase.providedBy(context)
         assert context.signature is not None
+        # consider the current schema (signature) used now by definition
+        # or field group in question:
         actively_used.add(context.signature)
+        if IFormDefinition.providedBy(context):
+            # consider any past schema signatures on records now marked as
+            # having schema immutability when definition is modified:
+            actively_used.update(all_forms_signatures(context))
     # enumerate through schema saver:
     for signature in list(saver.keys()):
         if signature == DEFAULT_SIGNATURE:
@@ -70,8 +101,8 @@ def cleanup_stored_schemas(site):
                 size_before,
                 )
             )
-        commit(site, 'Cleaned up orphaned schemas')
         verify(site)
+        commit(site, 'Cleaned up orphaned schemas')
 
 
 def main(app):

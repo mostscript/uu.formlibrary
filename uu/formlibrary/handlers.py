@@ -130,6 +130,7 @@ def form_configuration_modified(context, event):
 
 
 def update_form_entries(context):
+    blocked_states = ('published', 'archived')
     definition = context
     if IFieldGroup.providedBy(context):
         definition = context.__parent__
@@ -141,10 +142,10 @@ def update_form_entries(context):
     wftool = getToolByName(definition, 'portal_workflow')
     components = IFormComponents(definition)
     for form in simple_forms:
-        if wftool.getInfoFor(form, 'review_state') == 'visible':
+        if wftool.getInfoFor(form, 'review_state') not in blocked_states:
             sync_simple_form(form, components)
     for form in multi_forms:
-        if wftool.getInfoFor(form, 'review_state') == 'visible':
+        if wftool.getInfoFor(form, 'review_state') not in blocked_states:
             sync_multi_form(form, definition)
 
 

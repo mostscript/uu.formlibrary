@@ -57,7 +57,7 @@
       </ul>
     </div>
     <div id="library-info">
-      <div class="recent" tal:define="recent python:view.recent(limit=8); count view/count">
+      <div class="recent" tal:define="recent python:view.recent(limit=20); count view/count">
         <h3>Most-recently modified form definitions:</h3>
         <p tal:condition="python: not count">There are no form definitions contained in this library.</p>
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">

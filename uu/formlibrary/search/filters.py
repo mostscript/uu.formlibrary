@@ -51,7 +51,7 @@ def query_idxtype(fieldquery, schema):
             return 'keyword'
         return 'field'
     # special-case overlapping comparators used in multiple field types
-    if fieldtypes.ISequence.providedBy(field) and comparator == 'Any':
+    if fieldtypes.ICollection.providedBy(field) and comparator == 'Any':
         return 'keyword'
     # for all other field types, use 1:1 mapping:
     idxtypes = {

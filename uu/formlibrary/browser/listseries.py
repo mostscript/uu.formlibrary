@@ -21,6 +21,8 @@ class FormSeriesListing(object):
         for name, field in getFieldsInOrder(IFormSeries):
             self.seriesinfo[name] = getattr(context, name, field.default)
         self.title = context.Title()
+        self.catalog = getToolByName(self.context, 'portal_catalog')
+        self.workflow = getToolByName(self.context, 'portal_workflow')
 
     def logourl(self):
         filename = getattr(self.context.logo, 'filename', None)
@@ -32,12 +34,27 @@ class FormSeriesListing(object):
     def portalurl(self):
         return getSite().absolute_url()
 
+    def is_recently_submitted(self, brain):
+        form = self.context.get(brain.getId)
+        wfid = self.workflow.getChainFor(form)[0]
+        submit_actions = filter(
+            lambda action: action.get('action') == 'submit',
+            self.workflow.getHistoryOf(wfid, form)
+            )
+        last = None if not submit_actions else submit_actions[-1]
+        return last.get('time') > (DateTime() - 60)
+
+    def search(self, label, query):
+        result = self.catalog.searchResults(query)
+        if label == 'Submitted recently':
+            result = filter(self.is_recently_submitted, result)
+        return result
+
     def groups(self):
         """
         listing groups: returns tuple of dict containing label and result
         sequence of catalog brains from query; template should use these.
         """
-        catalog = getToolByName(self.context, 'portal_catalog')
         result = []
         queries = (
             (
@@ -94,6 +111,6 @@ class FormSeriesListing(object):
         )
         for label, query in queries:
             result.append({'label': label,
-                           'result': catalog.searchResults(query)})
+                           'result': self.search(label, query)})
         return tuple(result)
 

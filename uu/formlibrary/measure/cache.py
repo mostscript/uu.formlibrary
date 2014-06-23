@@ -188,7 +188,9 @@ class DataPointCache(object):
         ## now determine if uid is for measure or for a form:
         brain = self._content_brain(uid)
         if brain is None:
-            raise KeyError('Content does not exist for UID %s.' % uid)
+            # in cases (e.g. testing) where no brain, just invalidate
+            self.invalidate(uid)
+            return
         if brain.portal_type == MEASURE_DEFINITION_TYPE:
             self._cache_datapoints_for_measure(uid)
         else:

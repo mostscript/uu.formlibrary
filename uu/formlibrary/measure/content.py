@@ -10,6 +10,7 @@ from plone.memoize import ram
 from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from plone.app.layout.navigation.root import getNavigationRoot
+from pytz import UTC
 from repoze.catalog import query
 from zope.component import queryAdapter
 from zope.component.hooks import getSite
@@ -29,6 +30,9 @@ from cache import datapoint_cache_key, DataPointCache
 
 # sentinel value:
 NOVALUE = float('NaN')
+
+
+DT = lambda d: DateTime(datetime.datetime(*d.timetuple()[:7], tzinfo=UTC))
 
 
 @indexer(IMeasureDefinition)
@@ -539,20 +543,19 @@ class FormDataSetSpecification(Item):
             if v:
                 # only non-empty values are considered
                 q[idx] = v
-        _DT = lambda d: DateTime(datetime.datetime(*d.timetuple()[:7]))
         if self.query_start and self.query_end:
             q['start'] = {
-                'query': (_DT(self.query_start), _DT(self.query_end)),
+                'query': (DT(self.query_start), DT(self.query_end)),
                 'range': 'min:max',
                 }
         if self.query_start and not self.query_end:
             q['start'] = {
-                'query': _DT(self.query_start),
+                'query': DT(self.query_start),
                 'range': 'min',
                 }
         if self.query_end and not self.query_start:
             q['start'] = {
-                'query': _DT(self.query_end),
+                'query': DT(self.query_end),
                 'range': 'max',
                 }
         return q, form_uids

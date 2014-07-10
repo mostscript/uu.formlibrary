@@ -128,14 +128,16 @@ uu.queryschema = (function ($, ns, uu, core, global) {
         'does not contain',
        '\u2209'
         );
-    c.EQ = new ns.TermInfo('Eq', 'is equal to','=');
-    c.GE = new ns.TermInfo('Ge', 'is greater than or equal to','\u2264');
-    c.GT = new ns.TermInfo('Gt', 'is greater than','>');
-    c.INRANGE = new ns.TermInfo('InRange', 'is between','(\u2026)');
-    c.LE = new ns.TermInfo('Le', 'is less than or equal to','\u2265');
-    c.LT = new ns.TermInfo('Lt', 'is less than','<');
-    c.NOTEQ = new ns.TermInfo('NotEq', 'is not','\u2260');
-    c.NOTINRANGE = new ns.TermInfo('NotInRange', 'is not between','\u2209');
+    c.EQ = new ns.TermInfo('Eq', 'is equal to', '=');
+    c.GE = new ns.TermInfo('Ge', 'is greater than or equal to', '\u2264');
+    c.GT = new ns.TermInfo('Gt', 'is greater than', '>');
+    c.INRANGE = new ns.TermInfo('InRange', 'is between', '(\u2026)');
+    c.LE = new ns.TermInfo('Le', 'is less than or equal to', '\u2265');
+    c.LT = new ns.TermInfo('Lt', 'is less than', '<');
+    c.NOTEQ = new ns.TermInfo('NotEq', 'is not', '\u2260');
+    c.NOTINRANGE = new ns.TermInfo('NotInRange', 'is not between', '\u2209');
+    c.NOTANY = new ns.TermInfo('NotAny', 'does not contain any of', '\u2212');
+    c.NOTALL = new ns.TermInfo('NotAll', 'does not contain all of', '\u2288');
 
     ns.COMPARATORS_BY_INDEX = {
         'field': [
@@ -143,7 +145,7 @@ uu.queryschema = (function ($, ns, uu, core, global) {
             c.NOTINRANGE
         ],
         'text': [c.CONTAINS, c.DOESNOTCONTAIN],
-        'keyword': [c.ANY, c.ALL, c.DOESNOTCONTAIN]
+        'keyword': [c.ANY, c.ALL, c.NOTANY, c.NOTALL],
         };
 
     ns.CHOICE_OMIT = [c.LT, c.LE, c.GT, c.GE, c.INRANGE, c.NOTINRANGE];
@@ -525,7 +527,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             var field = this.field,
                 comparator = this.comparator,
                 choice = (!!field) ? field.isChoice() : false,
-                chooseOnlyOne = (['Any', 'All'].indexOf(comparator) === -1),
+                chooseOnlyOne = (['Any', 'All', 'NotAny', 'NotAll'].indexOf(comparator) === -1),
                 select;
             if (!field || !comparator) {
                 return null;

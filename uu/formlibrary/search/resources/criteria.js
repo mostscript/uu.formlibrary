@@ -587,7 +587,7 @@ formsearch.criteria = formsearch.criteria || {};
                 return;
             }
             if (field.value_type === 'Choice') {
-                if ((comparator == 'Any') || (comparator == 'All')) {
+                if (['Any', 'All', 'NotAll', 'NotAny'].indexOf(comparator) !== -1) {
                     implSelections(cell, field, value);
                 } else {
                     implSelection(cell, field, value);

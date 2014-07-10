@@ -49,6 +49,17 @@ LE = ComparatorInfo(u'Le', u'is less than or equal to', symbol=u'\u2265')
 LT = ComparatorInfo(u'Lt', u'is less than', symbol=u'<')
 NOTEQ = ComparatorInfo(u'NotEq', u'is not', symbol=u'\u2260')
 NOTINRANGE = ComparatorInfo(u'NotInRange', u'is not between', symbol=u'\u2209')
+NOTANY = ComparatorInfo(
+    u'NotAny',
+    u'does not contain any of',
+    symbol=u'\u2212',
+    )
+NOTALL = ComparatorInfo(
+    u'NotAll',
+    u'does not contain all of',
+    symbol=u'\u2288',
+    )
+
 
 COMPARATORS = (
     ALL,
@@ -63,13 +74,15 @@ COMPARATORS = (
     LT,
     NOTEQ,
     NOTINRANGE,
+    NOTANY,
+    NOTALL,
     )
 
 
 COMPARATORS_BY_INDEX = {
     'field': (ANY, EQ, GE, GT, INRANGE, LE, LT, NOTEQ, NOTINRANGE),
     'text': (CONTAINS, DOESNOTCONTAIN),
-    'keyword': (ANY, ALL, DOESNOTCONTAIN),
+    'keyword': (ANY, ALL, NOTANY, NOTALL),
     }
 
 

@@ -13,7 +13,7 @@
   <metal:block fill-slot="javascript_head_slot">
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/criteria.js?api=2013100301"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/criteria.js?api=2013100710"></script>
   </metal:block>
   <metal:block fill-slot="style_slot">
 <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />

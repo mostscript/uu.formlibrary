@@ -33,7 +33,7 @@ def commit(context, msg):
     # so use the hostname used to access all Plone sites.
     txn.note('%s%s' % (BASEPATH, '/'.join(context.getPhysicalPath())))
     txn.note(msg)
-    #txn.commit()
+    txn.commit()
 
 
 def form_signature(form, definition):

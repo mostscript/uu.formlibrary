@@ -237,12 +237,12 @@ div.record-filter div.oplabel {
         </h5>
         <div class="filter-groups">
           <div class="filter-group" tal:repeat="group composed">
-            <div class="record-filter" tal:repeat="filter group">
-              <div class="noquery" tal:condition="python: len(filter) == 0">
+            <div class="record-filter" tal:repeat="rfilter group">
+              <div class="noquery" tal:condition="python: len(rfilter) == 0">
                 <strong>This query is not yet defined!</strong>
                 Please edit the query <a href="@@measure_critieria" tal:attributes="href string:${context/absolute_url}/@@measure_criteria">here</a>.
               </div>
-              <tal:block define="operator filter/operator">
+              <tal:block define="operator rfilter/operator">
                 <table class="queries">
                   <tr class="headings">
                     <th class="display-queryop">&nbsp;</th>
@@ -250,9 +250,9 @@ div.record-filter div.oplabel {
                     <th>Comparison operation</th>
                     <th>Query value</th>
                   </tr>
-                  <tr tal:repeat="query python:filter.values()">
+                  <tr tal:repeat="query python:view.filtervalues(rfilter)">
                     <td class="display-queryop">
-                      <span tal:condition="repeat/query/index" tal:content="filter/operator">AND/OR</span>
+                      <span tal:condition="repeat/query/index" tal:content="rfilter/operator">AND/OR</span>
                     </td>
                     <td tal:content="python:query.field(view.schema).title">FIELDNAME</td>
                     <td>
@@ -269,7 +269,7 @@ div.record-filter div.oplabel {
                   </tr>
                 </table>
               </tal:block>
-            <div class="group-opdisplay" tal:condition="python: len(group) > 1 and group[-1] != filter">
+            <div class="group-opdisplay" tal:condition="python: len(group) > 1 and group[-1] != rfilter">
                 <em tal:condition="python: group.operator == 'union'">OR</em>
                 <em tal:condition="python: group.operator == 'intersection'">AND</em>
                 <em tal:condition="python: group.operator == 'difference'">MINUS</em>

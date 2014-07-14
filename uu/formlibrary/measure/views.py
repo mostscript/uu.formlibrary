@@ -7,6 +7,7 @@ from Products.statusmessages.interfaces import IStatusMessage
 from zope.component import getMultiAdapter
 from zope.event import notify
 from zope.lifecycleevent import ObjectCopiedEvent
+from zope.schema import getFieldNamesInOrder
 
 from uu.formlibrary.interfaces import IFormDefinition
 from interfaces import IMeasureDefinition
@@ -151,6 +152,7 @@ class MeasureBaseView(object):
         self.datasets = []
         self.datapoints = {}
         self.schema = IFormDefinition(self.context).schema
+        self.fieldnames = getFieldNamesInOrder(self.schema)
 
     def use_percent(self):
         vtype, multiplier = self.context.value_type, self.context.multiplier
@@ -186,6 +188,10 @@ class MeasureBaseView(object):
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
+
+    def filtervalues(self, rfilter):
+        raw = rfilter.values()
+        return [query for query in raw if query.fieldname in self.fieldnames]
 
 
 class MeasureDataView(MeasureBaseView):

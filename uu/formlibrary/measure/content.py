@@ -218,7 +218,8 @@ class MeasureDefinition(Item):
     def _indexed_datapoint(self, context):
         key = datapoint_cache_key(None, self, context)
         cache = DataPointCache(self.site())
-        return cache.get(key, None)
+        v = cache.get(key, None)
+        return v and dict(v) or None
 
     def _datapoint(self, context):
         """uncached datapoint implementation"""
@@ -331,11 +332,12 @@ class MeasureDefinition(Item):
         each, and calculate aggregate values for points, given
         a value aggregation function (fn).
         """
+        consider = lambda o: o is not None
         fn = AGGREGATE_FUNCTIONS.get(fn_name)
         label = dict(AGGREGATE_LABELS).get(fn_name, '')
         result = []
         raw = []
-        for ds in aggregated:
+        for ds in filter(consider, aggregated):
             points = self._dataset_points(ds)
             raw.append(points)
         all_points = list(chain(*raw))

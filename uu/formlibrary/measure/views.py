@@ -117,11 +117,11 @@ class FormDataSetCloningView(object):
             source = self.context
             parent = source.__parent__
             target = source._getCopy(parent)
-            target.title = req.get('clone_title', source.title)
+            target.title = req.get('clone_title', source.title).decode('utf-8')
             target.description = req.get(
                 'clone_description',
                 source.description,
-                )
+                ).decode('utf-8')
             target_id = self.target_id(target, parent)
             target._setId(target_id)
             notify(ObjectCopiedEvent(target, source))

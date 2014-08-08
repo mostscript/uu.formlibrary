@@ -188,8 +188,7 @@ class DataPointCache(object):
         ## now determine if uid is for measure or for a form:
         brain = self._content_brain(uid)
         if brain is None:
-            # in cases (e.g. testing) where no brain, just invalidate
-            self.invalidate(uid)
+            # in cases (e.g. testing) where no brain, just invalidate (above)
             return
         if brain.portal_type == MEASURE_DEFINITION_TYPE:
             self._cache_datapoints_for_measure(uid)

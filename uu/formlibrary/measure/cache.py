@@ -220,9 +220,15 @@ class DataPointCache(object):
         for f_uid in self._related_form_uids(uid):
             form = _get(f_uid, self.context)
             key = datapoint_cache_key(None, measure, form)
-            point = measure._datapoint(form)
-            self.store(key, point)
-    
+            try:
+                point = measure._datapoint(form)
+                self.store(key, point)
+            except KeyError:
+                print 'Could not compute point for %s + %s' % (
+                        '/'.join(measure.getPhysicalPath()),
+                        '/'.join(form.getPhysicalPath())
+                    )
+
     def _related_measure_uids(self, uid):
         """
         Given a form UID, list related measure UIDs, such that

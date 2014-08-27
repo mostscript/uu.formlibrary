@@ -418,10 +418,11 @@ class MeasureDefinition(Item):
                     info.get('raw_denominator'),
                     )
             else:
-                note += u'%s of %s' % (
-                    info.get('raw_numerator'),
-                    info.get('raw_denominator'),
-                    )
+                if self.denominator_type != 'constant':
+                    note += u'%s of %s' % (
+                        info.get('raw_numerator'),
+                        info.get('raw_denominator'),
+                        )
                 if self.denominator_type == 'multi_filter':
                     note += u' (filtered)'
                 if self.denominator_type != 'multi_metadata':

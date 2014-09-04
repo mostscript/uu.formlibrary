@@ -75,9 +75,9 @@ class MeasureDefinition(Item):
         self._composed_queries = composed_storage()
 
     def site(self):
-        if not getattr(self, '_site', None):
-            self._site = getSite()
-        return self._site
+        if not getattr(self, '_v_site', None):
+            self._v_site = getSite()
+        return self._v_site
 
     def group(self):
         return aq_parent(aq_inner(self))  # folder containing
@@ -511,7 +511,9 @@ class FormDataSetSpecification(Item):
                 'operator': 'or',
                 },
             }
-        form_uids = [b.UID for b in catalog.unrestrictedSearchResults(filter_q)]
+        form_uids = [
+            b.UID for b in catalog.unrestrictedSearchResults(filter_q)
+            ]
         folder_uids = list(set(spec_uids).difference(form_uids))
         folder_q = {'UID': {'query': folder_uids, 'operator': 'or'}}
         folder_paths = [

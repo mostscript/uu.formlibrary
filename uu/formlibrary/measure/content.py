@@ -374,13 +374,17 @@ class MeasureDefinition(Item):
         IFormDataSetSpecification, return data points for all forms
         included in the set.
         """
-        if getattr(dataset, 'use_aggregate', False):
-            aggregated = getattr(dataset, 'aggregate_datasets', [])
-            if aggregated:
-                aggregated = [uuidToObject(ds) for ds in aggregated]
-                fn_name = getattr(dataset, 'aggregate_function', 'AVG')
-                return self._aggregate_dataset_points(aggregated, fn_name)
-        return self._dataset_points(dataset)
+        try:
+            if getattr(dataset, 'use_aggregate', False):
+                aggregated = getattr(dataset, 'aggregate_datasets', [])
+                if aggregated:
+                    aggregated = [uuidToObject(ds) for ds in aggregated]
+                    fn_name = getattr(dataset, 'aggregate_function', 'AVG')
+                    return self._aggregate_dataset_points(aggregated, fn_name)
+            return self._dataset_points(dataset)
+        except KeyError:
+            # usually this is due to broken measure definition/query
+            return []  # don't doom the whole barrel for one bad apple
 
     def display_format(self, value):
         """

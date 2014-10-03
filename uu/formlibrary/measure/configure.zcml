@@ -59,6 +59,13 @@
     permission="cmf.AddPortalContent"
     />
 
+  <!-- resources -->
+  <browser:resource
+    name="measure.css"
+    file="resources/measure.css"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
+
   <!-- adapters -->
   <adapter 
     factory=".adapters.measure_form_definition"

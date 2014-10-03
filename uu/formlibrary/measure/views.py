@@ -15,7 +15,7 @@ from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
 from interfaces import AGGREGATE_LABELS
 
 
-def local_query(context, query):
+def local_query(context, query, depth=2):
     """
     Given a catalog search query dict and a context, restrict
     search to items contained in the context path or subfolders.
@@ -25,7 +25,7 @@ def local_query(context, query):
     path = '/'.join(context.getPhysicalPath())
     query['path'] = {
         'query': path,
-        'depth': 2,
+        'depth': depth,
         }
     return query
 
@@ -209,4 +209,44 @@ class MeasureDataView(MeasureBaseView):
         for dataset in self.datasets:
             dsid = dataset.getId()
             self.datapoints[dsid] = self.context.dataset_points(dataset)
+
+
+class AllMeasuresView(object):
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.catalog = getToolByName(context, 'portal_catalog')
+
+    def update(self, *args, **kwargs):
+        _get = lambda b: b._unrestrictedGetObject()
+        measure_query = local_query(
+            self.context,
+            {'portal_type': MEASURE_DEFINITION_TYPE},
+            depth=10,
+            )
+        self._measures = map(_get, self.catalog.searchResults(measure_query))
+        self._groups = []
+        self._group_measures = {}
+        for measure in self._measures:
+            group = measure.__parent__
+            group_id = group.getId()
+            if group not in self._groups:
+                self._groups.append(group)
+            if group_id not in self._group_measures:
+                self._group_measures[group_id] = []
+            self._group_measures[group_id].append(measure)
+
+    def groups(self):
+        return self._groups
+
+    def measures(self, group):
+        return self._group_measures[group.getId()]
+
+    def measureview(self, measure):
+        return MeasureBaseView(measure, self.request)
+
+    def __call__(self, *args, **kwargs):
+        self.update(*args, **kwargs)
+        return self.index(*args, **kwargs)
 

@@ -1,0 +1,180 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+<link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
+<link rel="stylesheet" media="all" href="++resource++measure.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++measure.css" type="text/css" />
+  </metal:block>
+</head>
+<body>
+<div metal:fill-slot="content-core">
+
+<h1>Project Measures Summary</h1>
+<hr />
+
+<div tal:repeat="group view/groups">
+<h2>Measures for <em tal:content="group/Title">TITLE</em> group:</h2>
+
+ <tal:block repeat="measure python:view.measures(group)">
+  <tal:block define="mview python:view.measureview(measure)">
+
+     <h1 class="documentFirstHeading" tal:content="measure/Title">TITLE</h1>
+     <div class="documentDescription description" tal:content="measure/Description">DESC</div>
+     <div class="measureinfo">
+      <div class="measuredetail measuresummary">
+        <h3>Measure summary</h3>
+        <table class="fieldinfo">
+         <tbody>
+          <tr>
+            <td class="fieldlabel"><label>Kind of value:</label></td>
+            <td><span tal:replace="python: mview.choice_label('value_type')" />
+                <span tal:condition="mview/use_percent">(ratio multiplied by 100.0)</span>
+            </td>
+            <tal:block condition="measure/units">
+             <td class="fieldlabel"><label>Units of measure:</label></td>
+             <td tal:content="measure/units" />
+            </tal:block>
+          </tr>
+          <tr tal:condition="python: getattr(measure, 'goal', None) is not None">
+            <td class="fieldlabel"><label>Goal value:</label></td>
+            <td tal:content="measure/goal" />
+          </tr>
+         </tbody>
+        </table>
+      </div>
+      <div class="measuredetail measurecalc">
+        <h3>Measure calculation and record filters</h3>
+        <table class="fieldinfo" style="border-bottom:1px dotted #aaa;">
+         <tbody>
+          <tr>
+            <td class="fieldlabel"><label>Numerator type:</label></td>
+            <td tal:condition="python:mview.source_type() == 'uu.formlibrary.multiform'"
+                style="border-bottom:0.2em solid black;">
+              <span tal:replace="python: mview.choice_label('numerator_type')" />
+              <tal:block condition="python: measure.numerator_type == 'multi_metadata'">
+                (<em tal:replace="python: mview.choice_label('numerator_field')" />)
+              </tal:block>
+            </td>
+            <td tal:condition="python:mview.source_type() == 'uu.formlibrary.simpleform'"
+                style="border-bottom:0.2em solid black;">
+              <span class="stereotype" tal:condition="measure/numerator_field">(Field value)</span>
+              <span tal:content="python: mview.choice_label('numerator_field')" />
+            </td>
+          </tr>
+          <tr>
+            <td class="fieldlabel"><label>Denominator type:</label></td>
+            <td tal:condition="python:mview.source_type() == 'uu.formlibrary.multiform'">
+              <span tal:replace="python: mview.choice_label('denominator_type')" />
+              <tal:block condition="python: measure.denominator_type == 'multi_metadata'">
+                (<em tal:content="python: mview.choice_label('denominator_field')" />)
+              </tal:block>
+            </td>
+            <td tal:condition="python:mview.source_type() == 'uu.formlibrary.simpleform'">
+              <span class="stereotype" tal:condition="measure/denominator_field">(Field value)</span>
+              <span tal:replace="python: mview.choice_label('denominator_field')" />
+            </td>
+          </tr>
+          <tr tal:condition="python:mview.source_type() == 'uu.formlibrary.simpleform'">
+            <td class="fieldlabel"><label>Notes field:</label></td>
+            <td>
+              <span tal:replace="python: mview.choice_label('notes_field')" />
+            </td>
+          </tr>
+          <tr tal:condition="python:getattr(measure, 'cumulative', None)">
+            <td class="fieldlabel"><label><strong>(Cumulative)</strong></label></td>
+            <td>
+              <span tal:replace="python: mview.choice_label('cumulative')" />
+            </td>
+          </tr>
+         </tbody>
+        </table>
+
+       <tal:block condition="measure/@@criteria_actions/show_criteria">
+        <div class="criteria-summary" tal:define="criteriaview mview/criteria_view">
+          <div class="composed-query" tal:repeat="composed criteriaview/composed_queries">
+            <h5>
+              <span tal:content="python:composed.name.upper()"></span>
+              <a class="criteria-edit" href="" title="Edit criteria in new browser window/tab" tal:attributes="href string:${measure/absolute_url}/@@measure_criteria">&#x270E; Edit query/criteria</a>
+            </h5>
+            <div class="filter-groups">
+              <div class="filter-group" tal:repeat="group composed">
+                <div class="record-filter" tal:repeat="rfilter group">
+                  <div class="noquery" tal:condition="python: len(rfilter) == 0">
+                    <strong>This query is not yet defined!</strong>
+                    Please edit the query <a href="@@measure_critieria" tal:attributes="href string:${measure/absolute_url}/@@measure_criteria">here</a>.
+                  </div>
+                  <tal:block define="operator rfilter/operator">
+                    <table class="queries">
+                      <tr class="headings">
+                        <th class="display-queryop">&nbsp;</th>
+                        <th>Field</th>
+                        <th>Comparison operation</th>
+                        <th>Query value</th>
+                      </tr>
+                      <tr tal:repeat="query python:mview.filtervalues(rfilter)">
+                        <td class="display-queryop">
+                          <span tal:condition="repeat/query/index" tal:content="rfilter/operator">AND/OR</span>
+                        </td>
+                        <td tal:content="python:query.field(mview.schema).title">FIELDNAME</td>
+                        <td>
+                          <span class="comparator-symbol" tal:content="python: criteriaview.comparator_symbol(query.comparator)">*</span>
+                          <span tal:content="python: criteriaview.comparator_title(query.comparator)">COMPARE</span>
+                        </td>
+                        <td tal:content="query/value" tal:condition="python:not isinstance(query.value, list)">VALUE</td>
+                        <td tal:define="selected query/value"
+                            tal:condition="python:isinstance(query.value, list)">
+                          <ul>
+                            <li tal:repeat="element selected"><span tal:replace="element"></span></li>
+                          </ul>
+                        </td>
+                      </tr>
+                    </table>
+                  </tal:block>
+                <div class="group-opdisplay" tal:condition="python: len(group) > 1 and group[-1] != rfilter">
+                    <em tal:condition="python: group.operator == 'union'">OR</em>
+                    <em tal:condition="python: group.operator == 'intersection'">AND</em>
+                    <em tal:condition="python: group.operator == 'difference'">MINUS</em>
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+       </tal:block><!-- condition: show_criteria -->
+
+      </div>
+
+      <div class="measuredetail measuredisplay">
+        <h3>Measure display and value adjustment</h3>
+        <table class="fieldinfo">
+         <tbody>
+          <tr>
+            <td class="fieldlabel"><label>Digits after decimal:</label></td>
+            <td><span tal:replace="measure/display_precision" />
+            </td>
+            <td class="fieldlabel"><label>Rounding:</label></td>
+            <td><span tal:replace="python: mview.choice_label('rounding')" />
+            </td>
+            <td class="fieldlabel"><label>Constant multiplier:</label></td>
+            <td><span tal:replace="measure/multiplier" />
+            </td>
+          </tr>
+         </tbody>
+        </table>
+      </div>
+     </div>
+
+  </tal:block><!--/define block-->
+ </tal:block><!--/repeat measures-->
+
+</div>
+
+</div>
+</body>
+</html>

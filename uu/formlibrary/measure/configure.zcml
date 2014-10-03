@@ -59,6 +59,14 @@
     permission="cmf.AddPortalContent"
     />
 
+  <browser:page
+    name="allmeasures"
+    for="*"
+    class=".views.AllMeasuresView"
+    template="allmeasures.pt"
+    permission="zope2.View"
+    />
+
   <!-- resources -->
   <browser:resource
     name="measure.css"

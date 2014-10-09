@@ -219,6 +219,9 @@ class AllMeasuresView(object):
         self.catalog = getToolByName(context, 'portal_catalog')
 
     def update(self, *args, **kwargs):
+        # full page display, no navigation
+        self.request.set('ajax_load', 1)
+        self.request.set('ajax_include_head', 1)
         _get = lambda b: b._unrestrictedGetObject()
         measure_query = local_query(
             self.context,

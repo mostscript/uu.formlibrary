@@ -6,22 +6,43 @@
       i18n:domain="uu.formlibrary">
 <head>
   <metal:block fill-slot="javascript_head_slot">
+<script type="text/javascript">
+$(document).ready(function () {
+    $('#portal-column-content')
+        .removeClass('width-3:4')
+        .removeClass('position-1:4')
+        .addClass('position-0')
+        .addClass('width-16');
+});
+</script>
+
   </metal:block>
   <metal:block fill-slot="style_slot">
 <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
 <link rel="stylesheet" media="all" href="++resource++measure.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++measure.css" type="text/css" />
+<style>
+@media print {
+    body {
+        -webkit-print-color-adjust:exact;
+        font-size:7.5px !important;
+    }
+    div.measure {
+        page-break-inside:avoid;
+    }
+}
+</style>
   </metal:block>
 </head>
 <body>
-<div metal:fill-slot="content-core">
+<div metal:fill-slot="main">
 
-<h1>Project Measures Summary</h1>
+<h1>Project Measures Summary: <em tal:content="context/Title">PROJECT TITLE</em></h1>
 <hr />
 
 <div tal:repeat="group view/groups">
 <h2>Measures for <em tal:content="group/Title">TITLE</em> group:</h2>
 
- <tal:block repeat="measure python:view.measures(group)">
+ <div class="measure" tal:repeat="measure python:view.measures(group)">
   <tal:block define="mview python:view.measureview(measure)">
 
      <h1 class="documentFirstHeading" tal:content="measure/Title">TITLE</h1>
@@ -171,7 +192,7 @@
      </div>
 
   </tal:block><!--/define block-->
- </tal:block><!--/repeat measures-->
+ </div><!--/repeat measures-->
 
 </div>
 

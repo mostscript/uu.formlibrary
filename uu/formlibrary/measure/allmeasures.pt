@@ -10,6 +10,7 @@
 $(document).ready(function () {
     $('#portal-column-content')
         .removeClass('width-3:4')
+        .removeClass('width-1:2')
         .removeClass('position-1:4')
         .addClass('position-0')
         .addClass('width-16');
@@ -21,6 +22,9 @@ $(document).ready(function () {
 <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
 <link rel="stylesheet" media="all" href="++resource++measure.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++measure.css" type="text/css" />
 <style>
+#content div.documentDescription.description {
+    width: 95% !important;
+}
 @media print {
     body {
         -webkit-print-color-adjust:exact;

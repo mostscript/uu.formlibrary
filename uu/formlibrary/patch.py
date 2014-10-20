@@ -5,7 +5,6 @@ from ZPublisher.HTTPResponse import HTTPResponse
 
 UA_NO_REDIRECTS = ('Excel/', 'Word/', 'ms-office')
 
-#orig_setResponse = HTTPResponse.setResponse
 orig_exception = HTTPResponse.exception
 
 

@@ -121,6 +121,13 @@
     permission="zope2.View"
     />
 
+  <browser:page
+    name="exportxls"
+    for="..interfaces.ISimpleForm"
+    class=".excel.FormXLSView"
+    permission="zope2.View"
+    />
+
   <!-- json folder listing / search views -->
 
   <browser:page

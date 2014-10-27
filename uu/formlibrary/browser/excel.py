@@ -17,7 +17,7 @@ class FormXLSView(object):
         self.request = request
 
     def filename(self):
-        return '%s-%s.csv' % (
+        return '%s-%s.xls' % (
             self.context.getId(),
             IUUID(self.context)[-12:],
             )

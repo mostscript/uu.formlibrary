@@ -99,10 +99,10 @@ def base_title(context):
     freq = context.frequency
     infocls = FREQ_INFO[freq]
     base = infocls(context.start).title
-    base.replace('Week beginning', 'From')
-    base.replace('Period beginning', 'From')
-    base.replace('Period ending', 'To')
-    base.replace('Week ending', 'To')
+    base = base.replace('Week beginning', 'From')
+    base = base.replace('Period beginning', 'From')
+    base = base.replace('Period ending', 'To')
+    base = base.replace('Week ending', 'To')
     return base
 
 

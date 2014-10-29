@@ -57,4 +57,10 @@
           visible="True">
     <permission value="Enter Data"/>
   </action>
+  <action title="Download Workbook" action_id="download_xls"
+    category="object_buttons"
+    icon_expr="" link_target="" url_expr="string:${object_url}/@@exportxls"
+    visible="True">
+    <permission value="View"/>
+  </action>
 </object>

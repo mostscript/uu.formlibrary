@@ -184,7 +184,7 @@ class FlexFormSheet(object):
 
     def reset(self):
         if self.worksheet is None:
-            name = self.context.title
+            name = self.context.title[:31]
             self.worksheet = self.workbook.book.add_sheet(name)
         sheet = self.worksheet
         self._cursor = 0

@@ -9,6 +9,7 @@ from zope.schema.interfaces import ICollection
 
 from uu.formlibrary.interfaces import IFormDefinition, IFormComponents
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
+from uu.formlibrary import utils
 
 from interfaces import IFormWorkbook, IFlexFormSheet, IFieldsetGrouping
 
@@ -81,6 +82,42 @@ TITLE_STYLE = (
     )
 
 
+FREQ_INFO = {
+    'Weekly': utils.WeeklyInfo,
+    'Monthly': utils.MonthlyInfo,
+    'Quarterly': utils.QuarterlyInfo,
+    'Annual': utils.AnnualInfo,
+    'Twice monthly': utils.TwiceMonthlyInfo,
+    'Every two months': utils.EveryTwoMonthsInfo,
+    'Every other month': utils.EveryOtherMonthInfo,
+    'Every six months': utils.SemiAnnualInfo,
+    }
+
+
+def sheet_name(context, already_used=()):
+    result = title = context.title
+    if len(title) > 28:
+        start = context.start
+        freq = context.frequency
+        infocls = FREQ_INFO[freq]
+        base = infocls(start).title
+        parts = [part.strip() for part in title.split('-')]
+        numparts = len(parts)
+        result = base
+        if numparts == 2:
+            part = parts[0] if parts[0] != base else parts[-1]
+            result = u', '.join((base, part))[:31]
+        if numparts >= 3:
+            suffix = parts[-1]
+            result = u', '.join((base, suffix))[:31]
+    # avoid duplication, if we have a sequence of already used titles:
+    i = 1
+    while result in already_used:
+        result = u'-'.join((result[:28], str(i)))
+        i += 1
+    return result
+
+
 class ColorPalette(object):
     
     def __init__(self, context, colors=DEFAULT_COLORS):
@@ -106,7 +143,8 @@ class FormWorkbook(object):
             self.stream = open(_utf8(stream), 'wb')
         else:
             self.stream = stream
-        self.sheets = [2]
+        self.sheets = []
+        self.names = []   # track this to avoid dupe names
         self.book = xlwt.Workbook()
         self.set_defaults()
 
@@ -184,8 +222,9 @@ class FlexFormSheet(object):
 
     def reset(self):
         if self.worksheet is None:
-            name = self.context.title[:31]
+            name = sheet_name(self.context, self.workbook.names)
             self.worksheet = self.workbook.book.add_sheet(name)
+            self.workbook.names.append(name)
         sheet = self.worksheet
         self._cursor = 0
         # column widths for sheet to 30.0

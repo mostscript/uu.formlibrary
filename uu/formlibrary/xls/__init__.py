@@ -94,13 +94,23 @@ FREQ_INFO = {
     }
 
 
+
+def base_title(dt):
+    base = infocls(dt).title
+    base.replace('Week beginning', 'From')
+    base.replace('Period beginning', 'From')
+    base.replace('Period ending', 'To')
+    base.replace('Week ending', 'To')
+    return base
+
+
 def sheet_name(context, already_used=()):
     result = title = context.title
     if len(title) > 28:
         start = context.start
         freq = context.frequency
         infocls = FREQ_INFO[freq]
-        base = infocls(start).title
+        base = base_title(start)
         parts = [part.strip() for part in title.split('-')]
         numparts = len(parts)
         result = base

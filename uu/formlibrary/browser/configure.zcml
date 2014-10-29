@@ -128,6 +128,20 @@
     permission="zope2.View"
     />
 
+  <browser:page
+    name="exportxls"
+    for="..interfaces.IFormSeries"
+    class=".excel.SeriesXLSView"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="exportxls"
+    for="..measure.interfaces.IFormDataSetSpecification"
+    class=".excel.DatasetXLSView"
+    permission="zope2.View"
+    />
+
   <!-- json folder listing / search views -->
 
   <browser:page

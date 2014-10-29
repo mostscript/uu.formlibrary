@@ -121,6 +121,8 @@ class FormWorkbook(object):
     def save(self):
         if getattr(self.stream, 'closed', False):
             raise ValueError('Cannot save stream, it is closed.')
+        self.stream.seek(0)
+        self.stream.truncate(0)
         self.book.save(self.stream)
 
     def add(self, form):
@@ -229,19 +231,26 @@ class FlexFormSheet(object):
         style = xstyle('font: colour green')
         sheet.write_merge(4, 4, 0, 1, 'Last modified: %s' % modified, style)
         # Form status label at C5, status (title, not id) at D5
-        style = (
+        _style = (
             'font: colour violet; align: vertical top, horizontal right; '
             'alignment: horizontal right;'
             )
-        sheet.write(4, 2, 'Form status:', xstyle(style))
-        style = xstyle(style)
+        sheet.write(4, 2, 'Form status:', xstyle(_style))
+        style = xstyle(_style)
         style.alignment.horz = 0x02  # center align
         style.font.bold = True
         sheet.write(4, 3, self.status(), style)
+        # start, end date for form on line 6
+        sheet.write(5, 0, 'Reporting from:')
+        style = xstyle(_style)
+        style.num_format_str = 'MM/dd/yyyy'
+        sheet.write(5, 1, self.context.start, style)
+        sheet.write(5, 2, 'to')
+        sheet.write(5, 3, self.context.end, style)
 
     def write_data(self):
         # set cursor for content, with a spacing row below metadata above
-        self._cursor = 6  # row number 7
+        self._cursor = 7  # row number 8
         for group in self.groups():
             grouping = FieldSetGrouping(self, group, self._cursor)
             grouping.write()
@@ -305,8 +314,6 @@ class FieldSetGrouping(object):
         sheet = self.worksheet.worksheet
         idx = 0
         odd = lambda v: bool(v % 2)
-        #if usegrid:
-        #    import pdb; pdb.set_trace()
         if usegrid:
             data = getattr(self.data, 'data', [])
         else:

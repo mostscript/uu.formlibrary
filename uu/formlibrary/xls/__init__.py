@@ -94,7 +94,6 @@ FREQ_INFO = {
     }
 
 
-
 def base_title(context):
     freq = context.frequency
     infocls = FREQ_INFO[freq]
@@ -363,7 +362,7 @@ class FieldSetGrouping(object):
         idx = 0
         odd = lambda v: bool(v % 2)
         if usegrid:
-            data = getattr(self.data, 'data', [])
+            data = getattr(self.data, 'data', []) or []
         else:
             data = [self.data]
         rowidx = 0

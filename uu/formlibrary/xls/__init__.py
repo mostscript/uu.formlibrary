@@ -51,8 +51,8 @@ def apply_default_face(style):
     style.font.name = 'Calibri'
 
 
-def xstyle(spec):
-    r = xlwt.easyxf(spec)
+def xstyle(spec, **kwargs):
+    r = xlwt.easyxf(spec, **kwargs)
     if not font_name_specified(spec):
         apply_default_face(r)
     if not font_height_specified(spec):
@@ -73,14 +73,6 @@ DEFAULT_COLORS = {
     38: ('green_bg', (235, 241, 222)),      # #EBF1DE, "Accent 3 lighter 80%"
 }
 
-# STYLES USED:
-TITLE_STYLE = (
-    'font: colour dark_blue, name Cambria, height %s; ' % font_height(18) +
-    'border: bottom thick;'
-    'alignment: vertical center;'
-    'pattern: pattern solid, fore_colour green_bg;'
-    )
-
 
 FREQ_INFO = {
     'Weekly': utils.WeeklyInfo,
@@ -91,6 +83,98 @@ FREQ_INFO = {
     'Every two months': utils.EveryTwoMonthsInfo,
     'Every other month': utils.EveryOtherMonthInfo,
     'Every six months': utils.SemiAnnualInfo,
+    }
+
+
+# ColorPalette can be used both globally, and with context
+class ColorPalette(object):
+    
+    def __init__(self, context=None, colors=DEFAULT_COLORS):
+        self.context = context  # IFormWorkbook
+        self.colors = colors
+
+    def apply(self):
+        # assign name/key pair to xlwt, globally (may re-apply):
+        for key, info in self.colors.items():
+            name, rgb = info
+            xlwt.add_palette_colour(name, key)
+            if self.context is not None:
+                # assign RGB to color local to workbook context:
+                self.context.book.set_colour_RGB(key, *rgb)
+
+ColorPalette().apply()   # apply DEFAULT_COLORS for use in global styles
+
+# GLOBAL MAP OF STYLES USED (to reduce number of unique formats):
+STYLES = {
+    # worksheet metadata styles:
+    'title': xstyle(
+        'font: colour dark_blue, name Cambria, height %s; ' % font_height(18) +
+        'border: bottom thick;'
+        'alignment: vertical center;'
+        'pattern: pattern solid, fore_colour green_bg;'
+        ),
+    'description': xstyle(
+        'font: colour gray50, height %s;' % font_height(11) +
+        'alignment: vertical top, wrap True;'
+        ),
+    'sourcelink': xstyle('font: name Arial Narrow, colour blue_accent'),
+    'modified': xstyle('font: colour green'),
+    'statuslabel': xstyle(
+        'font: colour violet; '
+        'alignment: horizontal right;'
+        ),
+    'statusvalue': xstyle(
+        'font: colour violet, bold True; '
+        'alignment: horizontal center;'
+        ),
+    'reportingdate': xstyle(
+        'font: colour blue; '
+        'alignment: horizontal center; ',
+        num_format_str='MM/dd/yyyy'
+        ),
+    # field group / data styles:
+    'grouptitle': xstyle(
+        'font: height %s, bold true; ' % font_height(18) +
+        'pattern: pattern solid, fore_colour blue_bg;'
+        'border: bottom thick;'
+        'alignment: vertical center;'
+        ),
+    'fieldname_odd': xstyle(
+        'alignment: vertical center; '
+        'pattern: pattern solid, fore_colour purple_bg; '
+        'font: name Arial Narrow, colour gray50, height %s;' % font_height(9),
+        ),
+    'fieldname_even': xstyle(
+        'alignment: vertical center; '
+        'pattern: pattern solid, fore_colour gray_bg; '
+        'font: name Arial Narrow, colour gray50, height %s;' % font_height(9),
+        ),
+    'fieldtitle_odd': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour purple_bg; '
+        ),
+    'fieldtitle_even': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour gray_bg; '
+        ),
+    'fieldvalue_odd': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour purple_bg; '
+        ),
+    'fieldvalue_odd_date': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour purple_bg; ',
+        num_format_str='MM/dd/yyyy'
+        ),
+    'fieldvalue_even': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour gray_bg; '
+        ),
+    'fieldvalue_even_date': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour gray_bg; ',
+        num_format_str='MM/dd/yyyy'
+        ),
     }
 
 
@@ -124,21 +208,6 @@ def sheet_name(context, already_used=()):
         result = u'-'.join((result[:28], str(i)))
         i += 1
     return result
-
-
-class ColorPalette(object):
-    
-    def __init__(self, context, colors=DEFAULT_COLORS):
-        self.context = context  # IFormWorkbook
-        self.colors = colors
-
-    def apply(self):
-        # assign name/key pair to xlwt, globally (may re-apply):
-        for key, info in self.colors.items():
-            name, rgb = info
-            xlwt.add_palette_colour(name, key)
-            # assign RGB to color local to workbook context:
-            self.context.book.set_colour_RGB(key, *rgb)
 
 
 class FormWorkbook(object):
@@ -220,6 +289,9 @@ class FlexFormSheet(object):
             self._groups = [definition]
             # other fieldsets:
             self._groups += [groups.get(name) for name in names]
+            # filter removing any empty fieldsets:
+            _nonempty = lambda group: bool(getFieldsInOrder(group.schema))
+            self._groups = filter(_nonempty, self._groups)
         return self._groups
 
     def write(self):
@@ -259,41 +331,28 @@ class FlexFormSheet(object):
         # Title cell content, style @ A1:D1 merged
         set_height(sheet.row(0), 40)
         title = self.context.title.strip()
-        sheet.write_merge(0, 0, 0, 3, title, xstyle(TITLE_STYLE))  # A1:D1
+        sheet.write_merge(0, 0, 0, 3, title, STYLES.get('title'))  # A1:D1
         desc = self._description()
         if desc:
             set_height(sheet.row(1), 12 * (math.ceil(len(desc) / 120.0) + 1))
-            style = xstyle(
-                'font: colour gray50, height %s;' % font_height(11) +
-                'alignment: vertical top, wrap True;'
-                )
-            sheet.write_merge(1, 1, 0, 3, desc, style)          # A2:D2
+            sheet.write_merge(1, 1, 0, 3, desc, STYLES.get('description'))
         # URL as hyperlink at A3:D3
         url = self.context.absolute_url()
         url_formula = 'HYPERLINK("%s";"%s")' % (url, 'Source: %s' % url)
-        style = xstyle('font: name Arial Narrow, colour blue_accent')
+        style = STYLES.get('sourcelink')
         sheet.write_merge(2, 2, 0, 3, xlwt.Formula(url_formula), style)
         # Modified at merged A5:B5
         modified = self.context.modified().asdatetime().isoformat(' ')[:19]
-        style = xstyle('font: colour green')
+        style = STYLES.get('modified')
         sheet.write_merge(4, 4, 0, 1, 'Last modified: %s' % modified, style)
         # Form status label at C5, status (title, not id) at D5
-        _style = (
-            'font: colour violet; align: vertical top, horizontal right; '
-            'alignment: horizontal right;'
-            )
-        sheet.write(4, 2, 'Form status:', xstyle(_style))
-        style = xstyle(_style)
-        style.alignment.horz = 0x02  # center align
-        style.font.bold = True
-        sheet.write(4, 3, self.status(), style)
+        sheet.write(4, 2, 'Form status:', STYLES.get('statuslabel'))
+        sheet.write(4, 3, self.status(), STYLES.get('statusvalue'))
         # start, end date for form on line 6
         sheet.write(5, 0, 'Reporting from:')
-        style = xstyle(_style)
-        style.num_format_str = 'MM/dd/yyyy'
-        sheet.write(5, 1, self.context.start, style)
+        sheet.write(5, 1, self.context.start, STYLES.get('reportingdate'))
         sheet.write(5, 2, 'to')
-        sheet.write(5, 3, self.context.end, style)
+        sheet.write(5, 3, self.context.end, STYLES.get('reportingdate'))
 
     def write_data(self):
         # set cursor for content, with a spacing row below metadata above
@@ -338,12 +397,7 @@ class FieldSetGrouping(object):
 
     def write_metadata(self):
         sheet = self.worksheet.worksheet
-        style = xstyle(
-            'font: height %s, bold true; ' % font_height(18) +
-            'pattern: pattern solid, fore_colour blue_bg;'
-            'border: bottom thick;'
-            'alignment: vertical center;'
-            )
+        style = STYLES.get('grouptitle')
         sheet.write_merge(self.origin, self.origin, 0, 3, self.title, style)
         self.cursor += 1
         self.size += 1
@@ -377,35 +431,27 @@ class FieldSetGrouping(object):
                     value = getattr(record, fieldname, '')
                 # get row color (zebra):
                 idx += 1  # repeat / zebra stripe index
-                bgcolor = 'purple_bg' if odd(idx) else 'gray_bg'
+                oddrow = odd(idx)
                 # computed row height based on length of the title:
                 lines = int(math.ceil(len(title) / 67.0))
                 set_height(sheet.row(self.cursor), 18 * lines)
                 if usegrid:
                     # include row number in fieldname col, grouped zebra stripe
                     fieldname = 'ROW-%s: %s' % (rowidx, fieldname)
-                    bgcolor = 'purple_bg' if odd(rowidx) else 'gray_bg'
-                # field name
-                style = xstyle(
-                    'alignment: vertical center; '
-                    'pattern: pattern solid, fore_colour %s; ' % bgcolor +
-                    'font: name Arial Narrow, colour gray50, height %s;' % (
-                        font_height(9),
-                        )
-                    )
+                    oddrow = odd(rowidx)
+                # field name:
+                _style = 'fieldname_odd' if oddrow else 'fieldname_even'
+                style = STYLES.get(_style)
                 sheet.write(self.cursor, 0, fieldname, style)
-                style = xstyle(
-                    'alignment: vertical center, wrap true; '
-                    'pattern: pattern solid, fore_colour %s; ' % bgcolor
-                    )
+                # field title:
+                _style = 'fieldtitle_odd' if oddrow else 'fieldtitle_even'
+                style = STYLES.get(_style)
                 sheet.write_merge(self.cursor, self.cursor, 1, 2, title, style)
                 # write field value(s):
-                style = xstyle(
-                    'alignment: vertical center, wrap true; '
-                    'pattern: pattern solid, fore_colour %s; ' % bgcolor
-                    )
+                _style = 'fieldvalue_odd' if oddrow else 'fieldvalue_even'
                 if self.use_dateformat(field, value):
-                    style.num_format_str = 'MM/dd/yyyy'
+                    _style = '_'.join((_style, 'date'))
+                style = STYLES.get(_style)
                 # collection field with more than one answer:
                 if not self.is_multiple(field, value):
                     value = [value]

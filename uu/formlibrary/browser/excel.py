@@ -4,9 +4,22 @@ import tempfile
 
 from Acquisition import aq_base
 from plone.uuid.interfaces import IUUID
+from zope.schema import getFieldNamesInOrder
 
 from uu.formlibrary.interfaces import IBaseForm, ISimpleForm, IMultiForm
+from uu.formlibrary.interfaces import IFormDefinition, IFormComponents
 from uu.formlibrary.xls import FormWorkbook
+
+
+_marker = object()
+
+
+def fieldset_nonempty(record, schema):
+    # we have to go through a funny dance to avoid default values from
+    # SchemaSignedEntity.__getattr__ on the record:
+    uid = record.record_uid  # noqa -- just here to unghost, if needed
+    _hasattr = lambda o, name: o.__dict__.get(name, _marker) is not _marker
+    return any(_hasattr(record, name) for name in getFieldNamesInOrder(schema))
 
 
 class BaseXLSView(object):
@@ -68,6 +81,23 @@ class SeriesXLSView(BaseXLSView):
 
     def content(self):
         return self.context.objectValues()  # CMF/OFS contents
+
+    def _flex_form_hasdata(self, form):
+        definition = IFormDefinition(form)
+        groups = IFormComponents(definition).groups
+        # form.data will not contain fieldset records on created but
+        # otherwise unsaved form:
+        _fieldsets = dict([(k, form.data.get(k)) for k in groups.keys()])
+        # scenario 1: form exists, but no fieldset records (never entered):
+        if not all(_fieldsets.values()):
+            return False
+        # scenario 2: form exists, but fieldset records may or may not be
+        #             empty; if empty, return False -- otherwise True.
+        return any(
+            fieldset_nonempty(r, groups.get(k).schema)
+            for k, r in _fieldsets.items()
+            if getFieldNamesInOrder(groups.get(k).schema)
+            )
  
     def update(self, *args, **kwargs):
         self.forms = []
@@ -75,7 +105,8 @@ class SeriesXLSView(BaseXLSView):
             if not IBaseForm.providedBy(form):
                 continue  # ignore non-form content
             if ISimpleForm.providedBy(form):
-                self.forms.append(form)
+                if self._flex_form_hasdata(form):
+                    self.forms.append(form)
             if IMultiForm.providedBy(form):
                 continue  # ignore for now, implement eventually
         keyfn = lambda o: getattr(aq_base(o), 'start', None)

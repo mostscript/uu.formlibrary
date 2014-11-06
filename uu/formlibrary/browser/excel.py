@@ -111,7 +111,8 @@ class SeriesXLSView(BaseXLSView):
                 if self._flex_form_hasdata(form):
                     self.forms.append(form)
             if IMultiForm.providedBy(form):
-                continue  # ignore for now, implement eventually
+                if len(form.keys()):
+                    self.forms.append(form)  # non-empty multiform
         keyfn = lambda o: getattr(aq_base(o), 'start', None)
         self.forms = sorted(self.forms, key=keyfn)
 

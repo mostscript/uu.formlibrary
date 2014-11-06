@@ -63,4 +63,10 @@
     visible="True">
     <permission value="View"/>
   </action>
+  <action title="Download workbook" action_id="download_xls"
+    category="object_buttons" condition_expr="python:len(context.keys())&gt;0"
+    icon_expr="" link_target="" url_expr="string:${object_url}/@@exportxls"
+    visible="True">
+    <permission value="View"/>
+  </action>
 </object>

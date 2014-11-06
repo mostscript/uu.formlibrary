@@ -36,9 +36,9 @@ class IFormWorkbook(Interface):
         """Close stream"""
 
 
-class IFlexFormSheet(Interface):
+class IBaseFormSheet(Interface):
     """
-    Object representing an excel worksheet, multi-adapts flex form and
+    Object representing and excel worksheet, multi-adapts form and an
     IFormWorkbook object.
     """
 
@@ -64,12 +64,6 @@ class IFlexFormSheet(Interface):
     def definition():
         """Get form definition for flex form contex."""
 
-    def groups():
-        """
-        Return field groups for form definition bound to flex form
-        context.
-        """
-
     def write():
         """
         Write all metadata, then all fieldsets; output should be styled.
@@ -79,12 +73,27 @@ class IFlexFormSheet(Interface):
         """Make rows for title, description, other metadata; style them."""
 
     def write_data():
-        """For each fieldset, in order, write each to sheet."""
+        """Write form data into sheet"""
 
     def reset():
         """
         Clear all cells in sheet; may replace self.worksheet.
         """
+
+
+class IFlexFormSheet(IBaseFormSheet):
+    """
+    Object representing an excel worksheet, multi-adapts flex form and
+    IFormWorkbook object.
+    """
+
+    def groups():
+        """
+        Return field groups for form definition bound to flex form context.
+        """
+
+    def write_data():
+        """For each fieldset, in order, write each to sheet."""
 
 
 class IFieldsetGrouping(Interface):

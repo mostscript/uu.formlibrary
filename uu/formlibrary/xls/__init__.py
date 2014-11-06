@@ -9,9 +9,11 @@ from zope.schema.interfaces import ICollection
 
 from uu.formlibrary.interfaces import IFormDefinition, IFormComponents
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
+from uu.formlibrary.importexport import column_spec
 from uu.formlibrary import utils
 
 from interfaces import IFormWorkbook, IFlexFormSheet, IFieldsetGrouping
+from interfaces import IBaseFormSheet
 
 _utf8 = lambda v: v if isinstance(v, str) else v.encode('utf-8')
 
@@ -175,6 +177,23 @@ STYLES = {
         'pattern: pattern solid, fore_colour gray_bg; ',
         num_format_str='MM/dd/yyyy'
         ),
+    # multi-record form styles:
+    'fieldname_multi': xstyle(
+        'alignment: vertical center; '
+        'font: name Arial Narrow, colour gray50, height %s;' % font_height(9),
+        ),
+    'fieldtitle_multi': xstyle(
+        'font: colour dark_blue, bold True; '
+        'alignment: vertical center, wrap true; '
+        ),
+    'fieldvalue_multi': xstyle(
+        'alignment: vertical center, wrap true; '
+        ),
+    'fieldvalue_multi_date': xstyle(
+        'alignment: vertical center, wrap true; '
+        'pattern: pattern solid, fore_colour gray_bg; ',
+        num_format_str='MM/dd/yyyy'
+        ),
     }
 
 
@@ -246,27 +265,28 @@ class FormWorkbook(object):
             self.sheets.append(form_sheet)
             return form_sheet
         if IMultiForm.providedBy(form):
-            raise NotImplementedError(
-                'Multi-record form not currently supported'
-                )  # FUTURE?
+            form_sheet = MultiRecordFormSheet(form, self)
+            self.sheets.append(form_sheet)
+            return form_sheet
 
     def close(self):
         self.stream.close()
 
 
-class FlexFormSheet(object):
+class BaseFormSheet(object):
 
-    implements(IFlexFormSheet)
+    implements(IBaseFormSheet)
+
+    columns = 4
+    colwidth = 30
+    meta_merge_multiplier = 1
 
     def __init__(self, context, workbook):
-        if not ISimpleForm.providedBy(context):
-            raise TypeError('Incorrect context, must provide ISimpleForm')
         if not IFormWorkbook.providedBy(workbook):
             raise TypeError('Incorrect workbook type')
         self.context = context
         self.workbook = workbook
         self.worksheet = None
-        self._groups = None
         self._definition = None
         self.reset()
 
@@ -278,21 +298,6 @@ class FlexFormSheet(object):
         if self._definition is None:
             self._definition = IFormDefinition(self.context)
         return self._definition
-
-    def groups(self):
-        if self._groups is None:
-            definition = self.definition()
-            components = IFormComponents(definition)
-            names = components.names
-            groups = components.groups
-            # default fieldset schema provider is definition itself:
-            self._groups = [definition]
-            # other fieldsets:
-            self._groups += [groups.get(name) for name in names]
-            # filter removing any empty fieldsets:
-            _nonempty = lambda group: bool(getFieldsInOrder(group.schema))
-            self._groups = filter(_nonempty, self._groups)
-        return self._groups
 
     def write(self):
         self.reset()
@@ -308,8 +313,8 @@ class FlexFormSheet(object):
         sheet = self.worksheet
         self._cursor = 0
         # column widths for sheet to 30.0
-        for i in range(4):
-            sheet.col(i).width = 256 * 30
+        for i in range(self.columns):
+            sheet.col(i).width = 256 * self.colwidth
 
     def _description(self):
         context = self.context
@@ -331,16 +336,20 @@ class FlexFormSheet(object):
         # Title cell content, style @ A1:D1 merged
         set_height(sheet.row(0), 40)
         title = self.context.title.strip()
-        sheet.write_merge(0, 0, 0, 3, title, STYLES.get('title'))  # A1:D1
+        rightside = 4 * self.meta_merge_multiplier - 1  # column D or equiv
+        sheet.write_merge(0, 0, 0, rightside, title, STYLES.get('title'))
         desc = self._description()
         if desc:
             set_height(sheet.row(1), 12 * (math.ceil(len(desc) / 120.0) + 1))
-            sheet.write_merge(1, 1, 0, 3, desc, STYLES.get('description'))
+            sheet.write_merge(
+                1, 1, 0, rightside, desc,
+                STYLES.get('description')
+                )
         # URL as hyperlink at A3:D3
         url = self.context.absolute_url()
         url_formula = 'HYPERLINK("%s";"%s")' % (url, 'Source: %s' % url)
         style = STYLES.get('sourcelink')
-        sheet.write_merge(2, 2, 0, 3, xlwt.Formula(url_formula), style)
+        sheet.write_merge(2, 2, 0, rightside, xlwt.Formula(url_formula), style)
         # Modified at merged A5:B5
         modified = self.context.modified().asdatetime().isoformat(' ')[:19]
         style = STYLES.get('modified')
@@ -355,12 +364,87 @@ class FlexFormSheet(object):
         sheet.write(5, 3, self.context.end, STYLES.get('reportingdate'))
 
     def write_data(self):
+        raise NotImplementedError('abstract')
+
+
+class FlexFormSheet(BaseFormSheet):
+
+    implements(IFlexFormSheet)
+
+    def __init__(self, context, workbook):
+        if not ISimpleForm.providedBy(context):
+            raise TypeError('Incorrect context, must provide ISimpleForm')
+        super(FlexFormSheet, self).__init__(context, workbook)
+        self._groups = None
+
+    def groups(self):
+        if self._groups is None:
+            definition = self.definition()
+            components = IFormComponents(definition)
+            names = components.names
+            groups = components.groups
+            # default fieldset schema provider is definition itself:
+            self._groups = [definition]
+            # other fieldsets:
+            self._groups += [groups.get(name) for name in names]
+            # filter removing any empty fieldsets:
+            _nonempty = lambda group: bool(getFieldsInOrder(group.schema))
+            self._groups = filter(_nonempty, self._groups)
+        return self._groups
+
+    def write_data(self):
         # set cursor for content, with a spacing row below metadata above
         self._cursor = 7  # row number 8
         for group in self.groups():
             grouping = FieldSetGrouping(self, group, self._cursor)
             grouping.write()
             self._cursor += 1   # spacer row
+
+
+class MultiRecordFormSheet(BaseFormSheet):
+
+    defstyle = STYLES.get('fieldvalue_multi')
+    datestyle = STYLES.get('fieldvalue_multi_date')
+    colwidth = 15
+    meta_merge_multiplier = 2  # stretch merge on metadata twice as wide
+
+    def __init__(self, context, workbook):
+        if not IMultiForm.providedBy(context):
+            raise TypeError('Incorrect context, must provide IMultiForm')
+        super(MultiRecordFormSheet, self).__init__(context, workbook)
+        self.schema = self.definition().schema
+        self.columns = len(getFieldsInOrder(self.schema))
+
+    def write_row(self, rowidx, record, colspec):
+        colidx = 0
+        for name, col in colspec:
+            style = self.datestyle if col.isdate else self.defstyle
+            self.worksheet.write(rowidx, colidx, col.get(record), style)
+            colidx += 1
+
+    def write_data(self):
+        sheet = self.worksheet
+        # set cursor for content, with a spacing row below metadata above
+        self._cursor = 7  # row number 8
+        # TODO: transform CSV
+        colspec = column_spec(self.context, self.schema, dialect='xlwt')
+        # write out header rows for fieldname, title column headings
+        colidx = 0
+        for name, col in colspec:
+            title = col.title
+            r1, r2 = self._cursor, self._cursor + 1
+            sheet.write(r1, colidx, name, STYLES.get('fieldname_multi'))
+            sheet.write(r2, colidx, title, STYLES.get('fieldtitle_multi'))
+            colidx += 1
+        self._cursor += 2  # two rows written above
+        # Iterate through records, and write values for each column
+        for record in self.context.values():
+            self.write_row(self._cursor, record, colspec)
+            self._cursor += 1
+        # finally, set up freeze panes at row 9:
+        sheet.set_panes_frozen(True)
+        sheet.set_horz_split_pos(9)
+        sheet.set_remove_splits(True)
 
 
 class FieldSetGrouping(object):

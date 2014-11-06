@@ -4,6 +4,7 @@ from zope.interface import implements, implementer
 from StringIO import StringIO
 from zope import schema
 from zope.schema import getFieldsInOrder
+from zope.schema.interfaces import IDate, IDatetime
 
 from uu.formlibrary.interfaces import IMultiForm, ICSVColumn, IMultiFormCSV
 
@@ -20,9 +21,9 @@ def multi_column_fields(names, form):
     counts = {}
     for name in names:
         for record in form.values():
-            v = getattr(record, name, None)
-            if type(v) in (list, tuple, set):
-                count = len(v)
+            val = getattr(record, name, None)
+            if type(val) in (list, tuple, set):
+                count = len(val)
                 if name not in counts:
                     counts[name] = count
                 elif count > counts[name]:
@@ -42,6 +43,7 @@ class CSVColumn(object):
         self.name = self._name()
         self.title = self._title()
         self.dialect = dialect
+        self.isdate = IDate.providedBy(field) or IDatetime.providedBy(field)
 
     def _is_multiple(self):
         return (
@@ -91,7 +93,7 @@ def column_spec(form, schema, dialect='csv'):
         name = field.__name__
         if name in multi_fields:
             for idx in range(multi_fields[name]):
-                col = CSVColumn(field, idx)
+                col = CSVColumn(field, idx, dialect=dialect)
                 colspec.append((col.name, col))
         else:
             colspec.append((name, CSVColumn(field, dialect=dialect)))

@@ -10,6 +10,7 @@ from uu.formlibrary.interfaces import IBaseForm, ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IFormDefinition, IFormComponents
 from uu.formlibrary.xls import FormWorkbook
 
+from uu.formlibrary.csv import TempFileStreamIterator
 
 _marker = object()
 
@@ -41,6 +42,10 @@ class BaseXLSView(object):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
 
+    def payload(self):
+        """should return string or TempFileStreamIterator object"""
+        raise NotImplementedError('base method is abstract')
+
     def index(self, *args, **kwargs):
         payload = self.payload()
         filename = self.filename()
@@ -65,14 +70,13 @@ class FormXLSView(BaseXLSView):
     """
 
     def payload(self):
-        stream = tempfile.TemporaryFile()
-        workbook = FormWorkbook(stream)
+        output = tempfile.TemporaryFile()
+        workbook = FormWorkbook(output)
         sheet = workbook.add(self.context)
         sheet.write()  # will call workbook.save()
-        stream.seek(0)
-        payload = stream.read()
+        output.seek(0)
         workbook.close()
-        return payload
+        return TempFileStreamIterator(output)
 
 
 class SeriesXLSView(BaseXLSView):
@@ -113,15 +117,14 @@ class SeriesXLSView(BaseXLSView):
         self.forms = sorted(self.forms, key=keyfn)
 
     def payload(self):
-        stream = tempfile.TemporaryFile()
-        workbook = FormWorkbook(stream)
+        output = tempfile.TemporaryFile()
+        workbook = FormWorkbook(output)
         for form in self.forms:
             sheet = workbook.add(form)
             sheet.write()  # will call workbook.save()
-        stream.seek(0)
-        payload = stream.read()
+        output.seek(0)
         workbook.close()
-        return payload
+        return TempFileStreamIterator(output)
 
 
 class DatasetXLSView(SeriesXLSView):

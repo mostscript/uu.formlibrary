@@ -75,7 +75,6 @@ class FormXLSView(BaseXLSView):
         sheet = workbook.add(self.context)
         sheet.write()  # will call workbook.save()
         output.seek(0)
-        workbook.close()
         return TempFileStreamIterator(output)
 
 
@@ -123,7 +122,6 @@ class SeriesXLSView(BaseXLSView):
             sheet = workbook.add(form)
             sheet.write()  # will call workbook.save()
         output.seek(0)
-        workbook.close()
         return TempFileStreamIterator(output)
 
 

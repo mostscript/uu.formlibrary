@@ -2,6 +2,7 @@
 
 import tempfile
 
+from AccessControl import getSecurityManager
 from Acquisition import aq_base
 from plone.uuid.interfaces import IUUID
 from zope.schema import getFieldNamesInOrder
@@ -103,8 +104,11 @@ class SeriesXLSView(BaseXLSView):
             )
  
     def update(self, *args, **kwargs):
+        secmgr = getSecurityManager()
         self.forms = []
         for form in self.content():
+            if not secmgr.checkPermission('View', form):
+                continue  # user does not have permission to include form
             if not IBaseForm.providedBy(form):
                 continue  # ignore non-form content
             if ISimpleForm.providedBy(form):

@@ -11,7 +11,7 @@ from uu.formlibrary.interfaces import IBaseForm, ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IFormDefinition, IFormComponents
 from uu.formlibrary.xls import FormWorkbook
 
-from uu.formlibrary.browser.csv import TempFileStreamIterator
+from utils import TempFileStreamIterator
 
 _marker = object()
 

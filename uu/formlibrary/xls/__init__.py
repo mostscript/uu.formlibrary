@@ -362,6 +362,7 @@ class BaseFormSheet(object):
         sheet.write(5, 1, self.context.start, STYLES.get('reportingdate'))
         sheet.write(5, 2, 'to')
         sheet.write(5, 3, self.context.end, STYLES.get('reportingdate'))
+        self._cursor = 7  # row number 8
 
     def write_data(self):
         raise NotImplementedError('abstract')
@@ -394,7 +395,6 @@ class FlexFormSheet(BaseFormSheet):
 
     def write_data(self):
         # set cursor for content, with a spacing row below metadata above
-        self._cursor = 7  # row number 8
         for group in self.groups():
             grouping = FieldSetGrouping(self, group, self._cursor)
             grouping.write()
@@ -425,7 +425,6 @@ class MultiRecordFormSheet(BaseFormSheet):
     def write_data(self):
         sheet = self.worksheet
         # set cursor for content, with a spacing row below metadata above
-        self._cursor = 7  # row number 8
         # TODO: transform CSV
         colspec = column_spec(self.context, self.schema, dialect='xlwt')
         # write out header rows for fieldname, title column headings

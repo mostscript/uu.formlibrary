@@ -33,3 +33,6 @@ class TempFileStreamIterator(object):
         size = self.tmpfile.tell()
         self.tmpfile.seek(current)
         return size
+
+    def __iter__(self):
+        return self

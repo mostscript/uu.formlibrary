@@ -11,6 +11,7 @@ from uu.formlibrary.interfaces import IMultiFormCSV, IMultiForm, IFormSeries
 from uu.formlibrary.measure.interfaces import IFormDataSetSpecification
 
 from utils import TempFileStreamIterator
+from excel import SeriesXLSView, DatasetXLSView
 
 
 def relpath(context):
@@ -78,6 +79,20 @@ class SeriesCSVArchiveView(object):
         include = lambda o: IMultiForm.providedBy(o)
         return [o for o in self.context.objectValues() if include(o)]
 
+    def add_workbook(self, archive):
+        """
+        Add MSExcel workbook to payload of archive.
+        """
+        stream_merge = lambda s: reduce(lambda a, b: '%s%s' % (a, b), s, '')
+        _series = IFormSeries.providedBy(self.context)
+        xls_view_cls = SeriesXLSView if _series else DatasetXLSView
+        view = xls_view_cls(self.context, self.request)
+        view.update()
+        filename = view.filename()
+        payload_iter = view.payload()               # iterator of 64k blocks
+        payload = stream_merge(list(payload_iter))  # concatenate together
+        archive.writestr(filename, payload)
+
     def __call__(self, *args, **kwargs):
         secmgr = getSecurityManager()
         forms = self._forms()
@@ -92,6 +107,7 @@ class SeriesCSVArchiveView(object):
                 IUUID(form)[-12:],
                 )
             archive.writestr(filename, data)
+        self.add_workbook(archive)  # add excel book into zip file
         archive.close()
         output.seek(0)
         stream = TempFileStreamIterator(output)

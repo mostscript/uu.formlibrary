@@ -422,8 +422,17 @@ class MultiRecordFormSheet(BaseFormSheet):
             self.worksheet.write(rowidx, colidx, col.get(record), style)
             colidx += 1
 
+    def _write_notes(self, sheet):
+        """Write multi-record form entry notes, if applicable"""
+        notes = getattr(self.context, 'entry_notes', '') or ''
+        set_height(sheet.row(8), 12 * (math.ceil(len(notes) / 90.0) + 1))
+        sheet.write(7, 0, 'Entry notes', STYLES.get('fieldtitle_multi'))
+        sheet.write_merge(7, 7, 1, 7, notes, STYLES.get('description'))
+        self._cursor = 10
+
     def write_data(self):
         sheet = self.worksheet
+        self._write_notes(sheet)
         # set cursor for content, with a spacing row below metadata above
         # TODO: transform CSV
         colspec = column_spec(self.context, self.schema, dialect='xlwt')
@@ -440,9 +449,9 @@ class MultiRecordFormSheet(BaseFormSheet):
         for record in self.context.values():
             self.write_row(self._cursor, record, colspec)
             self._cursor += 1
-        # finally, set up freeze panes at row 9:
+        # finally, set up freeze panes at row 12:
         sheet.set_panes_frozen(True)
-        sheet.set_horz_split_pos(9)
+        sheet.set_horz_split_pos(12)
         sheet.set_remove_splits(True)
 
 

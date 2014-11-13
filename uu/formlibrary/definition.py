@@ -164,5 +164,3 @@ class FieldGroup(Item, DefinitionBase):
     setTitle = DexterityContent.setTitle
     Description = DexterityContent.Description
     setDescription = DexterityContent.setDescription
-
-

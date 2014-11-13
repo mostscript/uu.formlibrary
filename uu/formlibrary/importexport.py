@@ -63,23 +63,26 @@ class CSVColumn(object):
             return self.field.title    # not multiple, zero-indexed col==omit
         return '(%s) %s' % (self.index + 1, self.field.title)  # 0-index->label
 
+    def normalize(self, value):
+        if isinstance(value, bool):
+            value = 'Yes' if value else 'No'  # T/F to yes/no
+        if self.dialect == 'xlwt':
+            return value
+        return _str(value)  # for CSV, normalize everything to str
+
     def get(self, record):
         fieldname = self.field.__name__
         v = getattr(record, fieldname, '')
-        normalize = _str
-        if self.dialect == 'xlwt':
-            # xlwt does value transformations itself
-            normalize = lambda v: v
         if v is None:
             return ''
         if not self.multiple:
-            return normalize(v)
+            return self.normalize(v)
         # mutliple-valued field types - no one-to-one value :
         idx = self.index or 0  # if None
         try:
             v = list(v) if v else []
             element_value = v[idx]
-            return normalize(element_value)
+            return self.normalize(element_value)
         except IndexError:
             return ''
 

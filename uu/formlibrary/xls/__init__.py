@@ -434,7 +434,6 @@ class MultiRecordFormSheet(BaseFormSheet):
         sheet = self.worksheet
         self._write_notes(sheet)
         # set cursor for content, with a spacing row below metadata above
-        # TODO: transform CSV
         colspec = column_spec(self.context, self.schema, dialect='xlwt')
         # write out header rows for fieldname, title column headings
         colidx = 0

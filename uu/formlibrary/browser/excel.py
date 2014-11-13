@@ -102,7 +102,7 @@ class SeriesXLSView(BaseXLSView):
             for k, r in _fieldsets.items()
             if getFieldNamesInOrder(groups.get(k).schema)
             )
- 
+
     def update(self, *args, **kwargs):
         secmgr = getSecurityManager()
         self.forms = []
@@ -135,4 +135,3 @@ class DatasetXLSView(SeriesXLSView):
 
     def content(self):
         return self.context.forms()  # IFormDataSetSpecification query res.
-

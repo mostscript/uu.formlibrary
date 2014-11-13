@@ -1,4 +1,4 @@
-/** 
+/**
  * criteria.js: criteria editor / support advanced and basic criteria query
  *              editing.
  */

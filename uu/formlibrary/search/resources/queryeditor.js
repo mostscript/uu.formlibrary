@@ -636,15 +636,18 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                     termid = inputName + '-' + value;
                     input.attr('name', inputName)
                          .attr('id', termid)
-                         .attr('value', term.value);
-                    if (term.value === self.value) {
-                        input.attr('checked', 'CHECKED');
-                    }
-                    $('<label>'+label+'</label>').attr('for', termid).appendTo(idiv);
-                    idiv.appendTo(valueCell);
-                    input.unbind().change(function () {
-                        self.value = input.val();
-                    });
+                         .attr('value', value);
+                if (field.fieldtype === 'Bool') {
+                    value = (value === 'Yes') ? true : false;
+                }
+                if (value === self.value) {
+                    input.attr('checked', 'CHECKED');
+                }
+                $('<label>'+label+'</label>').attr('for', termid).appendTo(idiv);
+                idiv.appendTo(valueCell);
+                input.unbind().change(function () {
+                    self.value = input.val();
+                });
             });
         };
 

@@ -1129,7 +1129,6 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                 context: saveContext
             });
         ns.groups[name] = group;
-        console.log(5);
         (data.filters || []).forEach(function (rf_data) {
             var rfilter = group.newFilter();
             rfilter.operator = rf_data.operator || 'AND';
@@ -1156,7 +1155,6 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             hasNum = (!!numq.length),
             hasDen = (!!denq.length),
             group;
-        console.log(4);
         // get JSON data from (hidden) form inputs
         if (hasNum) {
             // setup numerator query, load
@@ -1180,12 +1178,10 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     ns.initAdvancedEditor = function () {
         // load global configuration for editor, then call editorReady
         // as callback.
-        console.log(2);
         ns.groups = {};
         cAjax({
             url: schemaURL(),
             success: function (data) {
-                console.log(3);
                 ns.schema = new uu.queryschema.Schema(data);
                 ns.comparators = new uu.queryschema.Comparators(ns.schema);
                 ns.advancedEditorReady();
@@ -1219,7 +1215,6 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     };
 
     $(document).ready(function () {
-        console.log(1);
         if ($('body').attr('data-appname') === 'querytest') {
             ns.initTesting();
         }

@@ -59,6 +59,9 @@ uu.queryschema = (function ($, ns, uu, core, global) {
             if (typeof this.prefix === 'string') {
                 return this.prefix + ' ' + this.label;
             }
+            if (this.label === 'yes' || this.label === 'no') {
+                return (this.label === 'yes') ? 'Yes' : 'No';  // title-case
+            }
             return this.label;
         };
 
@@ -465,7 +468,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             ns.FieldQuery.prototype.init.apply(this, [options]);
             this._field = options.field || null;
             this._comparator = options.comparator || null;
-            this._value = options.value || null;
+            this._value = (options.value !== undefined) ? options.value : null;
             this._schema = options.schema || undefined;
             this._comparators = options.comparators || undefined;
             if (this._field && this.schema) {
@@ -638,7 +641,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                          .attr('id', termid)
                          .attr('value', value);
                 if (field.fieldtype === 'Bool') {
-                    value = (value === 'Yes') ? true : false;
+                    value = (value === 'yes') ? true : false;
                 }
                 if (value === self.value) {
                     input.attr('checked', 'CHECKED');

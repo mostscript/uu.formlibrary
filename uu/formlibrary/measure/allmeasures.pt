@@ -151,7 +151,9 @@ $(document).ready(function () {
                           <span class="comparator-symbol" tal:content="python: criteriaview.comparator_symbol(query.comparator)">*</span>
                           <span tal:content="python: criteriaview.comparator_title(query.comparator)">COMPARE</span>
                         </td>
-                        <td tal:content="query/value" tal:condition="python:not isinstance(query.value, list)">VALUE</td>
+                        <td tal:define="v query/value" tal:condition="python:not isinstance(query.value, list)">
+                            <span tal:replace="python: v if not isinstance(v, bool) else ({True:'Yes', False: 'No'}[v])"></span>
+                        </td>
                         <td tal:define="selected query/value"
                             tal:condition="python:isinstance(query.value, list)">
                           <ul>

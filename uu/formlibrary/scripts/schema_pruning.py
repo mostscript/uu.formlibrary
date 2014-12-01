@@ -11,7 +11,7 @@ from uu.formlibrary.interfaces import IMultiForm, IFormDefinition
 
 
 PKGNAME = 'uu.formlibrary'
-BASEPATH = '/VirtualHostBase/https/teamspace.upiq.org'
+BASEPATH = '/VirtualHostBase/https/teamspace1.upiq.org'
 
 TYPEQUERY = {
     'portal_type': {

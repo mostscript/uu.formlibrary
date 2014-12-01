@@ -7,8 +7,8 @@ from zope.component.hooks import setSite
 from uu.formlibrary.measure.cache import DataPointCache
 from uu.formlibrary.tests import test_request
 
-BASE_HOST = 'teamspace.upiq.org'
-VHOSTBASE = '/VirtualHostBase/https/teamspace.upiq.org'
+BASE_HOST = 'teamspace1.upiq.org'
+VHOSTBASE = '/VirtualHostBase/https/teamspace1.upiq.org'
 
 
 SITES = {

@@ -79,6 +79,14 @@ class MeasureDefinition(Item):
             self._v_site = getSite()
         return self._v_site
 
+    def _base(self):
+        """Returns tuple of site id, site URL (if available)"""
+        if not getattr(self, '_v_base', None):
+            site = self.site()
+            props = self.site().portal_properties.site_properties
+            self._v_base = (site.getId(), props.getProperty('site_url'))
+        return self._v_base
+
     def group(self):
         return aq_parent(aq_inner(self))  # folder containing
 
@@ -238,9 +246,17 @@ class MeasureDefinition(Item):
         else:
             n, m = self._flex_values(context)
             raw, normalized = self._values(context)
+        url = context.absolute_url()
+        if 'nohost' in url:
+            # in cases where a point is indexed in non-interactive session,
+            # we need a real URL to work with, assumes that 'site_url'
+            # property is set in portal_properties/site_properties
+            siteid, baseurl = self._base()
+            if baseurl:
+                url = url.replace('http://nohost/%s' % siteid, baseurl)
         point_record = {
             'title': context.Title(),
-            'url': context.absolute_url(),
+            'url': url,
             'path': content_path(context),
             'start': context.start,
             'value': normalized,

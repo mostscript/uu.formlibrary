@@ -142,6 +142,7 @@ class PopulateForms(AutoExtensibleForm, form.Form):
                 'Every two months': utils.EveryTwoMonthsInfo,
                 'Every other month': utils.EveryOtherMonthInfo,
                 'Every six months': utils.SemiAnnualInfo,
+                'Daily': utils.DailyInfo,
                 }[freq]
         infos = [dict(infocls(d)) for d in infocls(start).all_until(end)]
         for info in infos:

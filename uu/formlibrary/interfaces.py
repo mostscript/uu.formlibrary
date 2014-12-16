@@ -796,6 +796,7 @@ class IPeriodicSeries(form.Schema):
             'Every two months',
             'Every other month',
             'Every six months',
+            'Daily',
             )),
         default='Monthly',
         )

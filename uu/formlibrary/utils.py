@@ -187,6 +187,32 @@ class PeriodInfo(object):
         return result
 
 
+class DailyInfo(PeriodInfo):
+    """For daily forms"""
+    
+    @property
+    def first_day(self):
+        return self._as_date(self.context)
+
+    @property
+    def last_day(self):
+        return self._as_date(self.context)
+
+    @property
+    def next_period(self):
+        return self._as_date(self.context + timedelta(days=1))
+
+    @property
+    def title(self):
+        cal = calendar.TextCalendar()
+        d = self.first_day
+        weekday = d.weekday()
+        weekday = cal.formatweekday(weekday, 10).strip()
+        month = cal.formatmonth(d.year, d.month).strip().split('\n')[0]
+        month = month.split(' ')[0]  # name only
+        return '%s, %s %s, %s' % (weekday, month, d.day, d.year)
+
+
 class QuarterlyInfo(PeriodInfo):
 
     def _qtr(self):

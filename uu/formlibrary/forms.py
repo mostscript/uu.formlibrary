@@ -133,7 +133,7 @@ def title_indexer(context):
     if parent is None:
         return title
     supplement = parent.Title()
-    return '%s %s' % (title, supplement)
+    return '%s - %s' % (title, supplement)
 
 
 @indexer(IBaseForm)

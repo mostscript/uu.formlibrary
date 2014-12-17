@@ -128,11 +128,14 @@ class PopulateForms(AutoExtensibleForm, form.Form):
         start, end, freq, weekdays = series_range(self.context, periodic_data)
         if start is None:
             return self._nothing_to_do(u'No start date specified.')
-        if freq == 'Weekly':
+        if freq in ('Weekly', 'Daily'):
             if not weekdays:
                 return self._nothing_to_do(u'No active weekdays specified '
                                            u'for a weekly period.')
-            infocls = lambda d: utils.WeeklyInfo(d, days=weekdays)
+            infocls = {
+                'Weekly': lambda d: utils.WeeklyInfo(d, days=weekdays),
+                'Daily': lambda d: utils.DailyInfo(d, days=weekdays),
+            }[freq]
         else:
             infocls = {
                 'Monthly': utils.MonthlyInfo,
@@ -142,7 +145,6 @@ class PopulateForms(AutoExtensibleForm, form.Form):
                 'Every two months': utils.EveryTwoMonthsInfo,
                 'Every other month': utils.EveryOtherMonthInfo,
                 'Every six months': utils.SemiAnnualInfo,
-                'Daily': utils.DailyInfo,
                 }[freq]
         infos = [dict(infocls(d)) for d in infocls(start).all_until(end)]
         for info in infos:

@@ -175,7 +175,7 @@ class PeriodInfo(object):
     def __str__(self):
         return self.title
 
-    def all_until(self, end):
+    def all_until(self, end, **kwargs):
         """
         return the first day of every period in the range
         """
@@ -183,24 +183,41 @@ class PeriodInfo(object):
         result = []
         if start <= self.__class__(end).first_day:
             result = [start] + \
-                self.__class__(self.next_period).all_until(end)
+                self.__class__(self.next_period, **kwargs).all_until(end)
         return result
 
 
 class DailyInfo(PeriodInfo):
     """For daily forms"""
     
+    def __init__(self, context, days=DOW.WKDAYS, title_ending=True):
+        if len(days) == 0:
+            raise ValueError('list of provided days must not be empty')
+        #invalid days seq: raise zope.schema.interfaces.ConstraintNotSatisfied
+        if not all(map(lambda v: isinstance(v, int), days)):
+            DOW.validate(days)
+        super(DailyInfo, self).__init__(context)
+        # save state of days as indexes matching date.weekday(), not names
+        _day = lambda v: v if isinstance(v, int) else DOW.WKDAYS.index(v)
+        self.days = [_day(v) for v in days]  # normalized to int indexes
+
     @property
     def first_day(self):
-        return self._as_date(self.context)
+        d = self._as_date(self.context)
+        while d.weekday() not in self.days:
+            d = d + timedelta(days=1)
+        return d
 
     @property
     def last_day(self):
-        return self._as_date(self.context)
+        return self.first_day
 
     @property
     def next_period(self):
-        return self._as_date(self.context + timedelta(days=1))
+        d = self._as_date(self.context + timedelta(days=1))
+        while d.weekday() not in self.days:
+            d = d + timedelta(days=1)
+        return d
 
     @property
     def title(self):
@@ -211,6 +228,9 @@ class DailyInfo(PeriodInfo):
         month = cal.formatmonth(d.year, d.month).strip().split('\n')[0]
         month = month.split(' ')[0]  # name only
         return '%s, %s %s, %s' % (weekday, month, d.day, d.year)
+
+    def all_until(self, end):
+        return super(DailyInfo, self).all_until(end, days=self.days)
 
 
 class QuarterlyInfo(PeriodInfo):

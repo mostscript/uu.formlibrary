@@ -398,6 +398,8 @@ class FilterJSONAdapter(object):
 
     def normalize_value(self, field, value):
         if fieldtypes.IBool.providedBy(field):
+            if ifisinstance(value, bool):
+                return value
             return True if value.lower() == 'yes' else False
         if fieldtypes.IDate.providedBy(field):
             if isinstance(value, basestring):

@@ -166,7 +166,12 @@ class MeasureBaseView(object):
             return ''
         if callable(vocab):
             vocab = vocab(self.context)
-        return vocab.getTerm(v).title
+        try:
+            term = vocab.getTerm(v)
+            label = term.title
+        except LookupError:
+            label = u'[BROKEN/MISSING TERM] %s' % v
+        return label
 
     def _datasets(self):
         group = aq_parent(aq_inner(self.context))

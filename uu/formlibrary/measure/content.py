@@ -322,6 +322,8 @@ class MeasureDefinition(Item):
     def _cumulative_points(self, seq):
         _start = lambda o: getattr(o, 'start', None)
         start_dates = filter(lambda v: v is not None, map(_start, seq))
+        if not start_dates:
+            return []
         series_start = min(start_dates)
         points = sorted(
             self.points(seq),
@@ -338,6 +340,8 @@ class MeasureDefinition(Item):
         if getattr(dataset, 'use_aggregate', False):
             return []
         brains = dataset.brains()
+        if not brains:
+            return []
         if getattr(self, 'cumulative', None):
             return self._cumulative_points(brains)
         return self.points(brains)

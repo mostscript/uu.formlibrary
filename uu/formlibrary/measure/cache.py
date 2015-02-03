@@ -1,3 +1,5 @@
+import sys
+
 from interfaces import IDataPointCache
 from persistent.mapping import PersistentMapping
 from persistent.list import PersistentList
@@ -11,6 +13,7 @@ from zope.component.hooks import getSite
 from zope.interface import implements
 
 from uu.workflows.utils import history_log
+from uu.formlibrary import product_log
 from uu.formlibrary.interfaces import FORM_TYPES
 from uu.formlibrary.measure.interfaces import MEASURE_DEFINITION_TYPE
 from uu.formlibrary.measure.interfaces import GROUP_TYPE
@@ -159,7 +162,7 @@ class DataPointCache(object):
             raise KeyError(key)
         measure_uid, form_uid = key[0], key[2]
         del(self._data_cache[key])
-        for uid in (key[0], key[2]):
+        for uid in (measure_uid, form_uid):
             if uid in self._content_keys:
                 if key in self._content_keys[uid]:
                     self._content_keys[uid].remove(key)
@@ -225,8 +228,8 @@ class DataPointCache(object):
                 self.store(key, point)
             except KeyError:
                 print 'Could not compute point for %s + %s' % (
-                        '/'.join(measure.getPhysicalPath()),
-                        '/'.join(form.getPhysicalPath())
+                    '/'.join(measure.getPhysicalPath()),
+                    '/'.join(form.getPhysicalPath())
                     )
 
     def _related_measure_uids(self, uid):
@@ -262,8 +265,17 @@ class DataPointCache(object):
         for m_uid in self._related_measure_uids(uid):
             measure = _get(m_uid, self.context)
             key = datapoint_cache_key(None, measure, form)
-            point = measure._datapoint(form)
-            self.store(key, point)
+            try:
+                point = measure._datapoint(form)
+                self.store(key, point)
+            except KeyError:
+                exc = sys.exc_info()
+                product_log.warn(
+                    'Measure %s unable to cache point for form %s -- %s' % (
+                        measure,
+                        form,
+                        exc[1].message,
+                    ))
 
     def warm(self):
         """Warm cache, site-wide"""

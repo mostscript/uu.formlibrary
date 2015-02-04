@@ -3,6 +3,7 @@
   xmlns:cmf="http://namespaces.zope.org/cmf"
   xmlns:z3c="http://namespaces.zope.org/z3c"
   xmlns:grok="http://namespaces.zope.org/grok"
+  xmlns:browser="http://namespaces.zope.org/browser"
   xmlns:five="http://namespaces.zope.org/five">
  
   <!-- Include configuration for dependencies listed in setup.py -->
@@ -10,6 +11,11 @@
 
   <!-- Grok package: initialise schema interfaces, content classes -->
   <grok:grok package="." />
+
+  <!-- template overrides -->
+  <include package="z3c.jbot" file="meta.zcml" />
+
+  <browser:jbot directory="template/global-overrides" />
 
   <five:registerPackage package="." initialize=".zope2.initialize" />
 

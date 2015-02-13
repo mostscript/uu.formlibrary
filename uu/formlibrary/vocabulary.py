@@ -4,7 +4,7 @@ from zope.globalrequest import getRequest
 from zope.schema import getFieldsInOrder
 from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
 from zope.schema.interfaces import IContextSourceBinder
-from zope.schema.interfaces import IField, IFloat, IInt
+from zope.schema.interfaces import IField, IFloat, IInt, IBool, IChoice
 
 from uu.formlibrary.interfaces import IFormDefinition
 
@@ -68,4 +68,9 @@ def definition_field_source(context, field_ifaces=(IField,)):
 @grok.provider(IContextSourceBinder)
 def definition_numeric_fields(context):
     return definition_field_source(context, (IInt, IFloat))
+
+
+@grok.provider(IContextSourceBinder)
+def definition_flex_datasource_fields(context):
+    return definition_field_source(context, (IInt, IFloat, IBool, IChoice))
 

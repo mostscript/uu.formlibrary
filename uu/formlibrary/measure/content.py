@@ -31,8 +31,16 @@ from cache import datapoint_cache_key, DataPointCache
 # sentinel value:
 NOVALUE = float('NaN')
 
+VALUEMAP = {
+    'yes': 1.0,
+    'no': 0.0,
+    'n/a': NOVALUE,
+}
+
 
 DT = lambda d: DateTime(datetime.datetime(*d.timetuple()[:7], tzinfo=UTC))
+
+isnumber = lambda v: any(isinstance(v, t) for t in (int, long, float))
 
 
 @indexer(IMeasureDefinition)
@@ -79,6 +87,11 @@ class MeasureDefinition(Item):
             self._v_site = getSite()
         return self._v_site
 
+    def form_definition(self):
+        if not getattr(self, '_v_definition', None):
+            self._v_definition = IFormDefinition(self)
+        return self._v_definition
+
     def _base(self):
         """Returns tuple of site id, site URL (if available)"""
         if not getattr(self, '_v_base', None):
@@ -102,7 +115,7 @@ class MeasureDefinition(Item):
         attr = '_v_query_%s' % name
         q = getattr(self, attr, None)
         if q is None:
-            schema = IFormDefinition(self).schema
+            schema = self.form_definition().schema
             composed = queryAdapter(self, IComposedQuery, name=name)
             if not IComposedQuery.providedBy(composed):
                 return None
@@ -146,6 +159,29 @@ class MeasureDefinition(Item):
         m = self._mr_get_value(context, name='denominator')
         return (n, m)
 
+    def _normalized_flex_value(self, record, name):
+        """Get, return value and duck-type non-numeric values"""
+        v = original = getattr(record, name, NOVALUE) or NOVALUE
+        if v is not NOVALUE and not isnumber(v):
+            if isinstance(v, basestring):
+                # Look for yes, no, n/a type choice answers as 0, 1, NOVALUE:
+                v = VALUEMAP.get(v.strip().lower(), None)
+                if v is None:
+                    v = VALUEMAP.get(
+                        original.strip().lower().replace(',', '').split(' ')[0],
+                        None,
+                        )
+                # finally, try to cast string value to a number
+                if v is None:
+                    try:
+                        # crude tokenization would treat '3 months' as 3.0
+                        v = float(original.strip().split(' ')[0])
+                    except ValueError:
+                        v = NOVALUE
+            elif isinstance(v, bool):
+                v = float(v)
+        return v
+
     def _flex_field_value(self, context, path):
         data = getattr(context, 'data', {})
         spec = path.split('/')
@@ -153,7 +189,7 @@ class MeasureDefinition(Item):
         name = spec[1] if len(spec) > 1 else path
         record = data.get(fieldset)
         if record is not None:
-            return getattr(record, name, NOVALUE)
+            return self._normalized_flex_value(record, name)
         return NOVALUE
 
     def _flex_values(self, context):

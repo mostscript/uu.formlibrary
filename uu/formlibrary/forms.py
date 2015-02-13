@@ -150,9 +150,8 @@ class ComposedForm(AutoExtensibleForm, form.Form):
 
     ignoreContext = True    # form operates without edit context.
 
-    autoGroups = True       # autoGroups requires modification to plone.autoform
-                            # to support anonymous schema without __name__
-                            # See commit on GitHub: http://goo.gl/3W233
+    # autoGroups here requires plone.autoform >= 1.6 for anonymous schema:
+    autoGroups = True
 
     enable_form_tabbing = False  # do not display fieldsets in tabs.
 
@@ -271,6 +270,10 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                         if not IDataGridField.providedBy(widget):
                             v = conv.toWidgetValue(v)
                         widget.value = v
+                        if hasattr(widget, 'update'):
+                            # may be necessary to copy value to other state,
+                            # as is the case with radio button widgets
+                            widget.update()
 
     def updateWidgets(self):
         common_widget_updates(self)
@@ -322,13 +325,13 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             for group in self.groups:
                 groupdata = {}
                 form_group_data = group.extractData()[0]
-                for name, field in group.fields.items():
+                for name, _field in group.fields.items():
                     group_keys.append(name)
-                    fieldname = field.field.__name__
-                    default = getattr(field.field, 'default', None)
+                    fieldname = _field.field.__name__
+                    default = getattr(_field.field, 'default', None)
                     field_data = form_group_data.get(name, default)
-                    if ICollection.providedBy(field.field):
-                        if isinstance(field.field.value_type, DictRow):
+                    if ICollection.providedBy(_field.field):
+                        if isinstance(_field.field.value_type, DictRow):
                             is_nonempty_row = lambda v: any(v.values())
                             field_data = filter(is_nonempty_row, field_data)
                     groupdata[fieldname] = field_data
@@ -1115,18 +1118,18 @@ class MultiForm(Item, RecordContainer):
     def _populate_record(self, entry, data):
         changelog = []
         schema = entry.schema
-        for name, field in getFieldsInOrder(schema):
-            if IDate.providedBy(field):
-                v = self._normalize_date_value(field, data)
+        for name, _field in getFieldsInOrder(schema):
+            if IDate.providedBy(_field):
+                v = self._normalize_date_value(_field, data)
                 if v is not None:
-                    field.validate(v)    # no enforcement of required here.
+                    _field.validate(v)    # no enforcement of required here.
                 setattr(entry, name, v)  # new value is possibly empty
                 continue
             if name in data:
                 value = data.get(name, None)
-                if value in (u'true', u'false') and IBool.providedBy(field):
+                if value in (u'true', u'false') and IBool.providedBy(_field):
                     value = True if value == 'true' else False  # radio widget
-                cast_type = field_type(field)
+                cast_type = field_type(_field)
                 if cast_type:
                     if cast_type is int and isinstance(value, basestring):
                         value = value.replace(',', '')
@@ -1134,7 +1137,7 @@ class MultiForm(Item, RecordContainer):
                         value = value.decode('utf-8')
                     elif (cast_type is datetime and
                           isinstance(value, basestring)):
-                        fn = converter.DatetimeDataConverter(field,
+                        fn = converter.DatetimeDataConverter(_field,
                                                              TEXT_WIDGET)
                         value = fn.toFieldValue(unicode(value))
                     else:
@@ -1143,7 +1146,7 @@ class MultiForm(Item, RecordContainer):
                         except (ValueError, TypeError):
                             pass
                 if value not in (None, ''):
-                    field.validate(value)
+                    _field.validate(value)
                     existing_value = getattr(entry, name, None)
                     if value != existing_value:
                         changelog.append(name)

@@ -494,7 +494,7 @@ class FieldSetGrouping(object):
         self.size += 1
 
     def is_multiple(self, field, value):
-        return ICollection.providedBy(field) and len(value) > 1
+        return ICollection.providedBy(field)
 
     def use_dateformat(self, field, value):
         if isinstance(value, date) or isinstance(value, datetime):

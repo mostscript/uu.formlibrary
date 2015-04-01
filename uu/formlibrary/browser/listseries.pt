@@ -33,7 +33,7 @@
                   <a href=""
                      tal:attributes="href item/getURL;
                                      class string:state-${item/review_state}"
-                     tal:content="python: item.Title.split(context.Title())[0]">
+                     tal:content="python: item.Title.split(' - %s' % context.Title())[0]">
                   </a>
                   <em tal:condition="python: item.review_state=='archived'">(archived)</em>
               </span>

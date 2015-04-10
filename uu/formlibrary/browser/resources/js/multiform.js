@@ -272,13 +272,24 @@ uu.formlibrary.multiform.clean_form_display = function() {
        vertical separation div after every three fields to 
        ensure clean row look.
     */
-    var forms = jq('form.formrow');
+    var forms = jq('form.formrow'),
+        colCount = parseInt(forms.attr('data-stacked-columns') || '3', 10),
+        colWidth = '30%';
+    if (colCount !== 3) {
+      colWidth = '' + (Math.floor(100 / colCount) - colCount) + '%';
+    }
     for (var i=0; i<forms.length; i++) {
         var form = jq(forms[i]);
         var formdiv = form.children('div.singlerowform');
         var fielddivs = formdiv.find('div.fielddiv');
+        jq('.fielddiv', form).css({'width': colWidth});
+        if (colCount > 3) {
+          fielddivs.css({'font-size': '90%'});
+          console.log(jq('input', fielddivs));
+          jq('label, input, select', fielddivs).css({'max-width': '90%'});
+        }
         for (var j=0; j<fielddivs.length; j++) {
-            if ((j+1) % 3 === 0) {
+            if ((j+1) % colCount === 0) {
                 var fielddiv = jq(fielddivs[j]);
                 if (fielddiv.next().hasClass('fielddiv')) {
                     jq('<div style="border-bottom:1px dotted #ddd;padding:0.2em;margin-bottom:0.4em;clear:both"></div>').insertAfter(fielddiv);

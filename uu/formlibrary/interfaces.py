@@ -214,6 +214,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         fields=[
             'multiform_display_mode',
             'multiform_entry_mode',
+            'stacked_columns',
             'instructions',
             'logo',
             ]
@@ -256,6 +257,14 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             'Stacked',
             )),
         default='Stacked',
+        )
+
+    stacked_columns = schema.Choice(
+        title=_(u'Column count (stacked)'),
+        description=u'When using stacked boxes entry/display mode, how many '
+                    u'colmns should be created in the layout?',
+        vocabulary=mkvocab(tuple(range(1, 6))),
+        default=3,
         )
 
     instructions = RichText(

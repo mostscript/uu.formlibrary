@@ -10,7 +10,7 @@
 
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20140311"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150410"></script>
 
 <script type="text/javascript"
         src=""
@@ -110,7 +110,10 @@
 <ol class="formrows" tal:condition="python: view.displaymode=='Stacked'">
 <tal:block repeat="uid view/entry_uids">
   <li tal:define="rowform python:view.rowform(uid)">
-    <form class="formrow" id="" tal:attributes="id view/last_row_uid">
+    <form class="formrow"
+          id=""
+          tal:attributes="id view/last_row_uid;
+                          data-stacked-columns python:getattr(view.definition, 'stacked_columns', 3);">
       <div tal:condition="python: view.VIEWNAME=='edit'" class="rowcontrol">
         <a href="javascript:void(0)" class="rowdelete">&thinsp;&#x2718;</a>
         <a href="javascript:void(0)" class="rowup" title="Up">&thinsp;&#9650;</a>

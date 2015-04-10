@@ -36,7 +36,10 @@
 </ol>
 <ol class="formrows" tal:condition="python: 'stacked' in request.form">
   <li tal:define="rowform view/rowform">
-    <form class="formrow" id="" tal:attributes="id view/last_row_uid">
+    <form class="formrow"
+          id=""
+          tal:attributes="id view/last_row_uid;
+                          data-stacked-columns python:getattr(view.definition, 'stacked_columns', 3);">
       <div class="rowcontrol">
         <a href="javascript:void(0)" class="rowdelete">&thinsp;&#x2718;</a>
         <a href="javascript:void(0)" class="rowup" title="Up">&thinsp;&#9650;</a>        <a href="javascript:void(0)" class="rowdown" title="Down">&thinsp;&#9660;</a>              </div>

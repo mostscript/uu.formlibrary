@@ -274,6 +274,17 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                             # may be necessary to copy value to other state,
                             # as is the case with radio button widgets
                             widget.update()
+                            # multiple collection like set/list (multi-choice)
+                            # has issues where SequenceWidget wants to reset
+                            # widget.value during update... so we have to 
+                            # check the value (ugly hack):
+                            if ICollection.providedBy(schema_field):
+                                term_item = [
+                                    t for t in widget.items
+                                    if t.get('value') == v[0]
+                                ][0]
+                                term_item['checked'] = True
+
 
     def updateWidgets(self):
         common_widget_updates(self)

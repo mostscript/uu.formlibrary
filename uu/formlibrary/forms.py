@@ -277,8 +277,10 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                             # multiple collection like set/list (multi-choice)
                             # has issues where SequenceWidget wants to reset
                             # widget.value during update... so we have to 
-                            # check the value (ugly hack):
+                            # check the value (ugly hack) and also re-set the
+                            # value for the display widget:
                             if ICollection.providedBy(schema_field):
+                                widget.value = v
                                 term_item = [
                                     t for t in widget.items
                                     if t.get('value') == v[0]

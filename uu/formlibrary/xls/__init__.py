@@ -558,4 +558,6 @@ class FieldSetGrouping(object):
                     sheet.write(self.cursor, 3, element, style)
                     self.cursor += 1
                     vidx += 1
+                if not value:
+                    self.cursor += 1  # empty field, proceed to next row
 

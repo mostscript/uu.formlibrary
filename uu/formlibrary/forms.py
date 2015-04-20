@@ -281,11 +281,12 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                             # value for the display widget:
                             if ICollection.providedBy(schema_field):
                                 widget.value = v
-                                term_item = [
-                                    t for t in widget.items
-                                    if t.get('value') == v[0]
-                                ][0]
-                                term_item['checked'] = True
+                                if v:
+                                    term_item = [
+                                        t for t in widget.items
+                                        if t.get('value') == v[0]
+                                    ][0]
+                                    term_item['checked'] = True
 
 
     def updateWidgets(self):

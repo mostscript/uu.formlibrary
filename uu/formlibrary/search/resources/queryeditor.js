@@ -758,7 +758,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     /**
      * RecordFilter: Container of ordered FieldQuery objects
      */
-    ns.RecordFilter = function (options) {
+    ns.RecordFilter = function RecordFilter(options) {
 
         initSchemaContext(this);
 
@@ -822,7 +822,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             this.sync();
         };
 
-        this.init = function (options) {
+        this.init = function RecordFilter(options) {
             validateOptions(options);
             ns.RecordFilter.prototype.init.apply(this, [options]);
             this._schema = options.schema || undefined;
@@ -836,12 +836,16 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
         // UI bits:
 
         this.syncQueryOperatorSelector = function () {
-            var opdiv = $('div.queryop-selection', this.target);
+            var opdiv = $('div.queryop-selection', this.target),
+                input = $('input[value="' + this.operator + '"]', opdiv);
+            // show only if multiple, otherwise hide:
             if (this.size() >= 2) {
                 opdiv.show();
             } else {
                 opdiv.hide();
             }
+            // check radio button:
+            input.prop('checked', true);
         };
 
         this.initQueryopInputs = function () {
@@ -1021,10 +1025,13 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                 target = this.target,
                 operator = this.operator,
                 opdisplay = $('<div class="groupop"></div>'),
+                opdiv = $('.groupop-selection', target),
+                opinput = $('input[value="' + operator + '"]', opdiv),
                 intermediate = $(this.values().slice(0, -1).map(function (v) {
                     return v.target[0];
                 }, this));
             $('div.groupop', target).remove();
+            opinput.prop('checked', true);
             opdisplay.text('(( ' + this.opLabel() + ' ))');
             intermediate.after(opdisplay);
             // finally make it possible to remove filters with buttons:

@@ -210,9 +210,9 @@ class CoreFilter(Persistent):
         self._order = PersistentList()
 
     def validate(self, schema):
-        for query in self._queries.values():
-            if not query.validate(schema):
-                raise ValidationError(query.fieldname)
+        for q in self._queries.values():
+            if not q.validate(schema):
+                raise ValidationError(q.fieldname)
 
     def build(self, schema):
         self.validate(schema)
@@ -411,6 +411,8 @@ class FilterJSONAdapter(object):
             return int(value)
         if fieldtypes.IFloat.providedBy(field):
             return float(value)
+        if fieldtypes.ISet.providedBy(field):
+            return set(value)   # list of selected to set
         return value
 
     def update(self, data):
@@ -527,13 +529,14 @@ class ComposedQueryJSONAdapter(object):
     def _groupJSON(self, g):
         return FilterGroupJSONAdapter(g, self.schema).serialize(use_json=0)
 
-    def serialize(self, use_json=True):
+    def serialize(self, use_json=True, encDefault=json.JSONEncoder.default):
+        enc = lambda v: encDefault(v) if not isinstance(v, set) else list(v)
         data = {}  # ComposedQuery
         data['name'] = self.context.name
         data['operator'] = self.context.operator  # set operator
         data['groups'] = map(self._groupJSON, list(self.context))
         if use_json:
-            return json.dumps(data, indent=4)
+            return json.dumps(data, indent=4, default=enc)
         return data
 
 

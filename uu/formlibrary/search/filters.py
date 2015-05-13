@@ -451,18 +451,22 @@ class FilterJSONAdapter(object):
         row['comparator'] = query.comparator
         return row
 
-    def serialize(self, use_json=True, include_uid=False):
+    def serialize(self,
+                  use_json=True,
+                  include_uid=False,
+                  encDefault=json.JSONEncoder.default):
         """
         Serialze queries of context to JSON, or if use_json is False, to an
         equivalent dict of data.
         """
+        enc = lambda v: encDefault(v) if not isinstance(v, set) else list(v)
         data = {}
         if include_uid:
             data['uid'] = IUUID(self.context)
         data['operator'] = self.context.operator
         data['rows'] = [self._mkrow(q) for q in self.context.values()]
         if use_json:
-            return json.dumps(data, indent=4)
+            return json.dumps(data, indent=4, default=enc)
         return data
 
 

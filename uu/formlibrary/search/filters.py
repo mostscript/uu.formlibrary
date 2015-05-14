@@ -6,7 +6,6 @@ import uuid
 from persistent import Persistent
 from persistent.list import PersistentList
 from persistent.mapping import PersistentMapping
-from plone.dexterity.content import Item
 from plone.uuid.interfaces import IUUID
 from repoze.catalog import query
 import transaction
@@ -282,24 +281,6 @@ class CoreFilter(Persistent):
         return list(self.iteritems())
 
 
-class RecordFilter(CoreFilter, Item):
-    """
-    Contentish record filter BBB.
-
-    MRO note: CoreFilter defined as first superclass to avoid collection
-    methods such as OFS.__len__() via Item.
-    """
-
-    def __init__(self, id=None, *args, **kwargs):
-        Item.__init__(self, id, *args, **kwargs)
-        CoreFilter.__init__(self, *args, **kwargs)
-        self.reset(**kwargs)
-
-    @property
-    def externalEditorEnabled(self):
-        return False
-
-
 class BaseGroup(PersistentList):
 
     def __init__(self, operator='union', items=()):
@@ -351,18 +332,6 @@ class ComposedQuery(BaseGroup):
     def __init__(self, name, operator='union', items=()):
         super(ComposedQuery, self).__init__(operator, items)
         self.name = str(name)
-
-    def requires_advanced_editing(self):
-        """
-        Returns True/False for UI use; see IComposedQuery docs.
-        """
-        if len(self) > 1:
-            return True
-        if len(self) == 0:
-            return False
-        if len(self[0]) > 1:
-            return True
-        return False
 
 
 # JSON Adapters for filter, group, composed query:

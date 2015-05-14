@@ -1038,14 +1038,15 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                 operator = this.operator,
                 opdisplay = $('<div class="groupop"></div>'),
                 opdiv = $('.groupop-selection', target),
+                opsel = $('div.groupop-selection', target),
                 opinput = $('input[value="' + operator + '"]', opdiv),
                 intermediate = $(this.values().slice(0, -1).map(function (v) {
                     return v.target[0];
                 }, this));
             // show group operator controls IFF group
-            $('div.groupop-selection').hide();
+            opsel.hide();
             if (this.size() > 1) {
-                $('div.groupop-selection').show();
+                opsel.show();
             }
             // remove and replace group operator display between filters:
             $('div.groupop', target).remove();

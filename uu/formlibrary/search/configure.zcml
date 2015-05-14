@@ -40,16 +40,7 @@
     name="measure_criteria"
     for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
     class=".criteria.MeasureCriteriaView"
-    template="criteria_editor.pt"
-    permission="cmf.ModifyPortalContent"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
-    />
- 
-  <browser:page
-    name="advanced_criteria"
-    for="uu.formlibrary.measure.interfaces.IMeasureDefinition"
-    class=".criteria.MeasureCriteriaView"
-    template="advanced_criteria.pt"
+    template="criteria.pt"
     permission="cmf.ModifyPortalContent"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />

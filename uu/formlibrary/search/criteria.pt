@@ -5,18 +5,16 @@
       metal:use-macro="context/main_template/macros/master"
       i18n:domain="uu.formlibrary">
 <head>
-  <metal:block fill-slot="base">
-    <base href=""
-          tal:attributes="href string:${context/absolute_url}/"
-          />
-  </metal:block>
   <metal:block fill-slot="javascript_head_slot">
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/criteria.js?api=2013100710"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/coremodel.js?api=20140515"></script>
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.search/queryeditor.js?api=20150514"></script>
   </metal:block>
   <metal:block fill-slot="style_slot">
-<link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/formsearch.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/formsearch.css" type="text/css" />
+<link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/queryeditor.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.search/queryeditor.css" type="text/css" />
 <tal:block repeat="rfilter view/filters">
  <link rel="recordfilter"
        title=""
@@ -30,26 +28,23 @@
 <body>
  <div metal:fill-slot="content-core">
   <h3>Define the query criteria for your measure below:</h3>
-  <p class="helptext">
-    Add filters, choose fields, and select a comparison and value for each query.
-    Should you require more complex grouping and boolean logic, click 
-    <a href="@@advanced_criteria">here</a> to visit the advanced query editor.
-  </p>
+  <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.</p>
+
   <div id="filter-manager">
    <!-- placeholder for critiera forms managed and populated via AJAX -->
   </div>
 
   <div style="clear:both"></div>
-  <form id="payloads" method="POST" data-edtor="basic">
+  <form id="payloads" method="POST" data-editor="advanced">
    <div class="payload-container" style="display:none">
-     <tal:block repeat="rfilter view/filters">
+     <tal:block repeat="composed view/composed_queries">
         <input type="hidden"
                id="payload-"
                name="payload-"
                value=""
-               tal:attributes="id string:payload-${rfilter/uid};
-                               name string:payload-${rfilter/uid};
-                               value python:view.json(rfilter.get('uid'));" />
+               tal:attributes="id string:payload-query-${composed/name};
+                               name string:payload-query-${composed/name};
+                               value python:view.json(composed.name);" />
                                 
      </tal:block>
    </div>

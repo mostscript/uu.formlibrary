@@ -65,12 +65,6 @@
          visible="True" insert-before="data_view">
   <permission value="Modify portal content"/>
  </action>
- <action title="Criteria" action_id="advanced_criteria" category="object"
-         condition_expr="python:context.restrictedTraverse('@@criteria_actions/show_advanced')()"
-         url_expr="string:${object_url}/@@advanced_criteria"
-         visible="True" insert-before="data_view">
-  <permission value="Modify portal content"/>
- </action>
  <action title="In Use (by)" action_id="in_use" category="object"
     condition_expr="context/@@in_use_by/in_use" icon_expr=""
     link_target="" url_expr="string:${object_url}/@@in_use_by"

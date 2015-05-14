@@ -25,16 +25,13 @@ class MeasureCriteriaActions(object):
     def __init__(self, context, request):
         self.context = context
         self.request = request
-        self.adv = 'advanced' in self.request.get('PATH_INFO').split('/')[-1]
 
     def show_criteria(self):
-        if self.adv:
-            return False
         group = aq_parent(aq_inner(self.context))
         return group.source_type == MULTI_FORM_TYPE
 
     def show_advanced(self):
-        return self.adv
+        return False
 
     def __call__(self, *args, **kwargs):
         return 'Actions helper'
@@ -49,35 +46,8 @@ class MeasureCriteriaView(object):
         self.comparators = Comparators(request)
         self.status = IStatusMessage(self.request)
         self.schema = IFormDefinition(self.context).schema
-        self.advanced, self.redirect = self.requires_advanced()
 
-    def update_basic(self, *args, **kwargs):
-        req = self.request
-        prefix = 'payload-'
-        payload_keys = [k for k in self.request.form if k.startswith(prefix)]
-        if not payload_keys:
-            return
-        _info = lambda name: (name.replace(prefix, ''), req.get(name))
-        payloads = map(_info, payload_keys)
-        log_messages = []
-        for name, payload in payloads:
-            rfilter = self.get_filter(name)
-            if rfilter is None:
-                continue
-            adapter = FilterJSONAdapter(rfilter, self.schema)
-            adapter.update(str(payload))
-            queryname = self.filter_groupname(rfilter)
-            msg = u'Updated criteria for %s' % queryname
-            self.status.addStatusMessage(msg, type='info')
-            log_messages.append(msg)
-        history_log(
-            self.context,
-            message='\n'.join(log_messages),
-            set_modified=True,
-            )
-        return True   # updated
-
-    def update_advanced(self, *args, **kwargs):
+    def _update(self, *args, **kwargs):
         req = self.request
         prefix = 'payload-query-'
         payload_keys = [k for k in self.request.form if k.startswith(prefix)]
@@ -106,40 +76,12 @@ class MeasureCriteriaView(object):
         req = self.request
         if req.get('REQUEST_METHOD') != 'POST':
             return
-        if self.advanced:
-            updated = self.update_advanced(*args, **kwargs)
-        else:
-            updated = self.update_basic(*args, **kwargs)
+        updated = self._update(*args, **kwargs)
         if updated:
             notify(ObjectModifiedEvent(self.context))
             req.response.redirect(self.context.absolute_url())  # to view tab
 
-    def requires_advanced(self, names=(u'numerator', u'denominator')):
-        """
-        Returns a two-boolean tuple, the first for whether the query
-        requires advanced, the second if the view requires a redirect
-        to the advanced editor.
-
-        If either numerator or denominator needs adavanced (nested)
-        editor, the first element should return True.  Likewise, if
-        the view dictates use of advanced.
-
-        The second element should only return True (redirect needed) if
-        the query requires advanced editing, but the view is basic.
-        """
-        adv = 'advanced' in self.request.get('PATH_INFO').split('/')[-1]
-        _useadv = lambda q: q.requires_advanced_editing()
-        adv_query = any(map(_useadv, map(self.composed_query, names)))
-        return (adv or adv_query, adv_query and not adv)
-
     def __call__(self, *args, **kwargs):
-        if self.redirect:
-            url = '%s/%s' % (
-                self.context.absolute_url(),
-                '@@advanced_criteria',
-                )
-            self.request.response.redirect(url)
-            return
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
 
@@ -209,9 +151,7 @@ class MeasureCriteriaView(object):
         return ComposedQueryJSONAdapter(composed, self.schema).serialize()
 
     def json(self, name):
-        if self.advanced:
-            return self.composed_json(name)
-        return self.filter_json(name)
+        return self.composed_json(name)
 
     def comparator_title(self, comparator):
         return self.comparators.get(comparator).label

@@ -21,7 +21,7 @@ table.queries th, table.queries td {
 }
 
 table.queries th {
-    background-color:#667;
+    background-color:#666;
     color:#eee;
 }
 
@@ -34,7 +34,7 @@ table.queries th.display-queryop, table.queries td.display-queryop {
 }
 
 table.queries th.rowcontrol, table.queries td.rowcontrol {
-    width:7%;
+    min-width:2.3em;
     text-align:right;
 }
 
@@ -59,7 +59,6 @@ table.queries td.value div.error {
 .addquery, .addfilter {
     display:block;
     font-size:100%;
-    max-width:2em;
     border-radius: 0.3em 0.3em;
     border:1px solid #555;
     background-color:#eee;
@@ -70,8 +69,16 @@ table.queries td.value div.error {
 }
 
 .addquery span strong, .addfilter span strong {
-    font-size:210%;
-    padding-right:0.1em;
+    font-size:130%;
+}
+
+.addquery {
+  text-align:center;
+  width:6.25em;
+  padding:0.1em;
+  background-color:#072;
+  color:#fff;
+  border:0.1em solid #bbb;
 }
 
 div#criteriaforms {
@@ -139,17 +146,19 @@ form.record-queries div.queryop-selection {
 }
 
 .groupcontrol {
-    border: 1px solid #555;
-    background-color:#f0f0e0;
+    margin:0.6em 0 0.2em 1.5em;
+    border: 1px solid #999;
+    background-color:#f6f0e9;
 }
 
 .groupcontrol a.addfilter {
-    float:left;
-    max-width:6em !important;
+    float:right;
+    max-width:15em !important;
 }
 
 .groupcontrol .groupop-selection {
-    text-align:right;
+    text-align:left;
+    float:left;
     margin-right:1em;
     color:#466;
     font-size:85%;
@@ -170,9 +179,10 @@ form.record-queries div.queryop-selection {
 
 .record-filter {
     clear:both;
-    border:1px solid #999;
+    border:0.1em solid #444;
     background-color:white;
     margin-top:0.2em;
+    box-shadow: 0.1em 0.2em 0.25em #666;
 }
 
 table.queries th.rowcontrol {
@@ -194,9 +204,21 @@ table.queries a.removefilter {
     display:block;
     width:0.5em;
     height:0.5em;
-    padding:0.2em 0.7em 0.6em 0.1em;
+    padding:0.1em 1.0em 1.0em 0.1em;
     box-shadow:-0.3em 0 0.4em #333;
     position:absolute;
     right:0.5em;
-    margin-top:-1em;
+    margin:-0.8em -0.8em 0 0;
+}
+
+table.queries a.removefilter span.icon, table.queries a.removerow span.icon {
+  color:#666;
+  font-size:2.3em;
+  cursor:pointer;
+}
+
+tr.placeholder td.noqueries p.instruct {
+  font-size:130%;
+  color:green;
+  font-weight:bold;
 }

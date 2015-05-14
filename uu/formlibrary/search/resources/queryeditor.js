@@ -209,6 +209,14 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
      * the containing ComposedQuery object:
      */
 
+    function toTitleCase(str) {
+        /** title-casing via http://goo.gl/3Saj2n */
+        return str.replace(/\w\S*/g, function(txt){ 
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+          }
+        );
+    }
+
     function acquire_schema(context) {
         var parent = context.context;
         if (parent) {
@@ -268,6 +276,14 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     // named snippets of HTML for use in creation:
     ns.snippets = {};
 
+    ns.snippets.PLACEHOLDER = String() +
+        '<tr class="placeholder">' +
+        ' <td class="noqueries" colspan="5">' +
+        '    <p class="instruct">&#x21e7; Click above to add a field query.</p>' +
+        '    <p><em>&nbsp; There are no queries yet defined for this filter.</em></p>' +
+        ' </td>' +
+        '</tr>';
+
     // RecordFilter (inner) HTML: must be modified to change ids
     ns.snippets.RECORDFILTER = String() +
         '  <table class="queries">' +
@@ -277,7 +293,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
         '        <a class="addquery"' +
         '           title="Add a field query to this filter">' +
         '          <span>'+
-        '            <strong>&#x2b;</strong>' +
+        '            <strong>Add field</strong>' +
         '          </span>'+
         '        </a>' +
         '      </th>' +
@@ -285,15 +301,11 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
         '      <th>Value</th>' +
         '      <th class="rowcontrol">' +
         '  <a class="removefilter" title="Remove this filter">' +
-        '   <img src="./delete_icon.png" alt="delete"/>' +
+        '   <span class="icon">×</span>' +
         '  </a>' +
         '       &nbsp;</th>' +
         '    </tr>' +
-        '    <tr class="placeholder">' +
-        '      <td class="noqueries" colspan="5">' +
-        '        <em>There are no queries defined for this filter.</em>' +
-        '      </td>' +
-        '    </tr>' +
+        ns.snippets.PLACEHOLDER + 
         '   </tbody>' +
         '  </table>' +
         '  <div class="queryop-selection">' +
@@ -322,23 +334,13 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
         ' <td class="value"></td>' +
         ' <td class="rowcontrol">' +
         '  <a class="removerow" title="Remove query row">' +
-        '   <img src="./delete_icon.png" alt="delete"/>' +
+        '   <span class="icon">×</span>' +
         '  </a>' +
-        ' </td>' +
-        '</tr>';
-
-    ns.snippets.PLACEHOLDER = String() +
-        '<tr class="placeholder">' +
-        ' <td class="noqueries" colspan="5">' +
-        '  <em>There are no queries defined for this filter.</em>' +
         ' </td>' +
         '</tr>';
 
     ns.snippets.GROUPCONTROL = String() +
         '<div class="groupcontrol">' +
-        '  <a class="addfilter" title="Add a filter to this group">' +
-        '    <span><strong>&#x21f2;</strong></span> Add filter' +
-        '  </a>' +
         '  <div class="groupop-selection">' +
         '    <em class="grouplabel">Operator to apply across filters:</em>' +
         '    <input type="radio"' +
@@ -359,6 +361,10 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
         '           id="groupop-intersection" />' +
         '    <label for="groupop-intersection">MINUS (complement)</label>' +
         '  </div>' +
+        '  <a class="addfilter" title="Add a filter to this group">' +
+        '    <span><strong>▤</strong></span> Add another filter group' +
+        '  </a>' +
+        '  <div style="clear:both"></div>' +
         '</div>';
 
     ns.snippets.NOVALUE = String() +
@@ -513,10 +519,10 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             var field = this._field,
                 comparator = this._comparator,
                 value = this._value;
-            if (!field && !comparator && !value) {
+            if (!field && !comparator && value == null) {
                 return null;   // EMPTY, nothing defined yet
             }
-            if (field && comparator && value) {
+            if (field && comparator && value != null) {
                 if (value instanceof Array && value.length === 0) {
                     return false;  // empty selection is incomplete
                 }
@@ -649,7 +655,11 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                 $('<label>'+label+'</label>').attr('for', termid).appendTo(idiv);
                 idiv.appendTo(valueCell);
                 input.unbind().change(function () {
-                    self.value = input.val();
+                    var value = input.val();
+                    if (field.fieldtype === 'Bool') {
+                      value = (value === 'yes');
+                    }
+                    self.value = value;
                 });
             });
         };
@@ -805,6 +815,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
             var self = this,
                 target = $(this.target),
                 innerhtml = $(ns.snippets.RECORDFILTER),
+                groupControl = $('div.groupcontrol', target),
                 addHandler = function () {
                     var btn = $(this);
                     self.newQuery();
@@ -977,7 +988,8 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
         };
 
         this.newFilter = function () {
-            var target = $('<div>').appendTo(this.target),
+            var groupControl = $('div.groupcontrol', this.target),
+                target = $('<div>').insertBefore(groupControl),
                 rfilter = new ns.RecordFilter({
                     context: this,
                     target: target
@@ -1030,6 +1042,12 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
                 intermediate = $(this.values().slice(0, -1).map(function (v) {
                     return v.target[0];
                 }, this));
+            // show group operator controls IFF group
+            $('div.groupop-selection').hide();
+            if (this.size() > 1) {
+                $('div.groupop-selection').show();
+            }
+            // remove and replace group operator display between filters:
             $('div.groupop', target).remove();
             opinput.prop('checked', true);
             opdisplay.text('(( ' + this.opLabel() + ' ))');
@@ -1117,7 +1135,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     ns.initQuery = function (name, data) {
         var managerDiv = $('#filter-manager'),
             wrapper = $('<div class="querywrap">').appendTo(managerDiv),
-            h3title = $('<h3>' + name + '</h3>').appendTo(wrapper),
+            h3title = $('<h3>' + toTitleCase(name) + '</h3>').appendTo(wrapper),
             target = $('<div>').appendTo(wrapper),
             saveContext = {
                 // fake context to save/sync group

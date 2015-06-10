@@ -292,7 +292,7 @@ uu.formlibrary.multiform.clean_form_display = function() {
             if ((j+1) % colCount === 0) {
                 var fielddiv = jq(fielddivs[j]);
                 if (fielddiv.next().hasClass('fielddiv')) {
-                    jq('<div style="border-bottom:1px dotted #ddd;padding:0.2em;margin-bottom:0.4em;clear:both"></div>').insertAfter(fielddiv);
+                    jq('<div style="border-bottom:1px solid #bbb;padding:1em;margin:1em;clear:both"></div>').insertAfter(fielddiv);
                 }
             }
         }

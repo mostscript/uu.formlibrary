@@ -6,7 +6,6 @@
   <object name="uu.formlibrary.multiform" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.simpleform" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.series" meta_type="Dexterity FTI" />
-  <object name="uu.formlibrary.recordfilter" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.measure" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.measurelibrary" meta_type="Dexterity FTI" />
   <object name="uu.formlibrary.measuregroup" meta_type="Dexterity FTI" />

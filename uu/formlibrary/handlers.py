@@ -203,3 +203,13 @@ def reserialize(context, schema):
 def serialize_context_schema_changed(context, event):
     reserialize(context, context.schema)
 
+
+def reindex_child_forms(context, event):
+    forms = context.objectValues()
+    descriptions = getattr(event, 'descriptions', ())
+    title_changed = descriptions and 'title' in descriptions[0].attributes
+    if title_changed:
+        # title changes have implication for indexers of child form content:
+        for form in forms:
+            form.reindexObject()
+

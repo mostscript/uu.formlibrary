@@ -114,6 +114,12 @@
     />
 
   <subscriber
+    for=".interfaces.IFormSeries
+         zope.lifecycleevent.interfaces.IObjectModifiedEvent"
+    handler=".handlers.reindex_child_forms"
+    />
+
+  <subscriber
     for=".interfaces.IBaseForm
          zope.lifecycleevent.IObjectCopiedEvent"
     handler=".handlers.handle_copypaste_local_roles"

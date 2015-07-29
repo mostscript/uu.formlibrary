@@ -182,14 +182,16 @@ class MeasureDefinition(Item):
                 v = float(v)
         return v
 
-    def _flex_field_value(self, context, path):
+    def _flex_field_value(self, context, path, normalize=True):
         data = getattr(context, 'data', {})
         spec = path.split('/')
         fieldset = spec[0] if len(spec) > 1 else ''
         name = spec[1] if len(spec) > 1 else path
         record = data.get(fieldset)
         if record is not None:
-            return self._normalized_flex_value(record, name)
+            if normalize:
+                return self._normalized_flex_value(record, name)
+            return getattr(record, name, NOVALUE)
         return NOVALUE
 
     def _flex_values(self, context):
@@ -254,7 +256,7 @@ class MeasureDefinition(Item):
         # flex form:
         notesfield = getattr(self, 'notes_field', None) or None
         if notesfield:
-            d = self._flex_field_value(context, notesfield)
+            d = self._flex_field_value(context, notesfield, normalize=False)
             if d:
                 return d
         return None

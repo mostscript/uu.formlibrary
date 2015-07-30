@@ -101,6 +101,13 @@
     />
 
   <browser:page
+    name="field_rules"
+    for="..interfaces.IBaseForm"
+    class=".definition.FieldRules"
+    permission="zope2.View"
+    />
+
+  <browser:page
     name="multicsv"
     for="..interfaces.IMultiForm"
     class=".csv.MultiFormCSVDownload"

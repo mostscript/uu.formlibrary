@@ -285,7 +285,6 @@ uu.formlibrary.multiform.clean_form_display = function() {
         jq('.fielddiv', form).css({'width': colWidth});
         if (colCount > 3) {
           fielddivs.css({'font-size': '90%'});
-          console.log(jq('input', fielddivs));
           jq('label, input, select', fielddivs).css({'max-width': '90%'});
         }
         for (var j=0; j<fielddivs.length; j++) {

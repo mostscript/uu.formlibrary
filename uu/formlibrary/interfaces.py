@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
@@ -53,6 +54,14 @@ mkterm = lambda token, title: SimpleTerm(token, title=title)
 _mkvocab = lambda s: SimpleVocabulary([mkterm(t, title) for (t, title) in s])
 _terms = lambda s: SimpleVocabulary([SimpleTerm(t) for t in s])
 mkvocab = lambda s: _mkvocab(s) if s and isinstance(s[0], tuple) else _terms(s)
+
+
+def valid_json(v):
+    try:
+        v = json.loads(v)
+    except ValueError:
+        return False
+    return True
 
 
 class IFormLibraryProductLayer(Interface):
@@ -204,6 +213,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             'form_css',
             'entry_schema',
             'sync_states',
+            'field_rules',
             'metadata_definition',
             ]
         )
@@ -225,6 +235,14 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         title=_(u'Form styles'),
         description=_(u'CSS stylesheet rules for form (optional).'),
         required=False,
+        )
+
+    field_rules = schema.Text(
+        title=_(u'Field rules (JSON)'),
+        description=_(u'JSON for contingent and other field rules.'),
+        required=False,
+        default=u'{}',  # empty rules obj.
+        constraint=valid_json,
         )
 
     sync_states = schema.List(

@@ -6,6 +6,7 @@ from zope.interface import alsoProvides
 from zope.schema import getFieldNamesInOrder
 from Products.CMFCore.utils import getToolByName
 
+from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.forms import ComposedForm
 from uu.formlibrary.utils import local_query
 from common import BaseFormView
@@ -148,4 +149,22 @@ class FormDisplayView(FormInputView):
     def __init__(self, context, request):
         super(FormDisplayView, self).__init__(context, request)
         self._form.mode = 'display'
+
+
+class FieldRules(object):
+    """
+    Simple view to obtain form rules JSON from definition of form context.
+    """
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def __call__(self, *args, **kwargs):
+        definition = IFormDefinition(self.context)
+        data = getattr(definition, 'field_rules', '{}').strip()
+        setHeader = self.request.response.setHeader
+        setHeader('Content-type', 'application/json')
+        setHeader('Content-length', len(data))
+        return data
 

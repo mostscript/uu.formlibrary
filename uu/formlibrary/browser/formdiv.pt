@@ -1,5 +1,7 @@
 <div>
- <div class="fielddiv" tal:repeat="widget view/widgets/values">
+ <div class="fielddiv"
+      tal:repeat="widget view/widgets/values"
+      tal:attributes="id string:${view/prefix}-${widget/field/__name__}">
   <label tal:content="widget/label">FIELD TITLE</label>
   <p class="description" tal:condition="widget/field/description" tal:content="widget/field/description">FIELD DESCRIPTION</p>
   <span tal:replace="structure widget/render" />

@@ -207,6 +207,46 @@ uu.formlibrary.multiform.validator_setup = function() {
     }
 };
 
+uu.formlibrary.multiform.hookup_formevents = function () {
+    var formevents = window.formevents,
+        isDiscrete = function (e) {
+            var el = $(e),
+                t = el.attr('type'),
+                controlledTypes = ['radio', 'checkbox'],
+                isSel = (e.tagName || '').toLowerCase() === 'select';
+            if (!e.tagName) { console.log(e); }
+            return isSel || controlledTypes.indexOf(t) !== -1;
+        },
+        core = $('#formcore ol.formrows'),
+        inputs = $(
+            'input, textarea, select.choice-field, select.date-field',
+            core
+            ).filter(function () { return $(this).attr('type') !== 'hidden'; }),
+        notifyOnChange = inputs.filter(function () {return isDiscrete(this);}),
+        notifyOnBlur = inputs.filter(function () { return !isDiscrete(this); }),
+        handler = function () {
+            var context = $(this),
+                target = $(context.parents('.fielddiv')[0]),
+                fieldname = target.attr('id').split('~-')[1],
+                isInput = this.tagName.toLowerCase() === 'input',
+                isMulti = isInput && $('input', target).length > 1,
+                getMulti = function () {
+                    var selected = $('input:checked', target).toArray();
+                    return selected.map(function (e) { return $(e).val(); });
+                },
+                eventInfo = {
+                    form: context.parents('form')[0],
+                    target: target[0],
+                    field: fieldname,
+                    value: isMulti ? getMulti() : context.val(),
+                    event: 'change'
+                };
+            window.formevents.notify(eventInfo);
+        };
+    notifyOnChange.change(handler);
+    notifyOnBlur.blur(handler);
+};
+
 uu.formlibrary.multiform.rowhandlers = function() {
     jq('a.rowup, a.rowdown, a.rowdelete').unbind('click');
     jq('a.rowup').click(uu.formlibrary.multiform.rowup);
@@ -217,6 +257,10 @@ uu.formlibrary.multiform.rowhandlers = function() {
     uu.formlibrary.multiform.validator_setup();
     if (window.smartdate) {
         smartdate.hookups();
+    }
+    // event notification hookups, using formevent.js, if available:
+    if (window.formevents) {
+        uu.formlibrary.multiform.hookup_formevents(); 
     }
 };
 

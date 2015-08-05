@@ -10,6 +10,10 @@
 
 <script type="text/javascript"
         src=""
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20150804"></script>
+
+<script type="text/javascript"
+        src=""
         tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150610"></script>
 
 <script type="text/javascript"

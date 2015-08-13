@@ -248,8 +248,6 @@ uu.formlibrary.multiform.hookup_formevents = function () {
 };
 
 uu.formlibrary.multiform.rowhandlers = function() {
-    // temporary place to re-classify divider divs:
-    jq('input.dividerfield-field').parents('div.fielddiv').addClass('divider');
     // events:
     jq('a.rowup, a.rowdown, a.rowdelete').unbind('click');
     jq('a.rowup').click(uu.formlibrary.multiform.rowup);
@@ -338,11 +336,20 @@ uu.formlibrary.multiform.clean_form_display = function() {
             if ((j+1) % colCount === 0) {
                 var fielddiv = jq(fielddivs[j]);
                 if (fielddiv.next().hasClass('fielddiv')) {
-                    jq('<div style="border-bottom:1px solid #bbb;padding:1em;margin:1em;clear:both"></div>').insertAfter(fielddiv);
+                    jq('<div class="fakerule" style="border-bottom:1px solid #bbb;padding:1em;margin:1em;clear:both"></div>').insertAfter(fielddiv);
                 }
             }
         }
     }
+    // temporary place to re-classify divider divs:
+    jq('input.dividerfield-field').parents('div.fielddiv').addClass('divider');
+    // address side-effects of divider placement possibly adjacent to fake hr:
+    jq('div.fielddiv.divider').each(function (i) {
+      var divider = $(this);
+      console.log(divider.prev('.fakerule'));
+      divider.prev('.fakerule').remove();
+      divider.next('.fakerule').remove();
+    });
 };
 
 

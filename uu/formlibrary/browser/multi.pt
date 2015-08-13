@@ -14,7 +14,7 @@
 
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150610"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150813"></script>
 
 <script type="text/javascript"
         src=""

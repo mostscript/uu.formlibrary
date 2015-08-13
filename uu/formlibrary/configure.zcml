@@ -55,6 +55,35 @@
          z3c.form.interfaces.IFormLayer"
     />
 
+  <!-- divider field type -->
+  <utility
+    name="uu.formlibrary.fields.DividerField"
+    component=".fields.DividerFieldFactory"
+    />
+
+  <utility
+    name="uu.formlibrary.fields.DividerField"
+    component=".fields.DividerFieldHandler"
+    />
+
+  <z3c:widgetTemplate
+    mode="input"
+    widget="uu.formlibrary.browser.widget.DividerWidget"
+    template="browser/descriptive_widget.pt"
+    />
+
+  <z3c:widgetTemplate
+    mode="display"
+    widget="uu.formlibrary.browser.widget.DividerWidget"
+    template="browser/descriptive_widget.pt"
+    />
+
+  <adapter
+    factory=".browser.widget.DividerFieldWidget"
+    for=".fields.IDividerField
+         z3c.form.interfaces.IFormLayer"
+    />
+
   <!-- adapter registrations -->
 
   <adapter factory=".record.record_uuid" />  <!-- IUUID for FormEntry -->

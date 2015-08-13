@@ -11,6 +11,10 @@ class IDescriptiveText(IField):
     """Descriptive text field"""
 
 
+class IDividerField(IDescriptiveText):
+    """Section divider field"""
+
+
 class DescriptiveText(Field):
     """Read-only field of descriptive text"""
     implements(IDescriptiveText, IFromUnicode)
@@ -31,6 +35,10 @@ class DescriptiveText(Field):
         return '1'
 
 
+class DividerField(DescriptiveText):
+    """Divider field"""
+
+
 DescriptiveTextFactory = FieldFactory(
     DescriptiveText,
     u'Descriptive Text Label (read-only)',
@@ -40,5 +48,17 @@ DescriptiveTextFactory = FieldFactory(
 
 DescriptiveTextHandler = plone.supermodel.exportimport.BaseHandler(
     DescriptiveText
+    )
+
+
+DividerFieldFactory = FieldFactory(
+    DividerField,
+    u'Section divider',
+    required=False,
+    )
+
+
+DividerFieldHandler = plone.supermodel.exportimport.BaseHandler(
+    DividerField
     )
 

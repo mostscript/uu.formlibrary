@@ -112,3 +112,24 @@ input.invalid {
     background-color: #FFFFDD;
     border: 1px dotted #CC0000;
 }
+
+div.singlerowform {
+  padding-left:0.5em;
+}
+
+div.fielddiv span.option label span.label {
+  margin-left:0.5em;
+}
+
+div.fielddiv.divider {
+  width:98.5% !important;
+  clear:both;
+  background-color:#cde;
+  margin:0.8em 0px -1.5em 0;
+  padding:0.3em;  
+}
+
+div.fielddiv.divider label {
+  font-size:150%;
+}
+

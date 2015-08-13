@@ -248,6 +248,9 @@ uu.formlibrary.multiform.hookup_formevents = function () {
 };
 
 uu.formlibrary.multiform.rowhandlers = function() {
+    // temporary place to re-classify divider divs:
+    jq('input.dividerfield-field').parents('div.fielddiv').addClass('divider');
+    // events:
     jq('a.rowup, a.rowdown, a.rowdelete').unbind('click');
     jq('a.rowup').click(uu.formlibrary.multiform.rowup);
     jq('a.rowdown').click(uu.formlibrary.multiform.rowdown);

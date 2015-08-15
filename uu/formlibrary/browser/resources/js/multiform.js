@@ -12,7 +12,7 @@ if (!uu.formlibrary.multiform) {
     uu.formlibrary.multiform = {};
 }
 
-var jq = jQuery;
+var $ = $ || jQuery;
 
 
 /* validator functions: */
@@ -45,7 +45,7 @@ uu.formlibrary.multiform.val_date = function(input, value) {
 
 uu.formlibrary.multiform.formids = function() {
     var ids = [];
-    jq("form.formrow").each(function(idx){
+    $("form.formrow").each(function(idx){
         ids.push(this.id);
         });
     return ids;
@@ -53,12 +53,12 @@ uu.formlibrary.multiform.formids = function() {
 
 uu.formlibrary.multiform.getform = function(id) {
     var o = {};
-    var form = jq("#"+id);
+    var form = $("#"+id);
     o.record_uid = form[0].id;
-    var inputs = jq("input, textarea, select.choice-field, select.date-field", form);
+    var inputs = $("input, textarea, select.choice-field, select.date-field", form);
     for (var i=0; i<inputs.length; i++) {
         var multivalued = false;
-        var input = jq(inputs[i]);
+        var input = $(inputs[i]);
         var fieldname = input.attr('name').split('~')[1].split(':')[0].split('.').pop();
         if (fieldname.split('empty-marker').length == 2) {
             continue;
@@ -128,7 +128,7 @@ uu.formlibrary.multiform.formgrid = function() {
 
 uu.formlibrary.multiform.formnotes = function() {
     var defval = "Enter any notes pertaining to this period.";
-    var v = jq('textarea.entry_notes').val();
+    var v = $('textarea.entry_notes').val();
     if (v == defval) {
         return "";
     }
@@ -154,12 +154,12 @@ uu.formlibrary.multiform.jsonbundle = function() {
 
 
 uu.formlibrary.multiform.copybundle = function() {
-    var payload = jq('#payload');
+    var payload = $('#payload');
     payload.val(uu.formlibrary.multiform.jsonbundle());
 };
 
 uu.formlibrary.multiform.rowup = function() {
-    var btn = jq(this);
+    var btn = $(this);
     var rowitem = btn.parents('li');
     var prev = rowitem.prev();
     if (prev[0] != null) {
@@ -169,7 +169,7 @@ uu.formlibrary.multiform.rowup = function() {
 };
 
 uu.formlibrary.multiform.rowdown = function() {
-    var btn = jq(this);
+    var btn = $(this);
     var rowitem = btn.parents('li');
     var next = rowitem.next();
     if (next[0] != null) {
@@ -179,31 +179,31 @@ uu.formlibrary.multiform.rowdown = function() {
 };
 
 uu.formlibrary.multiform.rowdelete = function() {
-    var btn = jq(this);
+    var btn = $(this);
     btn.parents('li').remove();
     uu.formlibrary.multiform.rowhandlers();
 };
 
 uu.formlibrary.multiform.refreshbuttons = function() {
-    jq('ol.formrows li div.rowcontrol a.rowup').show();
-    jq('ol.formrows li div.rowcontrol a.rowdown').show();
-    jq('ol.formrows li:first div.rowcontrol a.rowup').hide();
-    jq('ol.formrows li:last div.rowcontrol a.rowdown').hide();
+    $('ol.formrows li div.rowcontrol a.rowup').show();
+    $('ol.formrows li div.rowcontrol a.rowdown').show();
+    $('ol.formrows li:first div.rowcontrol a.rowup').hide();
+    $('ol.formrows li:last div.rowcontrol a.rowdown').hide();
 };
 
 
 uu.formlibrary.multiform.validator_setup = function() {
-    if (jq.tools.validator) {
-        jq('div.error').remove();
-        jq.tools.validator.fn('.int-field.required', 'Enter REQUIRED whole number', uu.formlibrary.multiform.val_int_req);
-        jq.tools.validator.fn('input.int-field:not(.required)', 'Value must be whole number', uu.formlibrary.multiform.val_int);
-        jq.tools.validator.fn('.float-field.required', 'Enter REQUIRED (decimal) number value', uu.formlibrary.multiform.val_dec_req);
-        jq.tools.validator.fn('input.float-field:not(.required)', 'Value provided must be decimal number', uu.formlibrary.multiform.val_dec);
-        jq.tools.validator.fn('.smartdate-widget.required', 'Enter REQUIRED, correctly formatted date', uu.formlibrary.multiform.val_date_req);
-        jq.tools.validator.fn('input.smartdate-widget:not(.required)', 'Value must be correctly formatted date', uu.formlibrary.multiform.val_date);
-        jq('input.int-field').validator();
-        jq('input.smartdate-widget').validator();
-        jq('input.float-field').validator();
+    if ($.tools.validator) {
+        $('div.error').remove();
+        $.tools.validator.fn('.int-field.required', 'Enter REQUIRED whole number', uu.formlibrary.multiform.val_int_req);
+        $.tools.validator.fn('input.int-field:not(.required)', 'Value must be whole number', uu.formlibrary.multiform.val_int);
+        $.tools.validator.fn('.float-field.required', 'Enter REQUIRED (decimal) number value', uu.formlibrary.multiform.val_dec_req);
+        $.tools.validator.fn('input.float-field:not(.required)', 'Value provided must be decimal number', uu.formlibrary.multiform.val_dec);
+        $.tools.validator.fn('.smartdate-widget.required', 'Enter REQUIRED, correctly formatted date', uu.formlibrary.multiform.val_date_req);
+        $.tools.validator.fn('input.smartdate-widget:not(.required)', 'Value must be correctly formatted date', uu.formlibrary.multiform.val_date);
+        $('input.int-field').validator();
+        $('input.smartdate-widget').validator();
+        $('input.float-field').validator();
     }
 };
 
@@ -249,10 +249,10 @@ uu.formlibrary.multiform.hookup_formevents = function () {
 
 uu.formlibrary.multiform.rowhandlers = function() {
     // events:
-    jq('a.rowup, a.rowdown, a.rowdelete').unbind('click');
-    jq('a.rowup').click(uu.formlibrary.multiform.rowup);
-    jq('a.rowdown').click(uu.formlibrary.multiform.rowdown);
-    jq('a.rowdelete').click(uu.formlibrary.multiform.rowdelete);
+    $('a.rowup, a.rowdown, a.rowdelete').unbind('click');
+    $('a.rowup').click(uu.formlibrary.multiform.rowup);
+    $('a.rowdown').click(uu.formlibrary.multiform.rowdown);
+    $('a.rowdelete').click(uu.formlibrary.multiform.rowdelete);
     uu.formlibrary.multiform.refreshbuttons();
     /* order important: validator, smartdate both use keyboard events */
     uu.formlibrary.multiform.validator_setup();
@@ -266,15 +266,15 @@ uu.formlibrary.multiform.rowhandlers = function() {
 };
 
 uu.formlibrary.multiform.handle_new_row = function() {
-    var num_rows = parseInt(jq('input.numrows').val(), 10),
+    var num_rows = parseInt($('input.numrows').val(), 10),
         onSuccess = function (responseText) {
-            var row = jq('<div />').append(responseText).find('ol.formrows li');
-            jq('ol.formrows').append(row);
+            var row = $('<div />').append(responseText).find('ol.formrows li');
+            $('ol.formrows').append(row);
             uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
             uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
         };
     for (var i=0; i<num_rows; i++) {
-        jq.ajax({
+        $.ajax({
             url: uu.formlibrary.multiform.new_row_url(),
             success: onSuccess /*callback*/
         });
@@ -283,27 +283,26 @@ uu.formlibrary.multiform.handle_new_row = function() {
 
 uu.formlibrary.multiform.new_row_url = function() {
     var cachebust = Math.random() * 10000000000000000000;
-    return jq('input#new_row_url').val() + '?random=' + cachebust;
+    return $('input#new_row_url').val() + '?random=' + cachebust;
 };
 
 uu.formlibrary.multiform.submit = function() {
-    //console.log(JSON.stringify(uu.formlibrary.multiform.formbundle()));
     var int_validates = true;
     var date_validates = true;
     var float_validates = true;
     /* validate first, only submit if no errors */
-    if (jq('input.int-field').length>0) {
-        int_validates = jq('input.int-field').data('validator').checkValidity();
+    if ($('input.int-field').length>0) {
+        int_validates = $('input.int-field').data('validator').checkValidity();
     }
-    if (jq('input.smartdate-widget').length>0) {
-        date_validates = jq('input.smartdate-widget').data('validator').checkValidity();
+    if ($('input.smartdate-widget').length>0) {
+        date_validates = $('input.smartdate-widget').data('validator').checkValidity();
     }
-    if (jq('input.float-field').length>0) {
-        float_validates = jq('input.float-field').data('validator').checkValidity();
+    if ($('input.float-field').length>0) {
+        float_validates = $('input.float-field').data('validator').checkValidity();
     }
     if (int_validates && float_validates && date_validates) {
         uu.formlibrary.multiform.copybundle(); /* serialize JSON to hidden 'payload' input */
-        //jq('form#coredata').submit(); /* submit the form containing the payload */
+        //$('form#coredata').submit(); /* submit the form containing the payload */
         return true;
     } else {
         alert('Please correct input errors and then try saving again.');
@@ -317,50 +316,59 @@ uu.formlibrary.multiform.clean_form_display = function() {
        vertical separation div after every three fields to 
        ensure clean row look.
     */
-    var forms = jq('form.formrow'),
+    var forms = $('form.formrow'),
         colCount = parseInt(forms.attr('data-stacked-columns') || '3', 10),
         colWidth = '30%';
     if (colCount !== 3) {
       colWidth = '' + (Math.floor(100 / colCount) - colCount) + '%';
     }
-    for (var i=0; i<forms.length; i++) {
-        var form = jq(forms[i]);
-        var formdiv = form.children('div.singlerowform');
-        var fielddivs = formdiv.find('div.fielddiv');
-        jq('.fielddiv', form).css({'width': colWidth});
+    // temporary place to re-classify divider divs:
+    $('input.dividerfield-field').parents('div.fielddiv').addClass('divider');
+    // iterate through forms and set up pseudo-columns:
+    forms.each(function (idx) {
+        var form = $(this),
+            formdiv = form.children('div.singlerowform'),
+            fieldDivs = formdiv.find('div.fielddiv'),
+            normalFields = fieldDivs.not('.divider'),
+            colIdx = 0;
+        normalFields.css({'width': colWidth});
         if (colCount > 3) {
-          fielddivs.css({'font-size': '90%'});
-          jq('label, input, select', fielddivs).css({'max-width': '90%'});
+          normalFields.css({'font-size': '90%'});
+          $('label, input, select', normalFields).css({'max-width': '90%'});
         }
-        for (var j=0; j<fielddivs.length; j++) {
-            if ((j+1) % colCount === 0) {
-                var fielddiv = jq(fielddivs[j]);
-                if (fielddiv.next().hasClass('fielddiv')) {
-                    jq('<div class="fakerule" style="border-bottom:1px solid #bbb;padding:1em;margin:1em;clear:both"></div>').insertAfter(fielddiv);
+        fieldDivs.each(function (idx) {
+            var fieldDiv = $(this),
+                next;
+            if (fieldDiv.hasClass('divider')) {
+                colIdx = 0;
+                return;
+            }
+            if ((colIdx + 1) % colCount === 0) {
+                next = fieldDiv.next();
+                if (next.hasClass('fielddiv') && !next.hasClass('divider')) {
+                    $('<div class="fakerule" style="border-bottom:1px solid #bbb;padding:1em;margin:1em;clear:both"></div>').insertAfter(fieldDiv);
                 }
             }
-        }
-    }
-    // temporary place to re-classify divider divs:
-    jq('input.dividerfield-field').parents('div.fielddiv').addClass('divider');
+            colIdx += 1;
+        });
+    });
     // address side-effects of divider placement possibly adjacent to fake hr:
-    jq('div.fielddiv.divider').each(function (i) {
+    $('div.fielddiv.divider').each(function (i) {
       var divider = $(this);
-      console.log(divider.prev('.fakerule'));
       divider.prev('.fakerule').remove();
       divider.next('.fakerule').remove();
     });
 };
 
 
-jq(document).ready(function(){
-    jq('input#btn-addrow').click(uu.formlibrary.multiform.handle_new_row);
+$(document).ready(function(){
+    $('input#btn-addrow').click(uu.formlibrary.multiform.handle_new_row);
     uu.formlibrary.multiform.rowhandlers();
-    jq('#coredata').submit(uu.formlibrary.multiform.submit);
-    jq('textarea.entry_notes').focus(function() {
+    $('#coredata').submit(uu.formlibrary.multiform.submit);
+    $('textarea.entry_notes').focus(function() {
         var defval = "Enter any notes pertaining to this period.";
-        if (jq(this).val() == defval) {
-            jq(this).val('');
+        if ($(this).val() == defval) {
+            $(this).val('');
             }
     });
     uu.formlibrary.multiform.clean_form_display(); /* only for stacked; for record divs in DOM at page load */

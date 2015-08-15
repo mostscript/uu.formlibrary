@@ -117,6 +117,14 @@ div.singlerowform {
   padding-left:0.5em;
 }
 
+div.fielddiv {
+  padding:0.3em;  
+}
+
+div.fielddiv > label {
+  margin-bottom:0.2em;
+}
+
 div.fielddiv span.option label span.label {
   margin-left:0.5em;
 }
@@ -126,10 +134,10 @@ div.fielddiv.divider {
   clear:both;
   background-color:#cde;
   margin:0.8em 0px 0px 0px; 
-  padding:0.3em;  
 }
 
-div.fielddiv.divider label {
+ol.formrows div.singlerowform div.fielddiv.divider label {
   font-size:150%;
+  width:100%;
 }
 

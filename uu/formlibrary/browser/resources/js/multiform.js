@@ -195,12 +195,9 @@ uu.formlibrary.multiform.refreshbuttons = function() {
 uu.formlibrary.multiform.validator_setup = function() {
     if ($.tools.validator) {
         $('div.error').remove();
-        $.tools.validator.fn('.int-field.required', 'Enter REQUIRED whole number', uu.formlibrary.multiform.val_int_req);
-        $.tools.validator.fn('input.int-field:not(.required)', 'Value must be whole number', uu.formlibrary.multiform.val_int);
-        $.tools.validator.fn('.float-field.required', 'Enter REQUIRED (decimal) number value', uu.formlibrary.multiform.val_dec_req);
-        $.tools.validator.fn('input.float-field:not(.required)', 'Value provided must be decimal number', uu.formlibrary.multiform.val_dec);
-        $.tools.validator.fn('.smartdate-widget.required', 'Enter REQUIRED, correctly formatted date', uu.formlibrary.multiform.val_date_req);
-        $.tools.validator.fn('input.smartdate-widget:not(.required)', 'Value must be correctly formatted date', uu.formlibrary.multiform.val_date);
+        $.tools.validator.fn('input.int-field', 'Value must be whole number', uu.formlibrary.multiform.val_int);
+        $.tools.validator.fn('input.float-field', 'Value provided must be decimal number', uu.formlibrary.multiform.val_dec);
+        $.tools.validator.fn('input.smartdate-widget', 'Value must be correctly formatted date', uu.formlibrary.multiform.val_date);
         $('input.int-field').validator();
         $('input.smartdate-widget').validator();
         $('input.float-field').validator();
@@ -286,10 +283,10 @@ uu.formlibrary.multiform.new_row_url = function() {
     return $('input#new_row_url').val() + '?random=' + cachebust;
 };
 
-uu.formlibrary.multiform.submit = function() {
-    var int_validates = true;
-    var date_validates = true;
-    var float_validates = true;
+uu.formlibrary.multiform.submit = function(event) {
+    var int_validates = true,
+        date_validates = true,
+        float_validates = true;
     /* validate first, only submit if no errors */
     if ($('input.int-field').length>0) {
         int_validates = $('input.int-field').data('validator').checkValidity();
@@ -322,6 +319,8 @@ uu.formlibrary.multiform.clean_form_display = function() {
     if (colCount !== 3) {
       colWidth = '' + (Math.floor(100 / colCount) - colCount) + '%';
     }
+    // mark required field div:
+    $('input.required').parents('div.fielddiv').addClass('required');
     // temporary place to re-classify divider divs:
     $('input.dividerfield-field').parents('div.fielddiv').addClass('divider');
     // iterate through forms and set up pseudo-columns:

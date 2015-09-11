@@ -52,12 +52,13 @@ var formevents = (function () {
      */
     // Normalize options for incomplete and/or defaults:
     if (!opts || !opts.form || !opts.field) return;     // incomplete
-    if (!opts.value && opts.field !== '@form') return;  // field event no value
+    // field event has no value on which to act:
+    if (opts.value == null && opts.field !== '@form') return;
     opts.target = opts.target || opts.form;
     opts.event = opts.event || 'change';
     // Check for subscribers, by fieldname, if event type match, run callback:
     (ns.fieldSubscribers[opts.field] || []).forEach(function (subscriberUID) {
-      var subscriber = ns.subscribers[uid];
+      var subscriber = ns.subscribers[subscriberUID];
       if (opts.event === subscriber.event) {
         subscriber.callback(opts);
       }

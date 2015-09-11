@@ -1,8 +1,10 @@
+import json
 import uuid
 
 from z3c.form import form, field
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import getFieldsInOrder
+from zope.schema.interfaces import ICollection
 from zope.component.hooks import getSite
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
@@ -219,6 +221,23 @@ class MultiFormEntry(BaseFormView):
         if self.VIEWNAME == 'edit':
             return self.definition.multiform_entry_mode
         return self.definition.multiform_display_mode
+
+    def field_info(self, field):
+        is_col = ICollection.providedBy(field)
+        vtype = field.value_type.__class__.__name__ if is_col else None
+        return {
+            'name': field.__name__,
+            'title': field.title,
+            'type': field.__class__.__name__,
+            'value_type': vtype
+            }
+
+    def fields_json(self):
+        schema = self.schema
+        fields = map(lambda pair: pair[1], getFieldsInOrder(schema))
+        return json.dumps({
+            'fields': map(self.field_info, fields),
+            })
 
 
 class MultiFormDisplay(MultiFormEntry):

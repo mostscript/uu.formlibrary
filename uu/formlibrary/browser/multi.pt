@@ -26,6 +26,8 @@
         tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20150730"></script>
 -->
 
+<script id="field-json" type="application/json" tal:content="view/fields_json"></script>
+
 </metal:block>
 <metal:block fill-slot="style_slot">
  <link rel="stylesheet" media="all" href="++resource++formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++formlibrary.css?api=20150815" type="text/css" />

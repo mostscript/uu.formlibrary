@@ -50,12 +50,15 @@ var formevents = (function () {
      *   event: 'change'
      * }
      */
-    // Normalize options for incomplete and/or defaults:
-    if (!opts || !opts.form || !opts.field) return;     // incomplete
-    // field event has no value on which to act:
+    // Options object with form is necessary:
+    if (!opts || !opts.form) return;
+    // return if incomplete or ambiguous field/form specified:
+    if (!opts.field) return;
+    // return if field event has no value on which to act:
     if (opts.value == null && opts.field !== '@form') return;
-    opts.target = opts.target || opts.form;
+    // Get event or default:
     opts.event = opts.event || 'change';
+    opts.target = opts.target || opts.form;
     // Check for subscribers, by fieldname, if event type match, run callback:
     (ns.fieldSubscribers[opts.field] || []).forEach(function (subscriberUID) {
       var subscriber = ns.subscribers[subscriberUID];

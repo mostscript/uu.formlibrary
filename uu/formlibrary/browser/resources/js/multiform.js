@@ -240,6 +240,7 @@ uu.formlibrary.multiform.hookup_formevents = function () {
                 };
             window.formevents.notify(eventInfo);
         };
+    // hookup notification on changes to field values:
     notifyOnChange.change(handler);
     notifyOnBlur.blur(handler);
 };
@@ -265,10 +266,17 @@ uu.formlibrary.multiform.rowhandlers = function() {
 uu.formlibrary.multiform.handle_new_row = function() {
     var num_rows = parseInt($('input.numrows').val(), 10),
         onSuccess = function (responseText) {
-            var row = $('<div />').append(responseText).find('ol.formrows li');
+            var row = $('<div />').append(responseText).find('ol.formrows li'),
+                form = $('form.formrow', row);
             $('ol.formrows').append(row);
             uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
             uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
+            // finally notify form-level 'added' event:
+            window.formevents.notify({
+              form: form,
+              field: '@form',
+              event: 'added'
+            });
         };
     for (var i=0; i<num_rows; i++) {
         $.ajax({

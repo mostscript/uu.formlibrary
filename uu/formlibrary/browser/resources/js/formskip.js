@@ -41,12 +41,29 @@ var formskip = (function ($) {
 
   var ns = {};
 
+  // utility functions:
   ns.uuid4_tmpl = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
   ns.uuid4 = function () {
       return ns.uuid4_tmpl.replace(/[xy]/g, function(c) {
           var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
           return v.toString(16);
       });
+  };
+
+  ns.any = function (s) {
+    return s.reduce(function (a, b) {
+      return a || b;
+    });
+  };
+
+  ns.all = function (s) {
+    return s.reduce(function (a, b) {
+      return a == b && a;
+    });
+  };
+
+  ns.asArray = function (v) {
+    return (!(v instanceof Array) && typeof v !== 'object') ? [v] : v;
   };
 
   // mapping of rules: keys are uuids assigned at load time, values rule obj.
@@ -65,8 +82,23 @@ var formskip = (function ($) {
 
   // namespace for comparator functions:
   ns.compare = {
+    // compare query, actual
     Eq: function (a, b) { return a == b; },
-    NotEq: function (a, b) { return a != b; }
+    NotEq: function (a, b) { return a != b; },
+    Any: function (query, actual) {
+      query = ns.asArray(query);
+      actual = ns.asArray(actual);
+      return ns.any(
+        query.map(function (v) { return actual.indexOf(v) !== -1; })
+      );
+    },
+    All: function (query, actual) {
+      query = ns.asArray(query);
+      actual = ns.asArray(actual);
+      return ns.all(
+        query.map(function (v) { return actual.indexOf(v) !== -1; })
+      );
+    }
   };
 
   ns.formData = function (form) {
@@ -145,17 +177,7 @@ var formskip = (function ($) {
   ns.considerRule = function (rule, opts) {
     var queries = ((rule.when || {}).query || []),
         met = function (query) { return ns.queryMet(query, opts); },
-        any = function (s) {
-          return s.reduce(function (a, b) {
-            return a || b;
-          });
-        },
-        all = function (s) {
-          return s.reduce(function (a, b) {
-            return a == b && a;
-          });
-        },
-        condFn = (rule.when.operator === 'or') ? any : all,
+        condFn = (rule.when.operator === 'or') ? ns.any : ns.all,
         conditionMet = false;
     // no queries, return:
     if (!queries.length) return;

@@ -60,6 +60,9 @@ var formskip = (function ($) {
   //    uuids for each rule applicable to fieldname.
   ns.rulemap = {};
 
+  // namespace for actions:
+  ns.actions = {};
+
   // namespace for comparator functions:
   ns.compare = {
     Eq: function (a, b) { return a == b; },
@@ -95,8 +98,8 @@ var formskip = (function ($) {
   ns.fieldDiv = function (form, fieldname) {
     var prefix = $(form).attr('id'),
         sep = '\\~-',  // escape tilde (legal html5 char) to make jQuery happy
-        fieldSpec = '#' + prefix + '\\~-' + name;
-    return $(fieldSpec);
+        fieldSpec = '#' + prefix + '\\~-' + fieldname;
+    return $(fieldSpec, form);
   };
 
   ns.fieldValue = function (form, fieldname) {
@@ -115,8 +118,28 @@ var formskip = (function ($) {
     return compare(query.value, value);
   };
 
+  ns.doAction = function (form, action, opts) {
+    /** primary broker to delegate action for form */
+    var name = action.action,
+        field = action.field,
+        knownAction = (Object.keys(ns.actions).indexOf(name) !== -1),
+        callable = (knownAction) ? ns.actions[name] : function () {};
+    callable(form, action, opts);
+  };
+
+  ns.doActions = function (rule, opts, key) {
+    key = (key === 'otherwise') ? key : 'act';
+    (rule[key] || []).forEach(function (action) {
+      ns.doAction(opts.form, action, opts);
+    });
+  };
+
   ns.actOnRule = function (rule, opts) {
-    console.log('Ready for action!', rule, opts);  // TODO implement
+    ns.doActions(rule, opts, 'act');
+  };
+
+  ns.actOtherwise = function (rule, opts) {
+    ns.doActions(rule, opts, 'otherwise');
   };
 
   ns.considerRule = function (rule, opts) {
@@ -138,7 +161,12 @@ var formskip = (function ($) {
     if (!queries.length) return;
     // are any (or) / all (and) queries met?
     conditionMet = condFn(queries.map(met));
-    if (!conditionMet) return;
+    if (!conditionMet) {
+      if (rule.otherwise && rule.otherwise.length) {
+        ns.actOtherwise(rule, opts);
+      }
+      return;
+    }
     ns.actOnRule(rule, opts);
   };
 
@@ -157,7 +185,6 @@ var formskip = (function ($) {
   ns.onFieldChange = function (opts) {
     var fieldname = opts.field,
         implicatedTrigger = ns.fieldImplicated(fieldname);
-    console.log(fieldname, implicatedTrigger);   // TODO rem
     if (!implicatedTrigger) return;
     ns.triggerFieldChanged(opts);
   };
@@ -190,7 +217,8 @@ var formskip = (function ($) {
   ns.load = function () {
     var viewname = $('#formcore').attr('data-viewname'),
         basePath = window.location.pathname.split('@@')[0],
-        rulesURL = basePath + '@@field_rules';
+        rnd = (Math.floor(Math.random() * Math.pow(10,8))),
+        rulesURL = basePath + '@@field_rules?cache_bust=' + rnd;
     if (viewname !== 'edit') return;  // only on form entry
     $.ajax({
       url: rulesURL,
@@ -203,6 +231,36 @@ var formskip = (function ($) {
     ns.load();
   });
 
+  // action defninitions, each taking three arguments:
+  //    1. form context
+  //    2. action object, which possibly includes configuration used by action
+  //    3. opts: event options passed from event notification (trigger)
+
+  ns.actions.disable = function (form, action, opts) {
+    var container = ns.fieldDiv(form, action.field),
+        input = $("input, textarea, select", container),
+        isSelect = (input.length && input[0].tagName !== 'select'),
+        roAttr = (isSelect) ? 'disabled' : 'readonly'; 
+    if (!container.length) return;  // nothing to do, no field div to get
+    // make input readonly (input, textarea), or disabled (select)
+    if (input.length) {
+      input.attr(roAttr, 'true');
+    }
+    container.addClass('disabled');
+  };
+
+  ns.actions.enable = function (form, action, opts) {
+    var container = ns.fieldDiv(form, action.field),
+        input = $("input, textarea, select", container),
+        isSelect = (input.length && input[0].tagName !== 'select'),
+        roAttr = (isSelect) ? 'disabled' : 'readonly'; 
+    if (!container.length) return;  // nothing to do, no field div to get
+    // Stop using readonly/disabled, if set:
+    if (input.length) {
+      input.removeAttr(roAttr);
+    }
+    container.removeClass('disabled');
+  };
   return ns;
 
 }(jQuery));

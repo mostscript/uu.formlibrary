@@ -141,3 +141,22 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
   width:100%;
 }
 
+/* field rules CSS: */
+
+.singlerowform .fielddiv.disabled {
+  color:#ccc;
+}
+
+.singlerowform .fielddiv.disabled label:after {
+  content: " (N/A)";
+  font-size: 80%;
+}
+
+.singlerowform .fielddiv.disabled p.description { 
+  color:#ddd;
+}
+
+.singlerowform .fielddiv.disabled input,
+.singlerowform .fielddiv.disabled select {
+  color:#eee;
+}

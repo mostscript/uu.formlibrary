@@ -147,12 +147,14 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
   color:#ccc;
 }
 
-.singlerowform .fielddiv.disabled label:after {
+.singlerowform .fielddiv.disabled > label:after {
   content: " (N/A)";
   font-size: 80%;
+  color:#ddd;
 }
 
-.singlerowform .fielddiv.disabled p.description { 
+.singlerowform .fielddiv.disabled p.description,
+.singlerowform .fielddiv.disabled span.label {
   color:#ddd;
 }
 

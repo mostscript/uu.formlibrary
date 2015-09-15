@@ -66,6 +66,19 @@ var formskip = (function ($) {
     return (!(v instanceof Array) && typeof v !== 'object') ? [v] : v;
   };
 
+  ns.asNumber = function (v) {
+    var toInt = function (v) { return parseInt(v, 10); },
+        normalize = (v.indexOf('.') !== -1) ? parseFloat : toInt;
+    return normalize(v);
+  };
+
+  ns.normalizedActual = function (query, actual) {
+    if (typeof query === 'number' && typeof actual === 'string') {
+      actual = ns.asNumber(actual);
+    }
+    return actual;
+  };
+
   // mapping of rules: keys are uuids assigned at load time, values rule obj.
   ns.rules = {};
 
@@ -98,6 +111,34 @@ var formskip = (function ($) {
       return ns.all(
         query.map(function (v) { return actual.indexOf(v) !== -1; })
       );
+    },
+    Contains: function (query, actual) {
+      /** Substring search;
+        *   if query is multiple terms, 'or' them implicitly */
+      query = ns.asArray(query);
+      return ns.any(
+        query.map(function (term) {
+          // ensure lower case:
+          term = (typeof term === 'string') ? term.toLowerCase() : null;
+          // do not oblige empty-string false-positive:
+          term = term || null;
+          // case-insenstive substring match?
+          return actual.toLowerCase().indexOf(term) !== -1;
+        })
+      );
+    },
+    Gt: function (query, actual) {
+      console.log(query, actual, ns.normalizedActual(query, actual));
+      return ns.normalizedActual(query, actual) > query;
+    },
+    Lt: function (query, actual) {
+      return ns.normalizedActual(query, actual) < query;
+    },
+    Ge: function (query, actual) {
+      return ns.normalizedActual(query, actual) >= query;
+    },
+    Le: function (query, actual) {
+      return ns.normalizedActual(query, actual) <= query;
     }
   };
 

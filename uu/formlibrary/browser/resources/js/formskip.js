@@ -30,7 +30,16 @@
  *  (string name), 'comparator' (see below), 'value' (field value, which
  *  may or may not be normalized).
  *
- *  Supported comparators: 'Eq', 'NotEq'
+ *  Supported comparators:
+ *    'Eq'
+ *    'NotEq'
+ *    'Contains' (substring in text)
+ *    'Any'
+ *    'All'
+ *    'Gt'
+ *    'Lt'
+ *    'Ge'
+ *    'Le'
  *
  */
 
@@ -181,13 +190,18 @@ var formskip = (function ($) {
     return formData[fieldname];
   };
 
+  ns.getComparator = function (name) {
+    name = name[0].toUpperCase() + name.slice(1);
+    return ns.compare[name] || ns.compare.Eq;
+  };
+
   ns.queryMet = function (query, opts) {
     /* is single-field query met by form? */
     var form = $(opts.form),
         fieldname = query.field,
         sameField = opts.field === query.field && opts.field !== '@form',
         value = (sameField) ? opts.value : ns.fieldValue(form, fieldname),
-        compare = ns.compare[query.comparator] || ns.compare.Eq;
+        compare = ns.getComparator(query.comparator);
     return compare(query.value, value);
   };
 

@@ -14,7 +14,7 @@
 
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150815"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150916"></script>
 
 <script type="text/javascript"
         src=""
@@ -22,7 +22,7 @@
 
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20150730"></script>
+        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20150916"></script>
 
 <script id="field-json" type="application/json" tal:content="view/fields_json"></script>
 

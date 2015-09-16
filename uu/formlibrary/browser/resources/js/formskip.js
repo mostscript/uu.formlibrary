@@ -137,7 +137,6 @@ var formskip = (function ($) {
       );
     },
     Gt: function (query, actual) {
-      console.log(query, actual, ns.normalizedActual(query, actual));
       return ns.normalizedActual(query, actual) > query;
     },
     Lt: function (query, actual) {
@@ -338,6 +337,64 @@ var formskip = (function ($) {
     }
     container.removeClass('disabled');
   };
+
+  ns.actions._styleByUID = function (uid) {
+    var head = $('head'),
+        styleid = 'stylesfor-' + uid,
+        style = $('style#' + styleid);
+    if (!style.length) {
+      style = $('<style>').attr('id', styleid).appendTo(head);
+    }
+    return style;
+  };
+
+  ns.actions._escapeId = function (id) {
+    if (id && /^\d$/.test(id[0])) {
+      id = '\\3' + id[0] + ' ' + id.slice(1);  // escape leading digit/hexdigit
+    }
+    id = id.replace('~', '\\~');               // escape tilde, if applicable
+    return id;
+  };
+
+   ns.actions._highlightCSS = function (container, action, opts) {
+    var divId = ns.actions._escapeId(container.attr('id')),
+        result = '#' + divId + ' {\nXXX\n}\n',
+        message = action.message,
+        msgRule = '\n\n#' + divId + ':after {\nXXX\n}',
+        after,
+        rules = '  background-color: ' + (opts.color || '#ff9') + ';';
+    result = result.replace('XXX', rules);
+    if (typeof message === 'string') {
+      after = 'content: "' + message + '";\n';
+      after += 'font-weight:bold;';
+      msgRule = msgRule.replace('XXX', after);
+      result += msgRule;
+    }
+    return result;
+  };
+
+  ns.actions.highlight = function (form, action, opts) {
+    var container = ns.fieldDiv(form, action.field),
+        divId = ns.actions._escapeId(container.attr('id')),
+        styleuid = ns.uuid4(),
+        style = ns.actions._styleByUID(styleuid);
+    ns.actions.remove_highlights(form, action, opts);
+    container.addClass('highlighted-field');
+    style.append(ns.actions._highlightCSS(container, action, opts));
+    container.attr('data-highlight-style', 'stylesfor-' + styleuid);
+  };
+
+  ns.actions.remove_highlights = function (form, action, opts) {
+    var container = ns.fieldDiv(form, action.field),
+        divId = ns.actions._escapeId(container.attr('id')),
+        styleId = container.attr('data-highlight-style');
+    if (styleId) {
+      $('#' + styleId).remove();
+      container.removeAttr('data-highlight-style');
+    }
+    container.removeClass('highlighted-field');
+  };
+
   return ns;
 
 }(jQuery));

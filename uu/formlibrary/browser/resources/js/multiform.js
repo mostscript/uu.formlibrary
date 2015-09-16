@@ -135,6 +135,17 @@ uu.formlibrary.multiform.formnotes = function() {
   return v;
 };
 
+/* field get/set helpers, given form/fieldname context */
+
+uu.formlibrary.multiform.getValue = function (form, fieldname) {
+  /** TODO */
+  return uu.formlibrary.multiform.getform(form.attr('id'))[fieldname];
+};
+
+uu.formlibrary.multiform.setValue = function (form, fieldname, value) {
+  /** TODO */
+};
+
 /* output object bundling form grid data (entries) and entry notes */
 uu.formlibrary.multiform.formbundle = function() {
   var o = {};

@@ -150,11 +150,6 @@ var formskip = (function ($) {
     }
   };
 
-  ns.formData = function (form) {
-    /* Get data for form, defer to native form implementation */
-    return uu.formlibrary.multiform.getform(form.attr('id'));
-  };
-
   ns.loadRule = function (rule) {
     var uid = ns.uuid4();
     if (!rule || !rule.when || !(rule.when.query instanceof Array)) return;
@@ -184,9 +179,8 @@ var formskip = (function ($) {
   };
 
   ns.fieldValue = function (form, fieldname) {
-    var fieldDiv = ns.fieldDiv(form, fieldname),
-        formData = ns.formData(form);
-    return formData[fieldname];
+    /* delegate to implementation to get a field value given form, fieldname */
+    return uu.formlibrary.multiform.getValue(form, fieldname);
   };
 
   ns.getComparator = function (name) {

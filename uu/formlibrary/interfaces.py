@@ -355,6 +355,12 @@ class IFieldGroup(IDefinitionBase):
         required=True,
         )
 
+    description = schema.Text(
+        title=u'Description',
+        description=u'Optional description of this field group,',
+        required=False,
+        )
+
     group_usage = schema.Choice(
         title=u'Field group usage',
         description=u'What type of use is expected for this field group?',

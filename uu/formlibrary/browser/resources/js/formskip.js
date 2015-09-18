@@ -88,6 +88,14 @@ var formskip = (function ($) {
     return actual;
   };
 
+  ns.escapeId = function (id) {
+    if (id && /^\d$/.test(id[0])) {
+      id = '\\3' + id[0] + ' ' + id.slice(1);  // escape leading digit/hexdigit
+    }
+    id = id.replace('~', '\\~');               // escape tilde, if applicable
+    return id;
+  };
+
   // mapping of rules: keys are uuids assigned at load time, values rule obj.
   ns.rules = {};
 
@@ -172,7 +180,7 @@ var formskip = (function ($) {
   };
 
   ns.fieldDiv = function (form, fieldname) {
-    var prefix = $(form).attr('id'),
+    var prefix = ns.escapeId($(form).attr('id')),
         sep = '\\~-',  // escape tilde (legal html5 char) to make jQuery happy
         fieldSpec = '#' + prefix + '\\~-' + fieldname;
     return $(fieldSpec, form);
@@ -342,16 +350,8 @@ var formskip = (function ($) {
     return style;
   };
 
-  ns.actions._escapeId = function (id) {
-    if (id && /^\d$/.test(id[0])) {
-      id = '\\3' + id[0] + ' ' + id.slice(1);  // escape leading digit/hexdigit
-    }
-    id = id.replace('~', '\\~');               // escape tilde, if applicable
-    return id;
-  };
-
    ns.actions._highlightCSS = function (container, action, opts) {
-    var divId = ns.actions._escapeId(container.attr('id')),
+    var divId = ns.escapeId(container.attr('id')),
         result = '#' + divId + ' {\nXXX\n}\n',
         message = action.message,
         msgRule = '\n\n#' + divId + ':after {\nXXX\n}',
@@ -369,7 +369,7 @@ var formskip = (function ($) {
 
   ns.actions.highlight = function (form, action, opts) {
     var container = ns.fieldDiv(form, action.field),
-        divId = ns.actions._escapeId(container.attr('id')),
+        divId = ns.escapeId(container.attr('id')),
         styleuid = ns.uuid4(),
         style = ns.actions._styleByUID(styleuid);
     ns.actions.remove_highlights(form, action, opts);
@@ -380,7 +380,7 @@ var formskip = (function ($) {
 
   ns.actions.remove_highlights = function (form, action, opts) {
     var container = ns.fieldDiv(form, action.field),
-        divId = ns.actions._escapeId(container.attr('id')),
+        divId = ns.escapeId(container.attr('id')),
         styleId = container.attr('data-highlight-style');
     if (styleId) {
       $('#' + styleId).remove();

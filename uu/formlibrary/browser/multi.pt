@@ -28,7 +28,7 @@
 
 </metal:block>
 <metal:block fill-slot="style_slot">
- <link rel="stylesheet" media="all" href="++resource++formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++formlibrary.css?api=20150815" type="text/css" />
+ <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++formlibrary.css?api=20150815" type="text/css" />
 
 <style tal:condition="python:'form_css' in view.seriesinfo" tal:content="view/seriesinfo/form_css"></style>
 <style tal:condition="python:view.definition.form_css" tal:content="view/definition/form_css" />

@@ -179,9 +179,9 @@
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
-  <browser:resource
-    name="formlibrary.css"
-    file="resources/formlibrary.css"
+  <browser:resourceDirectory
+    name="uu.formlibrary.css"
+    directory="resources/css"
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 

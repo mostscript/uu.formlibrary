@@ -364,7 +364,7 @@ class MeasureDefinition(Item):
             return []
         series_start = min(start_dates)
         points = sorted(
-            self.points(seq),
+            [self._datapoint(context) for context in seq],
             key=lambda info: info.get('start', None),
             )  # sorted, un-normalized time-series of points
         _previous_points = lambda idx: points[:idx]

@@ -1,3 +1,4 @@
+from copy import copy
 import datetime
 from itertools import chain
 import math
@@ -363,8 +364,9 @@ class MeasureDefinition(Item):
         if not start_dates:
             return []
         series_start = min(start_dates)
+        # get sorted sequence of throw-away COPIES of points:
         points = sorted(
-            [self._datapoint(context) for context in seq],
+            map(copy, self.points(seq)),
             key=lambda info: info.get('start', None),
             )  # sorted, un-normalized time-series of points
         _previous_points = lambda idx: points[:idx]

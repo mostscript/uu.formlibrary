@@ -107,11 +107,17 @@ uu.queryschema = (function ($, ns, uu, core, global) {
   ns.Schema = function Schema(data) {
 
     this.init = function (data) {
-      var pairs = data;
-      // superclass ctor wants Array of k/v pair tuple arrays
-      if (!(data instanceof Array) && data) {
-        pairs = Object.keys(data).map(function (name) {
-          return [name, new ns.Field(name, data[name])];
+      var normalize = function (pair) {
+        var key = pair[0],
+            value = pair[1];
+        return [key, new ns.Field(key, value)];
+      },
+      pairs = (data instanceof Array) ? data.map(normalize) : null;
+      if (data && !pairs) {
+        // superclass ctor wants Array of k/v pair tuple arrays
+        pairs = Object.keys(data).map(function (key) {
+          var value = data[key];
+          return normalize([key, value]);
         }, this);
       }
       ns.Schema.prototype.init.call(this, {iterable: pairs});
@@ -1214,7 +1220,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     cAjax({
       url: schemaURL(),
       success: function (data) {
-        ns.schema = new uu.queryschema.Schema(data);
+        ns.schema = new uu.queryschema.Schema(data.entries);
         ns.comparators = new uu.queryschema.Comparators(ns.schema);
         ns.advancedEditorReady();
       }

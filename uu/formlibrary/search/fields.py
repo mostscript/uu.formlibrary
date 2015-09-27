@@ -130,7 +130,7 @@ class SearchableFields(object):
         return name in self._fieldnames
 
     def __call__(self, *args, **kwargs):
-        return dict((k, v()) for k, v in self.iteritems())
+        return {'entries': list((k, v()) for k, v in self.iteritems())}
 
     def publish_json(self):
         msg = json.dumps(self(), indent=2)
@@ -154,4 +154,16 @@ class SearchableFields(object):
         if request:
             return self, ('publish_json',)
         return self, ()
+
+
+class SearchableFieldsView(object):
+    """Simple view proxy to searchable fields"""
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def __call__(self, *args, **kwargs):
+        adapter = SearchableFields(self.context, self.request)
+        return adapter.publish_json()
 

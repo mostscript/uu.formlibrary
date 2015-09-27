@@ -55,6 +55,16 @@
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     allowed_attributes="fields comparators"
     />
+
+  <!-- make field schema JSON available to form definition context -->
+  
+  <browser:page
+    name="schemajson"
+    for="uu.formlibrary.interfaces.IFormDefinition"
+    class=".fields.SearchableFieldsView"
+    permission="zope2.View"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    />
  
   <!-- resources: js, css, images -->
 

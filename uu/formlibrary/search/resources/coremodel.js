@@ -143,6 +143,9 @@ window[COREMODELNS] = (function ($, core) {
       this.context = args.context;
       this.target = args.target;
       this.observers = [];
+      if (args.namespace && typeof args.namespace === 'string') {
+        this._ns = kwargs.namespace;
+      }
     };
 
     // pre/post sync hooks for use by subclases:

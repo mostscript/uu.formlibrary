@@ -145,6 +145,11 @@
   <input class="numrows" style="width:2em;" value="1"><input id="btn-addrow" name="addrow" type="button" value="&#x271a; Add row(s)" />
 </form>
 
+
+  <br />
+<form tal:condition="python: view.VIEWNAME=='edit'" id="coredata" method="POST">
+  <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->
+
   <div class="form-notes">
     <h4>Process changes or notes</h4>
     <textarea tal:condition="python: view.VIEWNAME=='edit'" class="entry_notes"
@@ -153,9 +158,8 @@
     </div>
   </div>
 
-<form tal:condition="python: view.VIEWNAME=='edit'" id="coredata" method="POST">
-  <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->
   <input type="hidden" name="payload" id="payload" value="" />
+  <br />
   <input id="btn-saveform" name="saveform" type="submit" value="&#x2714; Save form as draft" />
   <input id="btn-savesubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
 </form>

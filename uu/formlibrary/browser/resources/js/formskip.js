@@ -356,7 +356,8 @@ var formskip = (function ($) {
         message = action.message,
         msgRule = '\n\n#' + divId + ':after {\nXXX\n}',
         after,
-        rules = '  background-color: ' + (opts.color || '#ff9') + ';';
+        color = action.color || '#ff9',
+        rules = '  background-color: ' + color + ';';
     result = result.replace('XXX', rules);
     if (typeof message === 'string') {
       after = 'content: "' + message + '";\n';

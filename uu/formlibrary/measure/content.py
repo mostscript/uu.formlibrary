@@ -162,7 +162,8 @@ class MeasureDefinition(Item):
 
     def _normalized_flex_value(self, record, name):
         """Get, return value and duck-type non-numeric values"""
-        v = original = getattr(record, name, NOVALUE) or NOVALUE
+        v = original = getattr(record, name, NOVALUE)
+        v = v if v is not None else NOVALUE
         if v is not NOVALUE and not isnumber(v):
             if isinstance(v, basestring):
                 # Look for yes, no, n/a type choice answers as 0, 1, NOVALUE:

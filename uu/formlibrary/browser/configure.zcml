@@ -16,6 +16,14 @@
     />
 
   <browser:page
+    name="fieldrules"
+    for="uu.formlibrary.interfaces.IFormDefinition"
+    class=".fieldrules.FieldRulesView"
+    template="fieldrules.pt"
+    permission="cmf.ModifyPortalContent"
+    />
+
+  <browser:page
     name="form_entry"
     for="uu.formlibrary.interfaces.ISimpleForm"
     class=".definition.FormInputView"

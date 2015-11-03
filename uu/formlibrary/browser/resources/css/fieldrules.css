@@ -1,0 +1,179 @@
+#fieldrules {
+  list-style: decimal inside;
+}
+
+#fieldrules:empty:before {
+  color:#999;
+  font-size:150%;
+  font-style: italic;
+  line-height: 250%;
+  content:"There are no field rules assigned to this form; click the add button above to add a rule.";
+}
+
+#fieldrules > li {
+  list-style-type:inherit;
+  display:list-item;
+  background-color:#ddd;
+  margin:0.3em 0 0.8em 0.1em;
+  padding:0.6em;
+  border-left:1em solid SteelBlue;
+  font-size:15px;
+  font-style:italic;
+  color:#999;
+}
+
+#fieldrules > li .fieldrule {
+  color:black;
+  margin:-2.7em 0.4em 0 1.8em;
+  font-size:12px;
+  font-style:normal;
+  position:relative;
+}
+
+#fieldrules > li .fieldrule .rule-menu {
+  z-index:1000;
+  position:absolute;
+  right:0;
+  top:0;
+  padding-top:0.2em;
+  font-size:32px;
+  font-weight:bold;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul {
+  display:none;
+  z-index:1000;
+  list-style: none inside;
+  background-color:rgba(255, 255, 255, 0.75);
+  margin-top:-0.75em;
+  padding:3.25em 0.75em 0.75em 0.75em;
+  font-size:14px;
+  font-weight:bold;
+}
+
+
+#fieldrules > li .fieldrule .rule-menu > a {
+  display:block;
+  float:right;
+  color:#666;
+  border-bottom:none;
+}
+
+#fieldrules > li .fieldrule .rule-menu a:hover {
+  color:black !important;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a {
+  border-bottom:none;
+  color:#678;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a:before {
+  font-size:140%;
+  width:1em;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.move-bottom:before {
+  content:"◛ ";
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.move-top:before {
+  content:"◚ ";
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.move-up:before {
+  content:"△ ";
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.move-down:before {
+  content:"▽ ";
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.delete-rule {
+  display:block;
+  padding: 0 0.5em;
+  margin-left: -0.5em;
+  color:#900;
+  height:12px;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.delete-rule span {
+  display:block;
+  margin:0;
+  margin-left:1.5em;
+  margin-top:-1.7em;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li a.delete-rule:before {
+  content:"✕ ";
+  color:red;
+}
+
+#fieldrules > li label {
+  color:#999;
+}
+
+#fieldrules > li .record-filter {
+  border:none;
+}
+
+#fieldrules .rule-meta div.field-rule-title {
+  margin-bottom:0.4em;
+}
+
+#fieldrules .rule-meta div.field-rule-title ::-moz-placeholder {
+  color:SteelBlue;
+}
+
+#fieldrules .rule-meta div.field-rule-title ::-ms-input-placeholder{
+  color:purple;
+}
+
+#fieldrules .rule-meta div.field-rule-title ::-webkit-input-placeholder {
+  color:purple;
+}
+
+#fieldrules .rule-meta input.rule-title {
+  margin-left:0.5em;
+  padding-left:0.2em;
+  border:none;
+  border-bottom:1px solid #999;
+  background-color:#d9d9d9;
+  font-size:150%;
+}
+
+#fieldrules .rule-meta textarea {
+  margin-top:0.3em;
+  font-family: Arial, Helvetica;
+  font-size:120%;
+  border:none;
+  background-color:#fffff0;
+  padding:0.3em;
+  max-width:99%;
+  margin-right:0.5em;
+}
+
+#fieldrules .rule-part.rule-meta {
+  padding-top:0.7em;
+}
+
+#fieldrules .rule-part {
+  margin:-0.4em;
+  padding:0 0.4em 0.8em 0.4em;
+}
+
+#fieldrules .rule-part h3 {
+  background-color:#aaa;
+  background: linear-gradient(to bottom, rgba(160,160,160,0.7) 0%,rgba(0,0,0,0) 100%);
+  color:black;
+  margin: 0 -0.4em;
+  padding:0.5em;
+}
+
+#fieldrules .rule-part.rule-act h3 {
+  color:DarkGreen;
+}
+
+#fieldrules .rule-part.rule-otherwise h3 {
+  color:#8B0000;
+}

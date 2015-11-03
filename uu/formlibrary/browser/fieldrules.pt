@@ -1,0 +1,90 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/coremodel.js?api=20140515"></script>
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/queryeditor.js?api=20150514"></script>
+<script type="text/javascript"
+        src=""
+        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.js/ruleseditor.js?api=20150921"></script>
+<script type="text/html" id="rule-snippet">
+    <!-- each rule needs uuid-based id prefixed with rule-UID -->
+    <div id="PLACEHOLDER" class="fieldrule">
+      <div class="rule-menu">
+        <a href="javascript:void(0)" class="menubutton" title="Rule menu">☰</a>
+          <ul class="menu-choices">
+            <li><a href="javascript:void(0)" class="move-up">Move up</a></li>
+            <li><a href="javascript:void(0)" class="move-down">Move down</a></li>
+            <li><a href="javascript:void(0)" class="move-top">Move to top</a></li>
+            <li><a href="javascript:void(0)" class="move-bottom">Move to bottom</a></li>
+            <li><a href="javascript:void(0)" class="delete-rule"><span>Delete this rule</span></a></li>
+          </ul>
+      </div>
+      <div class="rule-part rule-meta">
+        <div class="field-rule-title">
+          <label>Rule title: </label>
+          <input class="rule-title" name="PLACEHOLDER" placeholder="Briefly describe your rule with a name or title." size="80" type="text" />
+        </div>
+        <div class="field-rule-description">
+          <label>Description / notes:</label>
+          <textarea class="rule-description" name="PLACEHOLDER" placeholder="Optional long description of or notes regarding rule."></textarea>
+        </div>
+      </div>
+      <div class="rule-part rule-when">
+        <h3>When the following criteria are met:</h3>
+        <div class="when record-filter">
+          <!-- replaced with record filter component; this div is its target -->
+        </div>
+      </div>
+      <div class="rule-part rule-act">
+        <h3>Act as follows:</h3>
+        <a class="add-action" href="javascript:void(0)" title="Add a new action to take when rule is matched.">
+          Add an action
+        </a>
+        <ul class="actions">
+          <!-- actions added as needed -->
+        </ul>
+      </div>
+      <div class="rule-part rule-otherwise">
+        <h3>Otherwise, take following actions:</h3>
+        <a class="add-action" href="javascript:void(0)" title="Add a new action to take when rule is matched.">
+          Add an action
+        </a>
+        <ul class="actions">
+        </ul>
+      </div>
+    </div>
+</script>
+<script type="text/html" id="rule-menu-snippet">
+  <!-- menu for rule -->
+  <div class="rulemenu">
+  </div>
+</script>
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+    <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/fieldrules.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.css/fieldrules.css" type="text/css" />
+    <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/queryeditor.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/queryeditor.css" type="text/css" />
+<style>
+</style>
+  </metal:block>
+</head>
+<body>
+<div metal:fill-slot="main">
+  <h2 class="fieldrules-title">Field rules for <span tal:content="context/Title">TITLE</span></h2>
+
+  <div class="rulesmanger">
+    <a class="addrule" href="javascript:void(0)">Add a rule</a>
+    <ol id="fieldrules">
+    </ol> 
+  </div>
+</div>
+</body>
+</html>

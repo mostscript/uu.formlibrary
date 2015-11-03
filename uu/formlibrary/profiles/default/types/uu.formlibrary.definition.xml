@@ -59,6 +59,11 @@
          visible="True">
     <permission value="Modify portal content"/>
   </action>
+  <action title="Field rules" action_id="fieldrules" category="object"
+         condition_expr="" url_expr="string:${object_url}/@@fieldrules"
+         visible="True">
+    <permission value="Modify portal content"/>
+  </action>
   <!-- conditional action: "In Use" tab only shows up when
         definition is actually in use (via reference) by a
         form instance or measure group in the site. -->

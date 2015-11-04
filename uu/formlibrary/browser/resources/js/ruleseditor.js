@@ -138,7 +138,7 @@ var ruleseditor = (function ($) {
 
     this.initWhen = function () {
       var uid = ns.uuid4(),
-          whenTarget = $('.rule-when', this.target);
+          whenTarget = $('.rule-when .when', this.target);
         whenTarget.attr('id', uid);
       this.critEditor = new uu.queryeditor.RecordFilter({
         context: this,

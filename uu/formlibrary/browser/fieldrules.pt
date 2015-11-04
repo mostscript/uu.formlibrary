@@ -80,8 +80,8 @@
 <div metal:fill-slot="main">
   <h2 class="fieldrules-title">Field rules for <span tal:content="context/Title">TITLE</span></h2>
 
-  <div class="rulesmanger">
-    <a class="addrule" href="javascript:void(0)">Add a rule</a>
+  <div class="rulesmanager">
+    <a class="addrule" href="javascript:void(0)">+ Add a rule</a>
     <ol id="fieldrules">
     </ol> 
   </div>

@@ -2,20 +2,39 @@
   list-style: decimal inside;
 }
 
+#content ol#fieldrules {
+  margin-left:0;
+}
+
 #fieldrules:empty:before {
   color:#999;
-  font-size:150%;
+  font-size:140%;
   font-style: italic;
   line-height: 250%;
   content:"There are no field rules assigned to this form; click the add button above to add a rule.";
 }
 
+.rulesmanager {
+  margin:0.5em 0;
+}
+
+.rulesmanager .addrule {
+  display:block;
+  width:5.5em;
+  text-align:center;
+  border:1px solid #789;
+  background-color:#dfe;
+  padding:0.5em;
+  border-radius:0.3em;
+  margin:0.5em 0;
+}
+
 #fieldrules > li {
   list-style-type:inherit;
   display:list-item;
-  background-color:#ddd;
+  background-color:#edf2f5;
   margin:0.3em 0 0.8em 0.1em;
-  padding:0.6em 0.1em;
+  padding: 0.4em 0.1em 0.3em 0.4em;
   border-left:1em solid SteelBlue;
   font-size:15px;
   font-style:italic;
@@ -46,11 +65,12 @@
   z-index:1000;
   list-style: none inside;
   background-color:rgba(240, 240, 255, 0.85);
-  margin-top:-0.25em;
-  padding:2.5em 0.75em 0.75em 0.75em;
+  margin-top:-0.2em;
+  padding:2em 0.75em 0.75em 0.75em;
   font-size:14px;
   font-weight:bold;
   border:1px dotted #bbb;
+  box-shadow: -2px 2px 5px #789;
 }
 
 
@@ -191,8 +211,9 @@
   background-color:#aaa;
   background: linear-gradient(to bottom, rgba(160,160,160,0.7) 0%,rgba(0,0,0,0) 100%);
   color:black;
-  margin: 0 -0.4em;
-  padding:0.5em;
+  margin: 0px -0.4em 0px -1.8em;
+  padding:0.2em 0.5em;
+  clear:both;
 }
 
 #fieldrules .rule-part.rule-act h3 {
@@ -201,4 +222,15 @@
 
 #fieldrules .rule-part.rule-otherwise h3 {
   color:#8B0000;
+}
+
+#fieldrules .when.record-filter {
+  box-shadow:none;
+  border:1px solid rgb(170, 187, 204);
+  background-color:transparent;
+}
+
+#fieldrules table.queries th {
+  background-color: #abc;
+  color: #456;
 }

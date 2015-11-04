@@ -100,7 +100,7 @@ var ruleseditor = (function ($) {
       this.context.order.moveToBottom(this.id);
     };
 
-    this.menuChoiceClick = function (link) {
+    this.menuChoiceClick = function (menu, link) {
       // dispatch based on classname of context
       var handlers = {
           'move-up': this.moveUp,
@@ -119,6 +119,9 @@ var ruleseditor = (function ($) {
       );
       if (handler) {
         handler.bind(this)();
+        if (!link.hasClass('delete-rule')) {
+          menu.toggle();
+        }
       }
     };
 
@@ -132,7 +135,7 @@ var ruleseditor = (function ($) {
       });
       // click handlers on menu choices:
       $('li a', menu).click(function () {
-        choiceClick($(this));
+        choiceClick(menu, $(this));
       });
     };
 

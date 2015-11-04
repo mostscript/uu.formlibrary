@@ -15,7 +15,7 @@
   display:list-item;
   background-color:#ddd;
   margin:0.3em 0 0.8em 0.1em;
-  padding:0.6em;
+  padding:0.6em 0.1em;
   border-left:1em solid SteelBlue;
   font-size:15px;
   font-style:italic;
@@ -35,8 +35,9 @@
   position:absolute;
   right:0;
   top:0;
-  padding-top:0.2em;
-  font-size:32px;
+  margin-right:-0.2em;
+  padding-top:0.1em;
+  font-size:26px;
   font-weight:bold;
 }
 
@@ -44,11 +45,12 @@
   display:none;
   z-index:1000;
   list-style: none inside;
-  background-color:rgba(255, 255, 255, 0.75);
-  margin-top:-0.75em;
-  padding:3.25em 0.75em 0.75em 0.75em;
+  background-color:rgba(240, 240, 255, 0.85);
+  margin-top:-0.25em;
+  padding:2.5em 0.75em 0.75em 0.75em;
   font-size:14px;
   font-weight:bold;
+  border:1px dotted #bbb;
 }
 
 
@@ -61,6 +63,15 @@
 
 #fieldrules > li .fieldrule .rule-menu a:hover {
   color:black !important;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li {
+  border-top:1px solid #bcd;
+  padding-top:0.1em;
+}
+
+#fieldrules > li .fieldrule .rule-menu ul li:first-child {
+  border-top:none;
 }
 
 #fieldrules > li .fieldrule .rule-menu ul li a {
@@ -110,7 +121,16 @@
 }
 
 #fieldrules > li label {
-  color:#999;
+  color: #999;
+}
+
+#fieldrules > li .rule-meta label {
+  display: block;
+  width: 9em;
+  float: left;
+  clear:both;
+  text-align: right;
+  font-weight: normal;
 }
 
 #fieldrules > li .record-filter {
@@ -134,23 +154,28 @@
 }
 
 #fieldrules .rule-meta input.rule-title {
+  float:left;
+  width:75%;
   margin-left:0.5em;
+  margin-right:1.5em;
   padding-left:0.2em;
   border:none;
-  border-bottom:1px solid #999;
+  border-bottom:1px solid #bbb;
   background-color:#d9d9d9;
-  font-size:150%;
+  font-size:120%;
 }
 
 #fieldrules .rule-meta textarea {
-  margin-top:0.3em;
-  font-family: Arial, Helvetica;
-  font-size:120%;
-  border:none;
-  background-color:#fffff0;
-  padding:0.3em;
-  max-width:99%;
-  margin-right:0.5em;
+  font-family: Arial,Helvetica;
+  font-size: 110%;
+  border: medium none;
+  background-color: #FFFFF6;
+  padding: 0.3em;
+  max-width: 74%;
+  float: left;
+  margin: 0.3em 0.5em;
+  color: #888;
+  height: 2.2em;
 }
 
 #fieldrules .rule-part.rule-meta {

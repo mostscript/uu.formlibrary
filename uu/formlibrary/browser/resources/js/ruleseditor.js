@@ -52,6 +52,18 @@ var ruleseditor = (function ($) {
       this.add(rule);
     };
 
+    this.collapseAll = function () {
+      this.values().forEach(function (rule) {
+        rule.collapse();
+      });
+    };
+
+    this.expandAll = function () {
+      this.values().forEach(function (rule) {
+        rule.expand();
+      });
+    };
+
     this.tableOfContents = function () {
       /** returns ToC data as id, title pairs */
       return this.values().map(
@@ -106,7 +118,16 @@ var ruleseditor = (function ($) {
 
     this.syncTarget = function (observed) {
       if (!(observed instanceof ns.FieldRule)) {
+        // sync table of contents
         this.syncTOC();  // only on effect of container event, not rule ctor
+        // adjust z-index (decrementing) on list items within:
+        this.values().forEach(function (rule, idx) {
+          var item = rule.target.parent();
+          item.css({
+            'position': 'relative',
+            'z-index': '' + (maxIndex - idx)
+          });
+        });
       }
     };
 
@@ -135,6 +156,14 @@ var ruleseditor = (function ($) {
 
     this.moveToBottom = function () {
       this.context.order.moveToBottom(this.id);
+    };
+
+    this.collapse = function () {
+      this.target.parent().addClass('collapsed');
+    };
+
+    this.expand = function () {
+      this.target.parent().removeClass('collapsed');
     };
 
     this.menuChoiceClick = function (menu, link) {

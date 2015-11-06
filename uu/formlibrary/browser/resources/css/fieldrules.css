@@ -1,5 +1,6 @@
 #fieldrules {
   list-style: decimal inside;
+  min-height:10em;
 }
 
 #content ol#fieldrules {
@@ -11,7 +12,7 @@
   font-size:140%;
   font-style: italic;
   line-height: 250%;
-  content:"There are no field rules assigned to this form; click the add button above to add a rule.";
+  content:"There are no field rules assigned to this form; click the add button below to add a rule.";
 }
 
 .rulesmanager {
@@ -35,7 +36,7 @@
   background-color:#edf2f5;
   margin:0.3em 0 0.8em 0.1em;
   padding: 0.4em 0.1em 0.3em 0.4em;
-  border-left:1em solid SteelBlue;
+  border-left: 0.6em solid #789;
   font-size:15px;
   font-style:italic;
   color:#999;
@@ -48,6 +49,26 @@
   font-style:normal;
   position:relative;
 }
+
+#fieldrules > li.collapsed {
+  background-color: #efefe0;
+  border-left: 0.2em solid black;
+  border-bottom: 4px dotted #abc;
+}
+
+#fieldrules > li.collapsed .fieldrule {
+}
+
+#fieldrules > li.collapsed .fieldrule .rule-part {
+  display:none;
+}
+
+#fieldrules > li.collapsed .fieldrule .rule-part.rule-meta {
+  display:block;
+  height: 1.0em;
+  overflow-y: hidden;
+}
+
 
 #fieldrules > li .fieldrule .rule-menu {
   z-index:1000;
@@ -203,13 +224,13 @@
 }
 
 #fieldrules .rule-part {
-  margin:-0.4em;
+  margin:0;
   padding:0 0.4em 0.8em 0.4em;
 }
 
 #fieldrules .rule-part h3 {
   background-color:#aaa;
-  background: linear-gradient(to bottom, rgba(160,160,160,0.7) 0%,rgba(0,0,0,0) 100%);
+  background: linear-gradient(to bottom, rgba(200, 210, 220, 0.7) 0%, transparent 100%) repeat scroll 0% 0%;
   color:black;
   margin: 0px -0.4em 0px -1.8em;
   padding:0.2em 0.5em;

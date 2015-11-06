@@ -4,7 +4,8 @@ var ruleseditor = (function ($) {
   "use strict";
   
   var ns = {},
-      core = coremodel;
+      core = coremodel,
+      maxIndex = Math.pow(2, 31) - 1;  // max css z-index in 32-bit browsers
  
   ns.uuid4_tmpl = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
   ns.uuid4 = function () {
@@ -51,6 +52,20 @@ var ruleseditor = (function ($) {
       this.add(rule);
     };
 
+    this.tableOfContents = function () {
+      /** returns ToC data as id, title pairs */
+      return this.values().map(
+        function (rule) {
+          var target = rule.target,
+              title = $('.rule-title', target).val();
+          return {
+            id: rule.id,
+            title: title
+          };
+        }
+      );
+    };
+
     this.ruleItem = function (k) {
       return $('#rule-' + k, this.target).parent();
     };
@@ -69,8 +84,30 @@ var ruleseditor = (function ($) {
         },
         this
       );
-      console.log(previous, current, note);
       ns.FieldRules.prototype.onReorder.apply(this, [previous, current, note]);
+    };
+
+    this.syncTOC = function () {
+      var data = this.tableOfContents(),
+          tocTarget = $('.rules-toc', this.target.parent()),
+          listing = $('<ol class="rule-links">');
+      tocTarget.empty();
+      listing.appendTo(tocTarget);
+      data.forEach(function (linkData, i) {
+          var href = '#rule-' + linkData.id,
+              item = $('<li>').appendTo(listing),
+              link = $('<a class="toc-link">').appendTo(item);
+          link.attr('href', href);
+          link.text(linkData.title || ' (Untitled rule)');
+        },
+        this
+      );
+    };
+
+    this.syncTarget = function (observed) {
+      if (!(observed instanceof ns.FieldRule)) {
+        this.syncTOC();  // only on effect of container event, not rule ctor
+      }
     };
 
     this.init(options);
@@ -128,7 +165,8 @@ var ruleseditor = (function ($) {
     this.initControls = function () {
       var menuButton = $('a.menubutton', this.target),
           menu = $('ul.menu-choices', this.target),
-          choiceClick = this.menuChoiceClick.bind(this);
+          choiceClick = this.menuChoiceClick.bind(this),
+          self = this;
       // click handler for main menu button for rule:
       menuButton.click(function () {
         menu.toggle();
@@ -136,6 +174,10 @@ var ruleseditor = (function ($) {
       // click handlers on menu choices:
       $('li a', menu).click(function () {
         choiceClick(menu, $(this));
+      });
+      // TOC sync on title edit:
+      $('.rule-meta .rule-title', this.target).on('input', function () {
+        self.context.syncTOC();
       });
     };
 
@@ -161,6 +203,11 @@ var ruleseditor = (function ($) {
       // TODO: init act
       // TODO: init otherwise
     }; 
+
+    this.position = function () {
+      /** position of this rule in its parent, calculated */
+      return this.context.keys().indexOf(this.id);
+    };
 
     this.init(options);
   };
@@ -210,7 +257,12 @@ var ruleseditor = (function ($) {
     ns.snippets.rule = ruleSnippet;
   };
 
+  ns.pageFixes = function () {
+    $('base', $('head')).remove();
+  };
+
   ns.initEditor = function () {
+    ns.pageFixes();
     ns.initSnippets();
     ns.loadSchema(ns.ready);
   };

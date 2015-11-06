@@ -81,9 +81,14 @@
   <h2 class="fieldrules-title">Field rules for <span tal:content="context/Title">TITLE</span></h2>
 
   <div class="rulesmanager">
-    <a class="addrule" href="javascript:void(0)">+ Add a rule</a>
+    <div class="rules-meta">
+      <div class="rules-toc"></div>
+    </div>
     <ol id="fieldrules">
     </ol> 
+    <div class="below-rules">
+      <a class="addrule" href="javascript:void(0)">+ Add a rule</a>
+    </div>
   </div>
 </div>
 </body>

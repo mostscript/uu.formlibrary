@@ -1,10 +1,22 @@
 #fieldrules {
+  position:relative;
+  z-index:10;
   list-style: decimal inside;
-  min-height:10em;
+  min-height:15em;
+}
+
+#fieldrules:empty {
+  min-height:5em;
 }
 
 #content ol#fieldrules {
   margin-left:0;
+}
+
+.below-rules {
+  position:relative;
+  z-index:5;
+  min-height:5em;
 }
 
 #fieldrules:empty:before {

@@ -82,6 +82,7 @@
 
   <div class="rulesmanager">
     <div class="rules-meta">
+      <h4>Rules table of contents</h4>
       <div class="rules-toc"></div>
     </div>
     <ol id="fieldrules">

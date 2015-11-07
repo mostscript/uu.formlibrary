@@ -81,6 +81,9 @@
   overflow-y: hidden;
 }
 
+#fieldrules > li.collapsed .fieldrule .rule-part.rule-meta .rule-description {
+  display:none;
+}
 
 #fieldrules > li .fieldrule .rule-menu {
   z-index:1000;

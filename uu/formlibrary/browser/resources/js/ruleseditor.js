@@ -72,6 +72,7 @@ var ruleseditor = (function ($) {
               title = $('.rule-title', target).val();
           return {
             id: rule.id,
+            rule: rule,
             title: title
           };
         }
@@ -111,6 +112,10 @@ var ruleseditor = (function ($) {
               link = $('<a class="toc-link">').appendTo(item);
           link.attr('href', href);
           link.text(linkData.title || ' (Untitled rule)');
+          link.click(function () {
+            linkData.rule.context.collapseAll();
+            linkData.rule.expand();
+          });
         },
         this
       );
@@ -162,7 +167,10 @@ var ruleseditor = (function ($) {
       this.target.parent().addClass('collapsed');
     };
 
-    this.expand = function () {
+    this.expand = function (exclusive) {
+      if (exclusive) {
+        this.context.collapseAll();
+      }
       this.target.parent().removeClass('collapsed');
     };
 
@@ -195,7 +203,8 @@ var ruleseditor = (function ($) {
       var menuButton = $('a.menubutton', this.target),
           menu = $('ul.menu-choices', this.target),
           choiceClick = this.menuChoiceClick.bind(this),
-          self = this;
+          self = this,
+          expand = function () { self.expand(true); };
       // click handler for main menu button for rule:
       menuButton.click(function () {
         menu.toggle();
@@ -208,6 +217,10 @@ var ruleseditor = (function ($) {
       $('.rule-meta .rule-title', this.target).on('input', function () {
         self.context.syncTOC();
       });
+      // make sure (only) this rule is expanded if title focused:
+      $('.rule-meta .rule-title', this.target).on('focus', expand);
+      // clicking on a rule should expand it:
+      this.target.parent().click(expand);
     };
 
     this.initWhen = function () {
@@ -231,6 +244,8 @@ var ruleseditor = (function ($) {
       this.initWhen();
       // TODO: init act
       // TODO: init otherwise
+      // Go to rule:
+      window.location.hash = 'rule-' + this.id;
     }; 
 
     this.position = function () {
@@ -256,6 +271,7 @@ var ruleseditor = (function ($) {
   // app init:
 
   ns.addRule = function () {
+    ns.rules.collapseAll();
     ns.rules.newRule();
   };
 

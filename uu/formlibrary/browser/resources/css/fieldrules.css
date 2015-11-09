@@ -46,9 +46,9 @@
   list-style-type:inherit;
   display:list-item;
   background-color:#edf2f5;
-  margin:0.3em 0 0.8em 0.1em;
+  margin:0.3em 0 0.8em 1.1em;
   padding: 0.4em 0.1em 0.3em 0.4em;
-  border-left: 0.6em solid #789;
+  border-left: 0.6em solid #ff0;
   font-size:15px;
   font-style:italic;
   color:#999;
@@ -66,6 +66,7 @@
   background-color: #efefe0;
   border-left: 0.2em solid black;
   border-bottom: 4px dotted #abc;
+  margin-left:0.1em;
 }
 
 #fieldrules > li.collapsed .fieldrule {
@@ -83,6 +84,11 @@
 
 #fieldrules > li.collapsed .fieldrule .rule-part.rule-meta .rule-description {
   display:none;
+}
+
+#fieldrules > li.collapsed .fieldrule .rule-part.rule-meta .rule-title {
+  font-weight:normal;
+  background-color:#d9d9d9;
 }
 
 #fieldrules > li .fieldrule .rule-menu {
@@ -217,8 +223,9 @@
   padding-left:0.2em;
   border:none;
   border-bottom:1px solid #bbb;
-  background-color:#d9d9d9;
+  background-color:#ff9;
   font-size:120%;
+  font-weight:bold;
 }
 
 #fieldrules .rule-meta textarea {

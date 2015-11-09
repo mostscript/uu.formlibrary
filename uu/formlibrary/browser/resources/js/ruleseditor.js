@@ -29,7 +29,21 @@ var ruleseditor = (function ($) {
     '  <label>Description / notes: </label>' +
     '  <textarea class="rule-description"></textarea>' +
     '</div>';
-  
+ 
+  ns.snippets.ACTION = '' + 
+    '<li class="rule-action">' +
+    '  <table class="action-spec">\n' +
+    '    <tr><th>Affected field</th><th>Action to take</th></tr>\n' +
+    '    <tr>\n' +
+    '      <td class="action-cell-field"></td>\n' + 
+    '      <td class="action-cell-act"></td>\n' + 
+    '    </tr>\n' +
+    '  </table>\n' +
+    '  <div class="action-control">\n' +
+    '    <a class="action-remove-link" href="javascript:void(0)">×</a>' +
+    '  </div>\n' +
+    '</li>\n';
+
   ns.snippets.WHENTITLE = '<h3>When following condition(s) are met:</h3>';
 
   // Core model for rules editor:
@@ -79,13 +93,13 @@ var ruleseditor = (function ($) {
       );
     };
 
-    this.ruleItem = function (k) {
-      return $('#rule-' + k, this.target).parent();
+    this.afterDelete = function (k, v) {
+      v.target.parent().remove();  // remove li wrapping target div
+      ns.FieldRules.prototype.afterDelete.apply(this, [k, v]);
     };
 
-    this.afterDelete = function (k, v) {
-      this.ruleItem(k).remove();  // sync dom, delete <li> element
-      ns.FieldRules.prototype.afterDelete.apply(this, [k, v]);
+    this.ruleItem = function (k) {
+      return $('#rule-' + k, this.target).parent();
     };
 
     this.onReorder = function (previous, current, note) {
@@ -237,13 +251,40 @@ var ruleseditor = (function ($) {
       });
     };
 
+    this.initAct = function () {
+      var container = $('.rule-part.rule-act', this.target),
+          listing = $('ul.actions', container),
+          self = this;
+      this.actions = new ns.RuleActions({
+        context: this,
+        target: listing,
+        schema: ns.schema,
+        namespace: 'fieldrule-act',
+        id: ns.uuid4()
+      });
+    };
+
+    this.initOtherwise = function () {
+      var otherwiseTarget = $('.rule-part.rule-otherwise ul.actions', this.target);
+      this.otherwise = new ns.RuleActions({
+        context: this,
+        target: otherwiseTarget,
+        schema: ns.schema,
+        namespace: 'fieldrule-otherwise',
+        id: ns.uuid4()
+      });
+    };
+
     this.init = function (options) {
       ns.FieldRule.prototype.init.apply(this, [options]);
       options.target.attr('id', 'rule-' + this.id);
       this.initControls();
+      // init "when" clause (record filter):
       this.initWhen();
-      // TODO: init act
-      // TODO: init otherwise
+      // init "act"
+      this.initAct();
+      // init "otherwise"
+      this.initOtherwise();
       // Go to rule:
       window.location.hash = 'rule-' + this.id;
     }; 
@@ -258,15 +299,64 @@ var ruleseditor = (function ($) {
   core.klass.subclasses(ns.FieldRule, core.Item);
 
   ns.RuleAction = function RuleAction(options) {
- 
+
     this.init = function (options) {
       ns.RuleAction.prototype.init.apply(this, [options]);
-      this.schema = schema || ns.schema;
+      this.schema = options.schema || ns.schema;
+      this.initUI();
+   };
+
+    this.remove = function () {
+      this.context.delete(this.id);
     };
- 
+
+    this.initUI = function () {
+      var self = this;
+      // set id based on namespace, id:
+      this.target.attr('id', this.targetId);
+      // init control (delete button):
+      $('a.action-remove-link', this.target).click(function () {
+        self.remove();
+      });
+      // add first row TODO to table in snippet
+      // hookup field chooser
+      // hookup actions chooser with choices: enable, disable, highlight, clear_highlights
+      // hookup actions extras in second row ?? or defer until extras applicable
+    };
+
     this.init(options);
   };
   core.klass.subclasses(ns.RuleAction, core.Item);
+
+  ns.RuleActions = function RuleActions(options) {
+ 
+    this.init = function (options) {
+      var self = this;
+      ns.RuleActions.prototype.init.apply(this, [options]);
+      $('a.add-action', this.target.parent()).click(function () {
+        self.newAction();
+      });
+    };
+
+    this.afterDelete = function (k, v) {
+      v.target.remove();  // sync dom, delete <li> element 
+      ns.RuleActions.prototype.afterDelete.apply(this, [k, v]);
+    };
+
+    this.newAction = function () {
+      var item = $(ns.snippets.ACTION).appendTo(this.target);
+      this.add(new ns.RuleAction({
+        context: this,
+        target: item,
+        schema: ns.schema,
+        namespace: 'fieldrule-action',
+        id: ns.uuid4()
+      }));
+    };
+
+    this.init(options);
+  };
+  core.klass.subclasses(ns.RuleActions, core.Container);
 
   // app init:
 

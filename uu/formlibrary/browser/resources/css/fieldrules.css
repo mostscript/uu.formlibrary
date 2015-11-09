@@ -270,3 +270,73 @@
   background-color: #abc;
   color: #456;
 }
+
+.rule-action {
+  list-style:none;
+  clear:both;
+  display:block;
+  margin-bottom: 1em;
+}
+
+.rule-otherwise .actions {
+  min-height:5em;
+}
+
+.rule-otherwise .actions li.rule-action {
+  min-height:1.2em;
+}
+
+table.action-spec {
+  table-layout: fixed;
+  width:98%;
+  margin: 0.1em 0.5em 0.1em -2em;
+  margin-top:0.1em;
+  margin-right:0.5em;
+  float:left;
+}
+
+table.action-spec tr {
+  border:1px solid #789;
+}
+
+.rule-action:first-of-type table.action-spec tr:first-of-type {
+  display:table-row;
+}
+
+table.action-spec tr:first-of-type {
+  display:none;
+  background-color: #282;
+  color:white;
+}
+
+.rule-otherwise table.action-spec tr:first-of-type {
+  background-color:#b61;
+}
+
+table.action-spec th, table.action-spec td {
+  padding:0.3em 0.5em;
+  border-left:1px solid #789;
+  min-height:1em;
+}
+
+table.action-spec td:empty {
+  height:1.1em;
+  empty-cells: show;
+}
+
+#fieldrules li .fieldrule .action-control .action-remove-link {
+  float:left;
+  font-size:200%;
+  border-bottom:none;
+  display:block;
+  margin-top:0.2em;
+}
+
+#fieldrules .fieldrule li.rule-action:first-of-type  .action-control .action-remove-link {
+  margin-top:1.3em;
+}
+
+.below-rules, #fieldrules li {
+  clear:both;
+}
+

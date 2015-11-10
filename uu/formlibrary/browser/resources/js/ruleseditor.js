@@ -18,6 +18,28 @@ var ruleseditor = (function ($) {
   ns.schema = null;
   ns.comparator = null;
 
+  // Actions vocabulary for drop-down:
+  ns.actions = {
+    disable: {
+      title: 'Disable field',
+      description: 'Field will be presented on form inaccessible to input ' +
+                   'and will be grayed out, marked as N/A.'
+    },
+    enable: {
+      title: 'Enable field',
+      description: 'Field will be enabled if previously disabled by rule.'
+    },
+    highlight: {
+      title: 'Highlight field',
+      description: 'Highlight a field using a background-color and optional ' +
+                   'message, which can be configured here.'
+    },
+    remove_highlights: {
+      title: 'Remove highlight',
+      description: 'Any highlight set by previously by a rule will be removed.'
+    }
+  };
+
   ns.snippets = {};
 
   ns.snippets.rule = '';  // should only be loaded on DOM ready
@@ -33,10 +55,16 @@ var ruleseditor = (function ($) {
   ns.snippets.ACTION = '' + 
     '<li class="rule-action">' +
     '  <table class="action-spec">\n' +
-    '    <tr><th>Affected field</th><th>Action to take</th></tr>\n' +
+    '    <tr>\n' +
+    '      <th class="action-header-field">Affected field</th>\n' +
+    '      <th class="action-header-act">Action to take</th>\n' + 
+    '    </tr>\n' +
     '    <tr>\n' +
     '      <td class="action-cell-field"></td>\n' + 
     '      <td class="action-cell-act"></td>\n' + 
+    '    </tr>\n' +
+    '    <tr>\n' +
+    '     <td class="action-cell-extras" colspan="2"></td>\n' +
     '    </tr>\n' +
     '  </table>\n' +
     '  <div class="action-control">\n' +
@@ -310,6 +338,84 @@ var ruleseditor = (function ($) {
       this.context.delete(this.id);
     };
 
+    this.initFieldChoices = function () {
+      var cell = $('.action-cell-field', this.target),
+          select = $('<select class="action-field">').appendTo(cell);
+      $('<option>--Select a value--</option>').appendTo(select);
+      ns.schema.keys().forEach(function (fieldname) {
+          var field = ns.schema.get(fieldname),
+              option = $('<option>').appendTo(select);
+          option.attr({
+            value: fieldname
+          });
+          option.text(field.title);
+        },
+        this
+      );
+    };
+
+    this.initActionChoices = function () {
+      var cell = $('.action-cell-act', this.target),
+          select = $('<select class="action-type">').appendTo(cell);
+      Object.keys(ns.actions).forEach(function (key) {
+          var option = $('<option>').appendTo(select),
+              meta = ns.actions[key];
+          option.attr({
+            value: key,
+            title: meta.description
+          });
+          option.text(meta.title);
+        },
+        this
+      );
+    };
+
+
+    this.loadExtras = function () {
+      var cell = $('.action-cell-extras', this.target),
+          properties = [
+            {
+              name: 'color',
+              label: 'Color',
+              default: '#ff9'
+            },
+            {
+              name: 'message',
+              label: 'Message (optional)'
+            }
+          ];
+      properties.forEach(function (actprop) {
+          var div = $('<div class="actprop">').appendTo(cell),
+              label = $('<label>').appendTo(div),
+              isColor = actprop.name === 'color',
+              inputTag = (isColor) ? '<input type="color">' : '<input>',
+              input = $(inputTag).appendTo(div); 
+          label.text(actprop.label);
+          if (actprop.name === 'color') {
+            div.css('border-right', '1em solid ' + actprop.default);
+            input.change(function () {
+              var color = input.val();
+              div.css('border-right', '1em solid ' + color);
+            });
+          }  
+        },
+        this
+      );
+      cell.show();
+    };
+
+    this.initExtras = function () {
+      var cell = $('.action-cell-act', this.target),
+          select = $('.action-type', cell),
+          self = this;
+      select.change(function () {
+        var choice = select.val();
+        if (choice === 'highlight') {
+          self.loadExtras();
+        }
+      });
+    };
+
     this.initUI = function () {
       var self = this;
       // set id based on namespace, id:
@@ -318,6 +424,9 @@ var ruleseditor = (function ($) {
       $('a.action-remove-link', this.target).click(function () {
         self.remove();
       });
+      this.initFieldChoices();
+      this.initActionChoices();
+      this.initExtras();
       // add first row TODO to table in snippet
       // hookup field chooser
       // hookup actions chooser with choices: enable, disable, highlight, clear_highlights

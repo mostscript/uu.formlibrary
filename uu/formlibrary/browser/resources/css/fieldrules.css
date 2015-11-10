@@ -347,3 +347,29 @@ table.action-spec td:empty {
   clear:both;
 }
 
+table.action-spec th.action-header-field,
+table.action-spec td.action-cell-field {
+  width:60%;
+}
+
+.add-action {
+  float: right;
+  border-bottom: none;
+  margin-top: -2em;
+  margin-right: 4em;
+}
+
+select.action-field {
+  max-width:90%;
+}
+
+table.action-spec td.action-cell-extras {
+  display:none;
+}
+
+
+table.action-spec td.action-cell-extras div.actprop label {
+  width:12em;
+  display:block;
+  float:left;
+}

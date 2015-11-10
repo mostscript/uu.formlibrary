@@ -52,7 +52,8 @@
   form.add-control { display:block; clear:both; }
   div.rowcontrol { width:100% !Important; margin-left:-2px;} 
   ol.formrows div.singlerowform div.fielddiv { width:31%; float:left; margin-right:0.2em; } 
-  ol.formrows div.singlerowform div.fielddiv label { width:12em; display:block; } 
+  ol.formrows div.singlerowform div.fielddiv label { max-width:95%; display:block; } 
+  ol.formrows div.singlerowform div.fielddiv select { max-width:95%; }
   ol.formrows li div.singlerowform { margin-bottom:0.5em; }
   ol.formrows li form { margin:1.5em 0; border:1px dotted #999; padding-bottom:0.4em; width:100%; font-size:90%; }
   ol.formrows div.singlerowform div.fielddiv span.option label { display:inline !Important; width:auto; color:#00a; float:none; }

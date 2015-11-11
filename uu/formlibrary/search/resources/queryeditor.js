@@ -471,7 +471,6 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
           context.delete(self.id);
           context.sync(self);
         });
-        this.sync();
       }
     };
 
@@ -491,6 +490,7 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
       if (!options.target && options.context) {
         this._mktarget();
       }
+      this.sync();
     };
 
     this.normalizedValue = function () {

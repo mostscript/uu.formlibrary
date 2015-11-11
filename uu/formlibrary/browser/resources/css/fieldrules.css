@@ -372,4 +372,10 @@ table.action-spec td.action-cell-extras div.actprop label {
   width:12em;
   display:block;
   float:left;
+  text-align:right;
+  margin-right:0.6em;
+}
+
+table.action-spec td.action-cell-extras input {
+  width:50%;
 }

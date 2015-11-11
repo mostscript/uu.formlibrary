@@ -74,6 +74,15 @@ var ruleseditor = (function ($) {
 
   ns.snippets.WHENTITLE = '<h3>When following condition(s) are met:</h3>';
 
+  // normalization functions:
+
+  ns.normalizeField = function (v) {
+    if (typeof v === 'string') {
+      v = ns.schema.get(v);  // field from fieldname
+    }
+    return v;
+  };
+
   // Core model for rules editor:
 
   ns.FieldRules = function FieldRules(options) {
@@ -286,7 +295,6 @@ var ruleseditor = (function ($) {
       this.actions = new ns.RuleActions({
         context: this,
         target: listing,
-        schema: ns.schema,
         namespace: 'fieldrule-act',
         id: ns.uuid4()
       });
@@ -297,7 +305,6 @@ var ruleseditor = (function ($) {
       this.otherwise = new ns.RuleActions({
         context: this,
         target: otherwiseTarget,
-        schema: ns.schema,
         namespace: 'fieldrule-otherwise',
         id: ns.uuid4()
       });
@@ -329,10 +336,77 @@ var ruleseditor = (function ($) {
   ns.RuleAction = function RuleAction(options) {
 
     this.init = function (options) {
+      options = options || {};
       ns.RuleAction.prototype.init.apply(this, [options]);
-      this.schema = options.schema || ns.schema;
+      this.schema = ns.schema;
+      // data init:
+      this._field = options.field;
+      this._action = options.action;
+      this._extras = {};
+      if (options.color) {
+        this._extras.color = options.color;
+      }
+      if (options.message) {
+        this._extras.message = options.message;
+      }
       this.initUI();
-   };
+    };
+
+    Object.defineProperties(
+      this,
+      {
+        field: {
+          set: function (v) {
+            v = ns.normalizeField(v);
+            if (v) {
+              this._field = v;
+            }
+            this.sync();
+          },
+          get: function () {
+            return this._field || null;
+          }
+        },
+        action: {
+          set: function (v) {
+            if (v) {
+              this._action = v;
+            }
+            this.sync();
+          },
+          get: function () {
+            return this._action;
+          }
+        },
+        extras: {
+          set: function (v) {
+            if (typeof v !== 'object') {
+              throw new Error('Extras must be object');
+            }
+            this._extras = v;
+            this.sync();
+          },
+          get: function () {
+            return this._extras;
+          }
+        }
+      }
+    );
+
+    this.toJSON = function () {
+      var result = {},
+          field = this.field.name,
+          action = this.action,
+          complete = !!(this.field && this.action);
+      if (!complete) return null;
+      result.field = field;
+      result.action = action;
+      if (action === 'highlight') {
+        if (this.extras.color) result.color = this.extras.color;
+        if (this.extras.message) result.message = this.extras.message;
+      }
+      return result;
+    };
 
     this.remove = function () {
       this.context.delete(this.id);
@@ -340,36 +414,74 @@ var ruleseditor = (function ($) {
 
     this.initFieldChoices = function () {
       var cell = $('.action-cell-field', this.target),
-          select = $('<select class="action-field">').appendTo(cell);
-      $('<option>--Select a value--</option>').appendTo(select);
-      ns.schema.keys().forEach(function (fieldname) {
-          var field = ns.schema.get(fieldname),
-              option = $('<option>').appendTo(select);
-          option.attr({
-            value: fieldname
-          });
-          option.text(field.title);
-        },
-        this
-      );
+          select = $('.action-field', cell),
+          selected = (this.field) ? this.field.name : null,
+          self = this;
+      if (!select.length) {
+        select = $('<select class="action-field">').appendTo(cell);
+        $('<option value="NOVALUE">--Select a value--</option>').appendTo(select);
+        ns.schema.keys().forEach(function (fieldname) {
+            var field = ns.schema.get(fieldname),
+                option = $('<option>').appendTo(select);
+            option.attr({
+              value: fieldname
+            });
+            option.text(field.title);
+          },
+          this
+        );
+      }
+      select.val(selected || 'NOVALUE');
+      select.change(function () {
+        var inputValue = select.val();
+        inputValue = (inputValue === 'NOVALUE') ? null : inputValue;
+        if (inputValue) {
+          self._field = ns.normalizeField(inputValue);
+        }
+      });
     };
 
     this.initActionChoices = function () {
       var cell = $('.action-cell-act', this.target),
-          select = $('<select class="action-type">').appendTo(cell);
-      Object.keys(ns.actions).forEach(function (key) {
-          var option = $('<option>').appendTo(select),
-              meta = ns.actions[key];
-          option.attr({
-            value: key,
-            title: meta.description
-          });
-          option.text(meta.title);
-        },
-        this
-      );
+          select = $('.action-type', cell),
+          selected = this.action || null,
+          self = this;
+      if (!select.length) {
+        select = $('<select class="action-type">').appendTo(cell);
+        Object.keys(ns.actions).forEach(function (key) {
+            var option = $('<option>').appendTo(select),
+                meta = ns.actions[key];
+            option.attr({
+              value: key,
+              title: meta.description
+            });
+            option.text(meta.title);
+          },
+          this
+        );
+      }
+      if (selected) {
+        select.val(selected);
+      }
+      this.hideExtras();
+      if (selected === 'highlight') {
+        this.loadExtras();
+      }
+      select.change(function () {
+        var choice = select.val();
+        self._action = choice;
+        if (choice === 'highlight') {
+          self.loadExtras();
+        } else {
+          self.hideExtras();
+        }
+      });
     };
 
+    this.hideExtras = function () {
+      var cell = $('.action-cell-extras', this.target);
+      cell.hide();  // hide as-is, don't remove contents
+    };
 
     this.loadExtras = function () {
       var cell = $('.action-cell-extras', this.target),
@@ -377,43 +489,33 @@ var ruleseditor = (function ($) {
             {
               name: 'color',
               label: 'Color',
-              default: '#ff9'
+              default: '#ffff99'
             },
             {
               name: 'message',
-              label: 'Message (optional)'
+              label: 'Message (optional)',
             }
-          ];
+          ],
+          self = this;
+      cell.empty();
       properties.forEach(function (actprop) {
           var div = $('<div class="actprop">').appendTo(cell),
               label = $('<label>').appendTo(div),
               isColor = actprop.name === 'color',
               inputTag = (isColor) ? '<input type="color">' : '<input>',
-              input = $(inputTag).appendTo(div); 
+              input = $(inputTag).appendTo(div),
+              name = actprop.name,
+              value = this.extras[name] || actprop.default; 
+          console.log(name, value);
           label.text(actprop.label);
-          if (actprop.name === 'color') {
-            div.css('border-right', '1em solid ' + actprop.default);
-            input.change(function () {
-              var color = input.val();
-              div.css('border-right', '1em solid ' + color);
-            });
-          }  
+          input.val(value);
+          input.change(function () {
+            self._extras[actprop.name] = $(this).val();
+          });
         },
         this
       );
       cell.show();
-    };
-
-    this.initExtras = function () {
-      var cell = $('.action-cell-act', this.target),
-          select = $('.action-type', cell),
-          self = this;
-      select.change(function () {
-        var choice = select.val();
-        if (choice === 'highlight') {
-          self.loadExtras();
-        }
-      });
     };
 
     this.initUI = function () {
@@ -426,11 +528,10 @@ var ruleseditor = (function ($) {
       });
       this.initFieldChoices();
       this.initActionChoices();
-      this.initExtras();
-      // add first row TODO to table in snippet
-      // hookup field chooser
-      // hookup actions chooser with choices: enable, disable, highlight, clear_highlights
-      // hookup actions extras in second row ?? or defer until extras applicable
+    };
+
+    this.syncTarget = function (observed) {
+      this.initUI();
     };
 
     this.init(options);
@@ -445,6 +546,9 @@ var ruleseditor = (function ($) {
       $('a.add-action', this.target.parent()).click(function () {
         self.newAction();
       });
+      if (options.data) {
+        options.data.forEach(this.newAction, this);
+      }
     };
 
     this.afterDelete = function (k, v) {
@@ -452,15 +556,29 @@ var ruleseditor = (function ($) {
       ns.RuleActions.prototype.afterDelete.apply(this, [k, v]);
     };
 
-    this.newAction = function () {
-      var item = $(ns.snippets.ACTION).appendTo(this.target);
-      this.add(new ns.RuleAction({
-        context: this,
-        target: item,
-        schema: ns.schema,
-        namespace: 'fieldrule-action',
-        id: ns.uuid4()
-      }));
+    this.newAction = function (actionData) {
+      var item = $(ns.snippets.ACTION).appendTo(this.target),
+          config = {
+            context: this,
+            target: item,
+            namespace: 'fieldrule-action',
+            id: ns.uuid4()
+          };
+      actionData = actionData || {};
+      if (actionData.field && actionData.action) {
+        Object.keys(actionData).forEach(function (k) {
+          config[k] = actionData[k];
+        });
+      }
+      this.add(new ns.RuleAction(config));
+    };
+
+    this.toJSON = function () {
+      return this.values().map(
+        function (action) {
+          return action.toJSON();
+        }
+      );
     };
 
     this.init(options);

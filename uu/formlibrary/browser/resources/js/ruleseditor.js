@@ -132,6 +132,10 @@ var ruleseditor = (function ($) {
         },
         this
       );
+      if (rules.length) {
+        this.collapseAll();
+        this.values()[0].expand();
+      }
     }; 
 
     this.toJSON = function () {
@@ -714,6 +718,7 @@ var ruleseditor = (function ($) {
 
   ns.ready = function (resources) {
     ns.schema = new uu.queryschema.Schema(resources.schema.entries);
+    ns.rulesJSON = resources.rules;
     ns.comparators = new uu.queryschema.Comparators(ns.schema);
     ns.rules = new ns.FieldRules({
       rules: resources.rules.rules,  // array of rule data objects

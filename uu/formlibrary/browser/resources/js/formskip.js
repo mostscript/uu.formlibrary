@@ -233,7 +233,8 @@ var formskip = (function ($) {
   ns.considerRule = function (rule, opts) {
     var queries = ((rule.when || {}).query || []),
         met = function (query) { return ns.queryMet(query, opts); },
-        condFn = (rule.when.operator === 'or') ? ns.any : ns.all,
+        operator = (rule.when.operator || 'AND').toUpperCase(),
+        condFn = (operator === 'OR') ? ns.any : ns.all,
         conditionMet = false;
     // no queries, return:
     if (!queries.length) return;

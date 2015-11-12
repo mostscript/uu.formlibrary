@@ -1,5 +1,42 @@
 /*jshint browser: true, nomen: false, eqnull: true, es5:true, trailing:true */
 
+var resourceLoader = (function ($) {
+
+  var ns = {};
+
+  ns.onReady = function onReady(opts) {
+    /** given resources as an Array of objects specifying metadata, at
+      * least including a key, URL to a resource, load resource.  Only call
+      * specified callback once all resources are loaded.  There is no
+      * guarantee of order for fetching resources.
+      */
+    var resources = opts.resources,
+        callback = opts.callback,
+        completedKeys = [],
+        allReady = function () {
+          return completedKeys.length === resources.length;
+        },
+        result = {};  // options to be passed to callback
+    resources.forEach(function (specification) {
+      var url = specification.url,
+          key = specification.key;
+      $.ajax({
+        url: url,
+        success: function (data) {
+          result[key] = data;
+          completedKeys.push(key);
+          if (allReady()) {
+            callback(result);
+          }
+        }
+      });
+    });
+  };
+
+  return ns;
+
+}(jQuery));
+
 var ruleseditor = (function ($) {
   "use strict";
   
@@ -506,7 +543,6 @@ var ruleseditor = (function ($) {
               input = $(inputTag).appendTo(div),
               name = actprop.name,
               value = this.extras[name] || actprop.default; 
-          console.log(name, value);
           label.text(actprop.label);
           input.val(value);
           input.change(function () {
@@ -593,25 +629,18 @@ var ruleseditor = (function ($) {
   };
 
   ns.initHandlers = function () {
-    // TODO: implement handler(s)
     var addBtn = $('a.addrule');
-    addBtn.click(ns.addRule);
+    addBtn.show().click(ns.addRule);
   };
 
-  ns.ready = function (data) {
-    ns.schema = new uu.queryschema.Schema(data.entries);
+  ns.ready = function (resources) {
+    ns.schema = new uu.queryschema.Schema(resources.schema.entries);
     ns.comparators = new uu.queryschema.Comparators(ns.schema);
     ns.rules = new ns.FieldRules({
+      rules: resources.rules,
       target: $('#fieldrules')
     });
     ns.initHandlers();
-  };
-
-  ns.loadSchema = function (callback) {
-    uu.queryschema.cAjax({
-      url: '@@schemajson',
-      success: callback
-    });
   };
 
   ns.initSnippets = function () {
@@ -624,9 +653,25 @@ var ruleseditor = (function ($) {
   };
 
   ns.initEditor = function () {
+    var basePath = window.location.pathname.split('@@')[0],
+        rnd = (Math.floor(Math.random() * Math.pow(10,8))),
+        rulesURL = basePath + '@@field_rules?cache_bust=' + rnd,
+        schemaURL = basePath + '@@schemajson?cache_bust=' + rnd;
     ns.pageFixes();
     ns.initSnippets();
-    ns.loadSchema(ns.ready);
+    resourceLoader.onReady({
+      resources: [
+        {
+          key: 'schema',
+          url: schemaURL
+        },
+        {
+          key: 'rules',
+          url: rulesURL
+        }
+      ],
+      callback: ns.ready
+    });
   };
 
   document.addEventListener('DOMContentLoaded', ns.initEditor);

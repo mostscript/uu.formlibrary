@@ -125,14 +125,27 @@ var ruleseditor = (function ($) {
   ns.FieldRules = function FieldRules(options) {
 
     this.init = function (options) {
+      var rules = options.rules || [];
       ns.FieldRules.prototype.init.apply(this, [options]);
+      rules.forEach(function (data) {
+          this.newRule(data);
+        },
+        this
+      );
     }; 
 
-    this.newRule = function () {
+    this.toJSON = function () {
+      return {
+        rules: this.values().map(function (rule) { return rule.toJSON(); })
+      };
+    };
+
+    this.newRule = function (data) {
       var item = $('<li>').appendTo(this.target),
           ruleUid = ns.uuid4(),
           ruleTarget = $(ns.snippets.rule).appendTo(item),
           rule = new ns.FieldRule({
+            data: data,
             target: ruleTarget,
             context: this,
             id: ruleUid
@@ -231,6 +244,29 @@ var ruleseditor = (function ($) {
 
   ns.FieldRule = function FieldRule(options) {
 
+    // Truth is in DOM for metadata properties (only):
+    Object.defineProperties(
+      this,
+      {
+        title: {
+          get: function () {
+            return $('.rule-title', this.target).val();
+          },
+          set: function (v) {
+            $('.rule-title', this.target).val(v).change();
+          }
+        },
+        description: {
+          get: function () {
+            return $('.rule-description', this.target).val();
+          },
+          set: function (v) {
+            $('.rule-description', this.target).val(v).change();
+          }
+        }
+      }
+    );
+
     this.remove = function () {
       this.context.delete(this.id);
     };
@@ -302,7 +338,7 @@ var ruleseditor = (function ($) {
         choiceClick(menu, $(this));
       });
       // TOC sync on title edit:
-      $('.rule-meta .rule-title', this.target).on('input', function () {
+      $('.rule-meta .rule-title', this.target).on('input change', function () {
         self.context.syncTOC();
       });
       // make sure (only) this rule is expanded if title focused:
@@ -311,7 +347,7 @@ var ruleseditor = (function ($) {
       this.target.parent().click(expand);
     };
 
-    this.initWhen = function () {
+    this.initWhen = function (data) {
       var uid = ns.uuid4(),
           whenTarget = $('.rule-when .when', this.target);
         whenTarget.attr('id', uid);
@@ -325,7 +361,7 @@ var ruleseditor = (function ($) {
       });
     };
 
-    this.initAct = function () {
+    this.initAct = function (data) {
       var container = $('.rule-part.rule-act', this.target),
           listing = $('ul.actions', container),
           self = this;
@@ -333,30 +369,43 @@ var ruleseditor = (function ($) {
         context: this,
         target: listing,
         namespace: 'fieldrule-act',
-        id: ns.uuid4()
+        id: ns.uuid4(),
+        data: data
       });
     };
 
-    this.initOtherwise = function () {
+    this.initOtherwise = function (data) {
       var otherwiseTarget = $('.rule-part.rule-otherwise ul.actions', this.target);
       this.otherwise = new ns.RuleActions({
         context: this,
         target: otherwiseTarget,
         namespace: 'fieldrule-otherwise',
-        id: ns.uuid4()
+        id: ns.uuid4(),
+        data: data
       });
     };
 
+    this.initMetadata = function (options) {
+      if (options.data.title) {
+        $('.rule-title').val(options.data.title).change();
+      }
+      if (options.data.description) {
+        $('.rule-description').val(options.data.description).change();
+      }
+    };
+
     this.init = function (options) {
+      options.data = options.data || {};
       ns.FieldRule.prototype.init.apply(this, [options]);
       options.target.attr('id', 'rule-' + this.id);
       this.initControls();
+      this.initMetadata(options);
       // init "when" clause (record filter):
-      this.initWhen();
+      this.initWhen(options.data.when || {});
       // init "act"
-      this.initAct();
+      this.initAct(options.data.act || null);
       // init "otherwise"
-      this.initOtherwise();
+      this.initOtherwise(options.data.otherwise || null);
       // Go to rule:
       window.location.hash = 'rule-' + this.id;
     }; 
@@ -364,6 +413,26 @@ var ruleseditor = (function ($) {
     this.position = function () {
       /** position of this rule in its parent, calculated */
       return this.context.keys().indexOf(this.id);
+    };
+
+    this.toJSON = function () {
+      var result = {
+            when: {},
+            act: this.actions.toJSON(),
+            otherwise: this.otherwise.toJSON(),
+            title: this.title || 'Untitled rule',
+            description: this.description || ''
+          },
+          criteria = this.critEditor.toJSON();
+      result.when.operator = criteria.operator;
+      result.when.query = criteria.rows.map(function (row) {
+        return {
+          field: row.fieldname,
+          comparator: row.comparator,
+          value: row.value
+        };
+      });
+      return result;
     };
 
     this.init(options);
@@ -377,7 +446,7 @@ var ruleseditor = (function ($) {
       ns.RuleAction.prototype.init.apply(this, [options]);
       this.schema = ns.schema;
       // data init:
-      this._field = options.field;
+      this._field = ns.normalizeField(options.field);
       this._action = options.action;
       this._extras = {};
       if (options.color) {
@@ -637,7 +706,7 @@ var ruleseditor = (function ($) {
     ns.schema = new uu.queryschema.Schema(resources.schema.entries);
     ns.comparators = new uu.queryschema.Comparators(ns.schema);
     ns.rules = new ns.FieldRules({
-      rules: resources.rules,
+      rules: resources.rules.rules,  // array of rule data objects
       target: $('#fieldrules')
     });
     ns.initHandlers();

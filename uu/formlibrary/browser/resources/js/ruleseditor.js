@@ -359,6 +359,16 @@ var ruleseditor = (function ($) {
         namespace: 'fieldrule-criteria',
         id: uid
       });
+      this.critEditor.operator = data.operator.toUpperCase() || 'AND';
+      data.query.forEach(function (query) {
+          this.critEditor.newQuery({
+            field: ns.normalizeField(query.field),
+            comparator: query.comparator,
+            value: query.value
+          });
+        },
+        this
+      );
     };
 
     this.initAct = function (data) {

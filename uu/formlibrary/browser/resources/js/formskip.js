@@ -196,14 +196,26 @@ var formskip = (function ($) {
     return ns.compare[name] || ns.compare.Eq;
   };
 
+  ns.normalizeBoolean = function (v) {
+    if (v instanceof Array && v.length) v = v[0];
+    if (v === 'true') return true;
+    if (v === 'false') return false;
+    return v;
+  };
+
   ns.queryMet = function (query, opts) {
     /* is single-field query met by form? */
     var form = $(opts.form),
+        queryValue = query.value,
         fieldname = query.field,
         sameField = opts.field === query.field && opts.field !== '@form',
         value = (sameField) ? opts.value : ns.fieldValue(form, fieldname),
         compare = ns.getComparator(query.comparator);
-    return compare(query.value, value);
+    if (typeof value === 'boolean' || typeof queryValue === 'boolean') {
+      queryValue = ns.normalizeBoolean(queryValue);
+      value = ns.normalizeBoolean(value);
+    }
+    return compare(queryValue, value);
   };
 
   ns.doAction = function (form, action, opts) {

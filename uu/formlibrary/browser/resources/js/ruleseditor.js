@@ -120,6 +120,14 @@ var ruleseditor = (function ($) {
     return v;
   };
 
+  ns.normalizeValue = function (v, field) {
+    if (field.fieldtype === 'Bool') {
+      if (v === 'true') return true;
+      if (v === 'false') return false;
+    }
+    return v;
+  };
+
   // Core model for rules editor:
 
   ns.FieldRules = function FieldRules(options) {
@@ -365,10 +373,11 @@ var ruleseditor = (function ($) {
       });
       this.critEditor.operator = data.operator.toUpperCase() || 'AND';
       data.query.forEach(function (query) {
+          var field = ns.normalizeField(query.field);
           this.critEditor.newQuery({
-            field: ns.normalizeField(query.field),
+            field: field,
             comparator: query.comparator,
-            value: query.value
+            value: ns.normalizeValue(query.value, field)
           });
         },
         this

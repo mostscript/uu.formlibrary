@@ -155,8 +155,6 @@
     <h4>Process changes or notes</h4>
     <textarea tal:condition="python: view.VIEWNAME=='edit'" class="entry_notes"
               name="entry_notes"><tal:block condition="python: not context.entry_notes">Enter any notes pertaining to this period.</tal:block><tal:block condition="context/entry_notes" tal:content="context/entry_notes"></tal:block></textarea>
-    <div tal:condition="python: view.VIEWNAME=='view'" tal:content="python:context.entry_notes or ''">
-    </div>
   </div>
 
   <input type="hidden" name="payload" id="payload" value="" />
@@ -166,6 +164,9 @@
 </form>
 <div class="form_metadata" tal:condition="python: view.VIEWNAME != 'edit'">
   <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->
+  <div tal:condition="python: (context.entry_notes or '').strip()">
+     <label>Notes: </label> <span tal:content="python:context.entry_notes or ''"></span>
+  </div>
 </div>
 
  <div metal:use-macro="context/@@formcommon/macros/formseries_footer"></div>

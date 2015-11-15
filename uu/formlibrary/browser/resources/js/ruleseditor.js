@@ -361,7 +361,8 @@ var ruleseditor = (function ($) {
 
     this.initWhen = function (data) {
       var uid = ns.uuid4(),
-          whenTarget = $('.rule-when .when', this.target);
+          whenTarget = $('.rule-when .when', this.target),
+          operator = data.operator || 'AND';
         whenTarget.attr('id', uid);
       this.critEditor = new uu.queryeditor.RecordFilter({
         context: this,
@@ -371,8 +372,8 @@ var ruleseditor = (function ($) {
         namespace: 'fieldrule-criteria',
         id: uid
       });
-      this.critEditor.operator = data.operator.toUpperCase() || 'AND';
-      data.query.forEach(function (query) {
+      this.critEditor.operator = operator.toUpperCase();
+      (data.query || []).forEach(function (query) {
           var field = ns.normalizeField(query.field);
           this.critEditor.newQuery({
             field: field,
@@ -721,8 +722,14 @@ var ruleseditor = (function ($) {
   };
 
   ns.initHandlers = function () {
-    var addBtn = $('a.addrule');
-    addBtn.show().click(ns.addRule);
+    var addBtn = $('a.addrule'),
+        saveBtn = $('input.saverules');
+    addBtn.css('display', 'block').click(ns.addRule);
+    saveBtn.show();
+    $('#coredata').submit(function () {
+      $('input.rules_json').val(JSON.stringify(ns.rules.toJSON()));
+      return true;
+    });
   };
 
   ns.ready = function (resources) {

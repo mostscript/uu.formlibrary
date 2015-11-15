@@ -89,6 +89,11 @@
     </ol> 
     <div class="below-rules">
       <a class="addrule" href="javascript:void(0)">+ Add a rule</a>
+      <hr />
+      <form id="coredata" method="POST">
+        <input type="hidden" class="rules_json" name="rules_json" value="" />
+        <input type="submit" class="saverules" name="saverules" value="Save rules" />
+      </form>
     </div>
   </div>
 </div>

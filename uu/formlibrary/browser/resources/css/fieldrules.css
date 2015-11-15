@@ -39,7 +39,7 @@
   background-color:#dfe;
   padding:0.5em;
   border-radius:0.3em;
-  margin:0.5em 0;
+  margin:0.5em 0 1em 0;
 }
 
 #fieldrules > li {
@@ -378,4 +378,8 @@ table.action-spec td.action-cell-extras div.actprop label {
 
 table.action-spec td.action-cell-extras input {
   width:50%;
+}
+
+#coredata {
+  margin-top:1em;
 }

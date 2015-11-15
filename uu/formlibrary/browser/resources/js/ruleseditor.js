@@ -430,8 +430,10 @@ var ruleseditor = (function ($) {
       this.initAct(options.data.act || null);
       // init "otherwise"
       this.initOtherwise(options.data.otherwise || null);
-      // Go to rule:
-      window.location.hash = 'rule-' + this.id;
+      // Go to rule, if not loaded from existing data:
+      if (Object.keys(options.data).length === 0) {
+        window.location.hash = 'rule-' + this.id;
+      }
     }; 
 
     this.position = function () {

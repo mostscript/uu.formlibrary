@@ -527,7 +527,7 @@ var ruleseditor = (function ($) {
 
     this.toJSON = function () {
       var result = {},
-          field = this.field.name,
+          field = (this.field) ? this.field.name : null,
           action = this.action,
           complete = !!(this.field && this.action);
       if (!complete) return null;
@@ -577,10 +577,11 @@ var ruleseditor = (function ($) {
       var cell = $('.action-cell-act', this.target),
           select = $('.action-type', cell),
           selected = this.action || null,
+          available = Object.keys(ns.actions),
           self = this;
       if (!select.length) {
         select = $('<select class="action-type">').appendTo(cell);
-        Object.keys(ns.actions).forEach(function (key) {
+        available.forEach(function (key) {
             var option = $('<option>').appendTo(select),
                 meta = ns.actions[key];
             option.attr({
@@ -594,6 +595,9 @@ var ruleseditor = (function ($) {
       }
       if (selected) {
         select.val(selected);
+      } else {
+        this._action = available[0];
+        select.val(this._action);
       }
       this.hideExtras();
       if (selected === 'highlight') {
@@ -705,11 +709,16 @@ var ruleseditor = (function ($) {
     };
 
     this.toJSON = function () {
-      return this.values().map(
-        function (action) {
-          return action.toJSON();
-        }
-      );
+      return this.values()
+        .map(
+          function (action) {
+            return action.toJSON();
+          }
+        )
+        .filter(
+          function (v) {
+            return v !== null;
+          });
     };
 
     this.init(options);

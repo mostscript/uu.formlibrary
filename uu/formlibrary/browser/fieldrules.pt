@@ -70,7 +70,7 @@
 </script>
   </metal:block>
   <metal:block fill-slot="style_slot">
-    <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/fieldrules.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.css/fieldrules.css" type="text/css" />
+    <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/fieldrules.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.css/fieldrules.css?api=20151116" type="text/css" />
     <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.search/queryeditor.css" tal:attributes="href string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/queryeditor.css" type="text/css" />
 <style>
 </style>

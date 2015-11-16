@@ -1,7 +1,8 @@
 #fieldrules {
   position:relative;
   z-index:10;
-  list-style: decimal inside;
+  list-style:none;
+  counter-reset:li;
   min-height:15em;
 }
 
@@ -43,7 +44,7 @@
 }
 
 #fieldrules > li {
-  list-style-type:inherit;
+  list-style:none;
   display:list-item;
   background-color:#edf2f5;
   margin:0.3em 0 0.8em 1.1em;
@@ -52,11 +53,26 @@
   font-size:15px;
   font-style:italic;
   color:#999;
+  position:relative;
+}
+
+#fieldrules > li .fieldrule:before {
+  /* numbering hack to work across browser ol list-style-position:inside
+   * bugs and inconsistencies; see: http://goo.gl/upCiiR
+   * ...if this bug in gecko hasn't been fixed in 15 years, cannot assume
+   * any better solution now (bugzilla #36854).
+   */
+  content:counter(li) ". ";
+  counter-increment:li;
+  position:absolute;
+  top:0.4em;
+  left:-1em;
+  font-size:15px;
 }
 
 #fieldrules > li .fieldrule {
   color:black;
-  margin:-2.7em 0.4em 0 1.8em;
+  margin:-0.7em 0.4em 0 1.8em;
   font-size:12px;
   font-style:normal;
   position:relative;

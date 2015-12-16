@@ -114,7 +114,16 @@ def sync_multi_form(form, definition):
         notify(ObjectModifiedEvent(form))
 
 
+def is_definition_modified(context, event=None):
+    if event is None or not getattr(event, 'descriptions', None):
+        return False
+    attr = lambda description: getattr(description, 'attributes', ())
+    return any(['definition' in attr(d) for d in event.descriptions])
+
+
 def form_configuration_modified(context, event):
+    if not is_definition_modified(context, event):
+        return
     if not IBaseForm.providedBy(context):
         raise ValueError('context must be IBaseForm provider')
     ## re-sign context and data-record with current definition/schema:

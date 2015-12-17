@@ -92,11 +92,10 @@ class MultiFormEntry(BaseFormView):
             if json:
                 oldkeys = self.context.keys()
                 # save the data payload to records, also notifies
-                #  ObjectModifiedEvent, if data is modified:
+                # ObjectModifiedEvent, if data is modified, which
+                # will result in reindexing embedded catalog used
+                # by measures:
                 self.context.update_all(json)
-                # now index the saved data in embedded index for
-                #  potential use by measures:
-                handle_multiform_savedata(self.context)
                 newkeys = self.context.keys()
                 count_new = len(set(newkeys) - set(oldkeys))
                 count_updated = len(set(oldkeys) & set(newkeys))

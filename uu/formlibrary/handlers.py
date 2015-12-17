@@ -3,7 +3,7 @@ from zope.annotation.interfaces import IAnnotations
 from zope.component import queryUtility
 from zope.event import notify
 from zope.globalrequest import getRequest
-from zope.lifecycleevent import ObjectModifiedEvent
+from zope.lifecycleevent import ObjectModifiedEvent, Attributes
 from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
 from Products.CMFCore.utils import getToolByName
@@ -21,6 +21,7 @@ from uu.formlibrary.interfaces import IFormComponents, IMultiForm
 from uu.formlibrary.forms import form_definition
 from uu.formlibrary.record import FormEntry
 from uu.formlibrary.utils import grid_wrapper_schema
+from uu.record.interfaces import IRecordContainer
 from uu.workflows.utils import history_log
 
 
@@ -111,7 +112,11 @@ def sync_multi_form(form, definition):
             modified = True
     if modified:
         history_log(form, 'Schema updated for form entries.')
-        notify(ObjectModifiedEvent(form))
+        # notify items may be effected by schema change, warranting a
+        # re-index of embedded catalog and reload of cached data-points:
+        notify(
+            ObjectModifiedEvent(form, Attributes(IRecordContainer, 'items'))
+            )
 
 
 def is_definition_modified(context, event=None):

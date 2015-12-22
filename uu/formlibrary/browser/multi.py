@@ -1,7 +1,9 @@
 import json
 import uuid
 
+from plone.memoize import ram
 from z3c.form import form, field
+from z3c.form.interfaces import IDataConverter
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
 from zope.schema import getFieldsInOrder
 from zope.schema.interfaces import ICollection
@@ -19,6 +21,12 @@ from common import BaseFormView
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
 DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
+
+marker = object()
+
+
+def converter_cache_key(method, self, name, value):
+    return (name, value)
 
 
 class MetadataForm(ComposedForm):
@@ -74,6 +82,7 @@ class MultiFormEntry(BaseFormView):
     def __init__(self, context, request):
         super(MultiFormEntry, self).__init__(context, request)
         self._fields = []
+        self._schema = None
         self._status = IStatusMessage(self.request)
         self.has_metadata = bool(self.definition.metadata_definition)
         if self.has_metadata:
@@ -86,6 +95,7 @@ class MultiFormEntry(BaseFormView):
         return self.index(*args, **kwargs)  # index() via Five/framework magic
 
     def update(self, *args, **kwargs):
+        self._init_baseform()
         msg = ''
         if 'payload' in self.request.form:
             json = self.request.form.get('payload').strip()
@@ -134,10 +144,14 @@ class MultiFormEntry(BaseFormView):
 
     @property
     def schema(self):
-        entry_uids = self.context.keys()
-        if not entry_uids:
-            return self.definition.schema
-        return self.context[entry_uids[0]].schema  # of first contained record
+        if not self._schema:
+            entry_uids = self.context.keys()
+            if not entry_uids:
+                self._schema = self.definition.schema
+            else:
+                # use schema of first contained record
+                self._schema = self.context[entry_uids[0]].schema
+        return self._schema
 
     def fields(self):
         if not self._fields:
@@ -189,12 +203,11 @@ class MultiFormEntry(BaseFormView):
             self._keys = self.context.keys()  # ordered uids of entries
         return self._keys
 
-    def rowform(self, uid=None):
-        if uid is None or uid not in self.entry_uids():
-            record = self.context.create()  # create new with UUID
-        else:
-            record = self.context.get(uid)
-        self._last_uid = record.record_uid
+    def _init_baseform(self):
+        """
+        Initialize base form for re-use * N rows to avoid re-construction;
+        should be called by self.update(), just once.
+        """
         row_views = {
             ('edit', 'Stacked'): DivRowForm,
             ('view', 'Stacked'): DivRowDisplayForm,
@@ -202,9 +215,67 @@ class MultiFormEntry(BaseFormView):
             ('view', 'Columns'): RowDisplayForm,
         }
         row_view_cls = row_views[(self.VIEWNAME, self.displaymode)]
-        form = row_view_cls(record, record.schema, self.request)
-        form.update()
-        return form.render()
+        self.dummy_record = self.context.create()
+        self.baseform = row_view_cls(
+            self.dummy_record,
+            self.dummy_record.schema,
+            self.request
+            )
+        self.baseform.update()
+        # create a mapping of data converters by fieldname
+        self.converters = {}    # fieldname to converter
+        self.defaults = {}      # fieldname to default value
+        for fieldname in self.baseform.fields:
+            widget = self.baseform.widgets[fieldname]
+            field = self.schema[fieldname]
+            self.converters[fieldname] = IDataConverter(widget)
+            self.defaults[fieldname] = field.default
+
+    def fix_item_values(self, items, value):
+        vtype = type(value)
+        for item in items:
+            if vtype is set:
+                # multi-choice  (checkbox)
+                item['checked'] = (item.get('value', marker) in value)
+            elif vtype is bool:
+                # compare vs. string repr of boolean value
+                _item_value = True if item.get('value') == 'true' else False
+                item['checked'] = (_item_value == value)
+            else:
+                # single-choice (radio/select)
+                item['checked'] = (value == item.get('value', marker))
+
+    @ram.cache(converter_cache_key)
+    def toWidgetValue(self, fieldname, value):
+        return self.converters[fieldname].toWidgetValue(value)
+
+    def _values(self, record, fieldname):
+        """returns raw, widget values as tuple"""
+        default = self.defaults.get(fieldname, None)
+        value = getattr(record, fieldname, default)
+        return value, self.toWidgetValue(fieldname, value)
+
+    def apply_values(self, record):
+        for fieldname, widget in self.baseform.widgets.items():
+            value, widget.value = self._values(record, fieldname)
+            if type(getattr(widget, 'items', None)) is list:
+                self.fix_item_values(widget.items, value)
+
+    def rowform(self, uid=None):
+        """
+        optimized row form re-uses same baseform, applying values and
+        identity/name in place.  This avoids constructing new form and
+        associated widgets, converters, etc.
+        """
+        if uid is None or uid not in self.entry_uids():
+            record = self.context.create()  # create new with UUID
+        else:
+            record = self.context.get(uid)
+        self._last_uid = record.record_uid
+        self.apply_values(record)
+        orig_html = self.baseform.render()
+        dummy_uid = self.dummy_record.record_uid
+        return orig_html.replace(dummy_uid, record.record_uid)
 
     def last_row_uid(self):
         """return the last row uid for row rendered by rowform or random"""

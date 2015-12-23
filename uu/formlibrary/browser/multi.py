@@ -5,9 +5,11 @@ from plone.memoize import ram
 from z3c.form import form, field
 from z3c.form.interfaces import IDataConverter
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.pagetemplate.interfaces import IPageTemplate
 from zope.schema import getFieldsInOrder
 from zope.schema.interfaces import ICollection
 from zope.component.hooks import getSite
+from zope.component import getMultiAdapter
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
@@ -230,6 +232,19 @@ class MultiFormEntry(BaseFormView):
             field = self.schema[fieldname]
             self.converters[fieldname] = IDataConverter(widget)
             self.defaults[fieldname] = field.default
+            # lookup template once, bind -- to avoid repeated lookup
+            widget.template = getMultiAdapter(
+                (
+                    widget.context,
+                    self.request,
+                    self.baseform,
+                    field,
+                    widget
+                ),
+                IPageTemplate,
+                name=widget.mode
+                )
+        self.baseform.render()  # force chameleon compilation here
 
     def fix_item_values(self, items, value):
         vtype = type(value)

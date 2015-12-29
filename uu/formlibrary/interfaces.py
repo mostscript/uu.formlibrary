@@ -1,15 +1,19 @@
 from datetime import datetime
 import json
+import uuid
 
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
 from plone.app.textfield import RichText
 from plone.directives import form, dexterity
+from plone.autoform import directives
+from plone.app.widgets.dx import RelatedItemsWidget
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
+from zope.component.hooks import getSite
 from zope.container.interfaces import IOrderedContainer
 from zope.interface import Interface, Invalid, invariant
 from zope.interface.interfaces import IInterface
@@ -31,6 +35,35 @@ from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 from uu.formlibrary import _
 from uu.formlibrary.utils import DOW
+
+
+# uid constraints for BytesLine to content UID fields:
+
+def is_uuid(value):
+    try:
+        value = uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+def known_uuid(value):
+    site = getSite()
+    catalog = getattr(site, 'portal_catalog', None)
+    if site is None or catalog is None:
+        return True  # no CMF/Plone site, use optimistic open-set
+    q = {'UID': value}
+    return len([b for b in catalog.unrestrictedSearchResults(q)]) > 0
+
+
+def is_content_uuid(value):
+    if value is None:
+        return True  # constraint should not enforce req/opt.
+    # well-formedness:
+    if not is_uuid(value):
+        return False
+    # known-set check
+    return known_uuid(value)
 
 
 # portal type constants:
@@ -307,13 +340,28 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         defaultFactory=PersistentList,  # req. zope.schema >= 3.8.0
         )
 
-    form.widget(metadata_definition=ContentTreeFieldWidget)
-    metadata_definition = schema.Choice(
+    #form.widget(metadata_definition=ContentTreeFieldWidget)
+    #metadata_definition = schema.Choice(
+    directives.widget(
+        'metadata_definition',
+        RelatedItemsWidget,
+        pattern_options={
+            'selectableTypes': ['uu.formlibrary.definition'],
+            'maximumSelectionSize': 1,
+            'baseCriteria': [{
+                'i': 'portal_type',
+                'o': 'plone.app.querystring.operation.string.is',
+                'v': 'uu.formlibrary.definition'
+                }],
+            },
+        )
+    metadata_definition = schema.BytesLine(
         title=u'Metadata definition',
         description=u'Select a form definition to provide metadata fields '
                     u'for this form (optional).',
         required=False,
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
+        constraint=is_content_uuid,
+        #source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         )
 
     def log(*args, **kwargs):

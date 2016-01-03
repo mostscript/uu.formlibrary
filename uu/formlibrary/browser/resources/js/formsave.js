@@ -27,6 +27,7 @@ var multiform = (function ($, ns) {
       this.unsavedData = false;   // may be false or string key of unsaved
       this.saveURL = url;
       this.mimeType = mimeType || 'application/x-www-form-urlencoded';
+      this.lastKnownGood = null;
       this.loadConfig();    // from local storage, if applicable
     };
     
@@ -34,7 +35,8 @@ var multiform = (function ($, ns) {
       return {
         attempts: this.attempts,
         failures: this.failures,
-        unsavedData: this.unsavedData
+        unsavedData: this.unsavedData,
+        lastKnownGood: this.lastKnownGood
       };
     };
 
@@ -47,6 +49,7 @@ var multiform = (function ($, ns) {
       if (config.unsavedData !== undefined) {
         this.unsavedData = config.unsavedData;
       }
+      this.lastKnownGood = config.lastKnownGood || null;
     };
 
     this.syncConfig = function () {
@@ -116,7 +119,7 @@ var multiform = (function ($, ns) {
       /** any stored data that does not match (last) currentTid gets trashed */
       var current = this.dataKey(currentTid),
           allKeys = this.allDataKeys();
-      allDataKeys.forEach(function (k) {
+      allKeys.forEach(function (k) {
           if (k !== current) {
             localStorage.removeItem(k);
           }
@@ -147,12 +150,15 @@ var multiform = (function ($, ns) {
         url: this.saveURL,
         type: 'POST',
         data: data,
-        dataType: this.mimeType,
+        contentType: this.mimeType,
+        dataType: 'html',
         success: function (response) {
-          self.attempts.remove(attempt);  // good sync, it's all good
+          var attemptIdx = self.attempts.indexOf(attempt);
+          self.attempts.splice(attemptIdx, 1);  // good sync, remove from limbo
           self.removeStaleData(tid);
           self.failures = [];             // clear failures list
           self.unsavedData = false;
+          self.lastKnownGood = self.dataKey(tid);
           self.addStatus('Data saved locally, successfully saved to server');
           self.syncConfig();
         },

@@ -305,7 +305,9 @@ uu.formlibrary.multiform.new_row_url = function() {
 uu.formlibrary.multiform.submit = function(event) {
   var int_validates = true,
     date_validates = true,
-    float_validates = true;
+    float_validates = true,
+    saveManager = multiform.save,
+    note = $("input[type=submit][clicked=true]").val() || 'Saved data';
   /* validate first, only submit if no errors */
   if ($('input.int-field').length>0) {
     int_validates = $('input.int-field').data('validator').checkValidity();
@@ -318,8 +320,10 @@ uu.formlibrary.multiform.submit = function(event) {
   }
   if (int_validates && float_validates && date_validates) {
     uu.formlibrary.multiform.copybundle(); /* serialize JSON to hidden 'payload' input */
-    //$('form#coredata').submit(); /* submit the form containing the payload */
-    return true;
+    // Create a application/x-www-form-urlencoded encoded serialization,
+    // save locally, attempt sync to server over AJAX using SaveManager:
+    saveManager.save($('#coredata').serialize(), note);
+    return false;
   } else {
     alert('Please correct input errors and then try saving again.');
     return false;

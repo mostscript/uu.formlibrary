@@ -8,23 +8,30 @@
 
 <metal:block fill-slot="javascript_head_slot">
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20150804"></script>
+<tal:block condition="python: view.VIEWNAME == 'edit'">
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20150804"></script>
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150916"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formsave.js?api=20160102a"></script>
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formcommon.js?api=20141121"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20160102"></script>
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20151112"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formcommon.js?api=20141121"></script>
 
-<script id="field-json" type="application/json" tal:content="view/fields_json"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20151112"></script>
+
+  <script id="field-json" type="application/json" tal:content="view/fields_json"></script>
+
+</tal:block>
 
 </metal:block>
 <metal:block fill-slot="style_slot">
@@ -78,6 +85,8 @@
   <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
 
   <div tal:condition="python: view.VIEWNAME == 'view'" tal:replace="structure provider:plone.belowcontenttitle" />
+
+  <div id="multiform-status" tal:condition="python: view.VIEWNAME == 'edit'"></div>
 
 <tal:block condition="python: view.displaymode!='Stacked'">
     <table class="formheadings">

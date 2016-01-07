@@ -152,7 +152,7 @@ var multiform = (function ($, ns) {
         type: 'POST',
         data: data,
         contentType: this.mimeType,
-        dataType: 'html',
+        dataType: 'json',
         success: function (response) {
           var attemptIdx = self.attempts.indexOf(attempt);
           self.attempts.splice(attemptIdx, 1);  // good sync, remove from limbo
@@ -161,6 +161,9 @@ var multiform = (function ($, ns) {
           self.unsavedData = false;
           self.lastKnownGood = self.dataKey(tid);
           self.addStatus('Data saved locally, successfully saved to server');
+          ((response || {}).messages || []).forEach(function (msg) {
+            self.addStatus(msg);
+          });
           self.syncConfig();
         },
         error: function (xhr, status, error) {

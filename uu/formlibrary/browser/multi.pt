@@ -15,7 +15,7 @@
 
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formsave.js?api=20160102g"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formsave.js?api=20160102h"></script>
 
   <script type="text/javascript"
           src=""

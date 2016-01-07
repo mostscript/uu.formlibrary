@@ -12,11 +12,11 @@ from zope.component.hooks import getSite
 from zope.component import getMultiAdapter
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
+from Products.statusmessages.message import _utf8
 
 from uu.workflows.utils import history_log
 
 from uu.formlibrary.forms import ComposedForm, common_widget_updates
-from uu.formlibrary.search.handlers import handle_multiform_savedata
 
 from common import BaseFormView
 
@@ -97,7 +97,8 @@ class MultiFormEntry(BaseFormView):
         return self.index(*args, **kwargs)  # index() via Five/framework magic
 
     def update(self, *args, **kwargs):
-        self._init_baseform()
+        if not kwargs.get('saveonly', False):
+            self._init_baseform()
         msg = ''
         if 'payload' in self.request.form:
             json = self.request.form.get('payload').strip()
@@ -112,7 +113,7 @@ class MultiFormEntry(BaseFormView):
                 count_new = len(set(newkeys) - set(oldkeys))
                 count_updated = len(set(oldkeys) & set(newkeys))
                 count_removed = len(set(oldkeys) - set(newkeys))
-                msg = 'Data has been saved.'
+                msg = 'Data has been saved. '
                 if count_new or count_updated or count_removed:
                     msg += '('
                 if count_new:
@@ -328,3 +329,24 @@ class MultiFormEntry(BaseFormView):
 class MultiFormDisplay(MultiFormEntry):
     VIEWNAME = 'view'
 
+
+class MultiFormSave(MultiFormEntry):
+    """Save only view (ajax): returns json of status messages"""
+
+    def get_status_message(self):
+        """get any set status message set during update()"""
+        return [_utf8(msg.message) for msg in self._status.show()]
+
+    def index(self, *args, **kwargs):
+        messages = self.get_status_message()
+        output = json.dumps({
+            'messages': messages
+            })
+        self.request.response.setHeader('Content-Type', 'application/json')
+        self.request.response.setHeader('Content-Length', len(output))
+        return output
+
+    def __call__(self, *args, **kwargs):
+        kwargs['saveonly'] = True
+        self.update(*args, **kwargs)
+        return self.index(*args, **kwargs)

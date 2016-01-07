@@ -15,7 +15,7 @@ var multiform = (function ($, ns) {
       });
   };
 
-  ns.SaveManager = function () {
+  ns.SaveManager = function (url, mimeType) {
     
     var localStorage = window.localStorage;
 
@@ -146,6 +146,7 @@ var multiform = (function ($, ns) {
           self = this;
       this.attempts.push(attempt);
       // Try ajax: callback for success is to remove attempt, callback for
+      console.log(this.saveURL);
       $.ajax({
         url: this.saveURL,
         type: 'POST',
@@ -185,11 +186,13 @@ var multiform = (function ($, ns) {
       this.attemptSync(data, tid, note);
     };
 
-    this.init();
+    // remove html base tag, if any:
+    $('base').remove();
+    this.init(url, mimeType);
 
   };
 
-  ns.save = new ns.SaveManager();
+  ns.save = new ns.SaveManager('@@form_save');
 
   return ns;
 

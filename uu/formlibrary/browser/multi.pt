@@ -168,8 +168,8 @@
 
   <input type="hidden" name="payload" id="payload" value="" />
   <br />
-  <input id="btn-saveform" name="saveform" type="submit" value="&#x2714; Save form as draft" />
-  <input id="btn-savesubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
+  <input id="btn-saveform" class="allowMultiSubmit" name="saveform" type="submit" value="&#x2714; Save form as draft" />
+  <input id="btn-savesubmit" class="allowMultiSubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
 </form>
 <div class="form_metadata" tal:condition="python: view.VIEWNAME != 'edit'">
   <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->

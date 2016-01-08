@@ -64,7 +64,17 @@ var multiform = (function ($, ns) {
       this.attemptSync(data, tid, 'Retry save to server');
     };
 
-    this.notifyState = function () {
+    this.userDismiss = function (url) {
+      var target = $('#multiform-status'),
+          core = $('#formcore');
+      target.empty();
+      core.removeClass('pending-ack');
+      if (url) {
+        window.location.href = url;
+      }
+    };
+
+    this.userNotify = function () {
       /** notify user via DOM of state of affairs, if needed */
       var target = $('#multiform-status'),
           self = this,
@@ -74,11 +84,13 @@ var multiform = (function ($, ns) {
                   '<input class="retry-save" type="button" value="' + msg + '">'
                 ).appendTo(target);
             btn.click(function () {
+              target.empty().html('Retrying now...');
               self.retryLastSave();
             });
           };
       if (!target.length) return;
       target.empty();
+      $('#formcore').addClass('pending-ack');  // pending acknowledgement
       // apply all messages from status:
       this._status.forEach(function (msg) {
         var messageDiv = $('<div class="save-status">').appendTo(target);
@@ -87,7 +99,13 @@ var multiform = (function ($, ns) {
       if (this.unsavedData) {
         // notify: add message and actionable retry button to target TODO TODO
         addRetryButton();
+      } else {
+        // simple 'ok' button to dismiss:
+        $('<input type="button" class="ack" value="OK" />')
+          .appendTo(target)
+          .click(function () { self.userDismiss(); });
       }
+      target.get(0).scrollIntoView();
     };
 
     this.allDataKeys = function () {
@@ -146,7 +164,6 @@ var multiform = (function ($, ns) {
           self = this;
       this.attempts.push(attempt);
       // Try ajax: callback for success is to remove attempt, callback for
-      console.log(this.saveURL);
       $.ajax({
         url: this.saveURL,
         type: 'POST',
@@ -165,6 +182,7 @@ var multiform = (function ($, ns) {
             self.addStatus(msg);
           });
           self.syncConfig();
+          self.userNotify();
         },
         error: function (xhr, status, error) {
           self.failures.push(attempt);
@@ -175,6 +193,7 @@ var multiform = (function ($, ns) {
                          'You can retry saving by clicking "Retry save" ' +
                          'below.');
           self.syncConfig();
+          self.userNotify();
         }
       });
     };

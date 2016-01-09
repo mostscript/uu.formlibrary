@@ -60,8 +60,9 @@ var multiform = (function ($, ns) {
       var lastAttempt = this.failures.slice(-1).pop(),
           tid = lastAttempt.tid,
           key = this.dataKey(tid),
+          isSubmit = lastAttempt.isSubmit || false,
           data = localStorage.getItem(key);
-      this.attemptSync(data, tid, 'Retry save to server');
+      this.attemptSync(data, tid, isSubmit, 'Retry save to server');
     };
 
     this.userDismiss = function (url) {
@@ -74,7 +75,7 @@ var multiform = (function ($, ns) {
       }
     };
 
-    this.userNotify = function () {
+    this.userNotify = function (isSubmit) {
       /** notify user via DOM of state of affairs, if needed */
       var target = $('#multiform-status'),
           self = this,
@@ -97,13 +98,18 @@ var multiform = (function ($, ns) {
         messageDiv.html(msg);
       });
       if (this.unsavedData) {
+        target.removeClass('success');
         // notify: add message and actionable retry button to target TODO TODO
         addRetryButton();
       } else {
         // simple 'ok' button to dismiss:
+        target.addClass('success');
         $('<input type="button" class="ack" value="OK" />')
           .appendTo(target)
-          .click(function () { self.userDismiss(); });
+          .click(function () {
+            var url = (isSubmit) ? './' : undefined;
+            self.userDismiss(url);
+          });
       }
       target.get(0).scrollIntoView();
     };
@@ -154,11 +160,12 @@ var multiform = (function ($, ns) {
       this._status.push(msg);
     };
 
-    this.attemptSync = function (data, tid, note) {
+    this.attemptSync = function (data, tid, isSubmit, note) {
       var attempt = {
             tid: tid,
             time: (new Date()).valueOf(),
             action: note,
+            isSubmit: isSubmit,
             synced: false
           },
           self = this;
@@ -178,11 +185,16 @@ var multiform = (function ($, ns) {
           self.unsavedData = false;
           self.lastKnownGood = self.dataKey(tid);
           self.addStatus('Data saved locally, successfully saved to server');
+          if (isSubmit) {
+            self.addStatus(
+              'Form successfully submitted, click ok to leave editing.'
+            );
+          }
           ((response || {}).messages || []).forEach(function (msg) {
             self.addStatus(msg);
           });
           self.syncConfig();
-          self.userNotify();
+          self.userNotify(isSubmit);
         },
         error: function (xhr, status, error) {
           self.failures.push(attempt);
@@ -198,14 +210,14 @@ var multiform = (function ($, ns) {
       });
     };
 
-    this.save = function (data, note) {
+    this.save = function (data, isSubmit, note) {
       var tid = this.getTID();
       if (typeof data !== 'string') {
         throw new TypeError('Incorrect data type, must be string');
       }
       this.clearStatus();
       this.saveLocal(data, tid);
-      this.attemptSync(data, tid, note);
+      this.attemptSync(data, tid, isSubmit, note);
     };
 
     // remove html base tag, if any:

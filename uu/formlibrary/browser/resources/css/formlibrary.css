@@ -181,6 +181,11 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
   box-shadow: 5px 5px 5px black;
 }
 
+#formcore.pending-ack #multiform-status.success {
+  border-left:1em solid #060;
+  background-color:#9da;
+}
+
 #formcore.pending-ack #multiform-status .save-status.warning {
   color:#b00;
 }
@@ -191,3 +196,8 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
   padding:0.25em 0.5em;
 }
 
+#formcore.pending-ack #multiform-status input {
+  margin:0.5em;
+  font-size:160%;
+  min-width:6em;
+}

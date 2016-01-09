@@ -307,7 +307,8 @@ uu.formlibrary.multiform.submit = function(event) {
     date_validates = true,
     float_validates = true,
     saveManager = multiform.save,
-    note = $("input[type=submit][clicked=true]").val() || 'Saved data';
+    isSubmit = uu.formlibrary.multiform.last_action === 'save_submit',
+    note = $("#coredata input[type=submit][clicked=true]").val() || 'Saved data';
   /* validate first, only submit if no errors */
   if ($('input.int-field').length>0) {
     int_validates = $('input.int-field').data('validator').checkValidity();
@@ -322,7 +323,7 @@ uu.formlibrary.multiform.submit = function(event) {
     uu.formlibrary.multiform.copybundle(); /* serialize JSON to hidden 'payload' input */
     // Create a application/x-www-form-urlencoded encoded serialization,
     // save locally, attempt sync to server over AJAX using SaveManager:
-    saveManager.save($('#coredata').serialize(), note);
+    saveManager.save($('#coredata').serialize(), isSubmit, note);
     return false;
   } else {
     alert('Please correct input errors and then try saving again.');
@@ -386,6 +387,9 @@ uu.formlibrary.multiform.clean_form_display = function() {
 $(document).ready(function(){
   $('input#btn-addrow').click(uu.formlibrary.multiform.handle_new_row);
   uu.formlibrary.multiform.rowhandlers();
+  $('#coredata input[type=submit]').click(function () {
+    uu.formlibrary.multiform.last_action = $(this).attr('name');
+  });
   $('#coredata').submit(uu.formlibrary.multiform.submit);
   $('textarea.entry_notes').focus(function() {
     var defval = "Enter any notes pertaining to this period.";

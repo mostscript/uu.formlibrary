@@ -93,8 +93,13 @@ var multiform = (function ($, ns) {
       target.empty();
       $('#formcore').addClass('pending-ack');  // pending acknowledgement
       // apply all messages from status:
-      this._status.forEach(function (msg) {
-        var messageDiv = $('<div class="save-status">').appendTo(target);
+      this._status.forEach(function (pair) {
+        var classname = pair[1],
+            msg = pair[0],
+            messageDiv = $('<div class="save-status">').appendTo(target);
+        if (classname) {
+          messageDiv.addClass(classname);
+        }
         messageDiv.html(msg);
       });
       if (this.unsavedData) {
@@ -156,8 +161,8 @@ var multiform = (function ($, ns) {
       this._status = [];
     };
 
-    this.addStatus = function (msg) {
-      this._status.push(msg);
+    this.addStatus = function (msg, classname) {
+      this._status.push([msg, classname]);
     };
 
     this.attemptSync = function (data, tid, isSubmit, note) {
@@ -184,14 +189,15 @@ var multiform = (function ($, ns) {
           self.failures = [];             // clear failures list
           self.unsavedData = false;
           self.lastKnownGood = self.dataKey(tid);
-          self.addStatus('Data saved locally, successfully saved to server');
+          self.addStatus('Data successfully saved to server.', 'heading');
           if (isSubmit) {
             self.addStatus(
-              'Form successfully submitted, click ok to leave editing.'
+              'Form successfully submitted, click ok to leave editing.',
+              'info'
             );
           }
           ((response || {}).messages || []).forEach(function (msg) {
-            self.addStatus(msg);
+            self.addStatus(msg, 'detail');
           });
           self.syncConfig();
           self.userNotify(isSubmit);
@@ -199,11 +205,11 @@ var multiform = (function ($, ns) {
         error: function (xhr, status, error) {
           self.failures.push(attempt);
           self.unsavedData = self.dataKey(tid);
-          self.addStatus('<strong class="warning">WARNING</strong>: ' +
+          self.addStatus('<strong>WARNING</strong>: ' +
                          'Some data was not saved to the server, but was ' +
                          'preserved in your web browser local storage.  ' +
                          'You can retry saving by clicking "Retry save" ' +
-                         'below.');
+                         'below.', 'warning');
           self.syncConfig();
           self.userNotify();
         }

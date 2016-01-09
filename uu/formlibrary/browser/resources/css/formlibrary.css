@@ -201,3 +201,18 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
   font-size:160%;
   min-width:6em;
 }
+
+#multiform-status div.save-status.heading {
+  font-size:165% !important;
+  text-decoration: underline;
+}
+
+#multiform-status div.save-status.detail {
+  font-size:95% !important;
+  color:#555;
+}
+
+#multiform-status div.save-status.detail:before {
+  content:"— ";
+}
+

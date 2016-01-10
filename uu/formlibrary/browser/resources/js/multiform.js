@@ -398,6 +398,7 @@ $(document).ready(function(){
       }
   });
   uu.formlibrary.multiform.clean_form_display(); /* only for stacked; for record divs in DOM at page load */
+  multiform.save.loadStatus();  
 });
 
 

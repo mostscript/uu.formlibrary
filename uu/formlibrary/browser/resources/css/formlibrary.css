@@ -165,7 +165,18 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
 
 /* multi-record form save manager CSS: */
 
-#formcore.pending-ack #form-metadata, #formcore.pending-ack .formrows {
+
+#formcore.failed-save #form-metadata,
+#formcore.failed-save .formrows,
+#formcore.failed-save .add-control,
+#formcore.failed-save #coredata {
+  display:none;
+}
+
+#formcore.pending-ack #form-metadata,
+#formcore.pending-ack .formrows,
+#formcore.pending-ack .add-control,
+#formcore.pending-ack #coredata {
   opacity:0.35;
 }
 

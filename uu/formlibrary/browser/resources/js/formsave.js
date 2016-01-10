@@ -62,6 +62,7 @@ var multiform = (function ($, ns) {
           key = this.dataKey(tid),
           isSubmit = lastAttempt.isSubmit || false,
           data = localStorage.getItem(key);
+      this.clearStatus();
       this.attemptSync(data, tid, isSubmit, 'Retry save to server');
     };
 
@@ -69,10 +70,10 @@ var multiform = (function ($, ns) {
       var target = $('#multiform-status'),
           core = $('#formcore');
       target.empty();
-      core.removeClass('pending-ack');
       if (url) {
         window.location.href = url;
       }
+      core.removeClass('pending-ack');
     };
 
     this.userNotify = function (isSubmit) {
@@ -86,7 +87,7 @@ var multiform = (function ($, ns) {
                 ).appendTo(target);
             btn.click(function () {
               target.empty().html('Retrying now...');
-              self.retryLastSave();
+              self.retryLastFailedSave();
             });
           };
       if (!target.length) return;
@@ -165,6 +166,28 @@ var multiform = (function ($, ns) {
       this._status.push([msg, classname]);
     };
 
+    this.onError = function (attempt, status, error) {
+      $('#formcore').addClass('failed-save');
+      this.failures.push(attempt);
+      this.unsavedData = this.dataKey(attempt.tid);
+      if (status === 'Previous error') {
+        this.addStatus(error, 'heading');
+        this.addStatus(
+          'Data from a previous attempt to save was not successfully ' +
+          'saved to the server; please retry saving before continuing.',
+          'detail'
+        );
+      } else {
+        this.addStatus('<strong>WARNING</strong>: ' +
+                        'Some data was not saved to the server, but was ' +
+                        'preserved in your web browser local storage.  ' +
+                        'You can retry saving by clicking "Retry save" ' +
+                        'below.', 'warning');
+      } 
+      this.syncConfig();
+      this.userNotify();
+    };
+
     this.attemptSync = function (data, tid, isSubmit, note) {
       var attempt = {
             tid: tid,
@@ -188,6 +211,7 @@ var multiform = (function ($, ns) {
           self.removeStaleData(tid);
           self.failures = [];             // clear failures list
           self.unsavedData = false;
+          $('#formcore').removeClass('failed-save');
           self.lastKnownGood = self.dataKey(tid);
           self.addStatus('Data successfully saved to server.', 'heading');
           if (isSubmit) {
@@ -203,15 +227,7 @@ var multiform = (function ($, ns) {
           self.userNotify(isSubmit);
         },
         error: function (xhr, status, error) {
-          self.failures.push(attempt);
-          self.unsavedData = self.dataKey(tid);
-          self.addStatus('<strong>WARNING</strong>: ' +
-                         'Some data was not saved to the server, but was ' +
-                         'preserved in your web browser local storage.  ' +
-                         'You can retry saving by clicking "Retry save" ' +
-                         'below.', 'warning');
-          self.syncConfig();
-          self.userNotify();
+          self.onError(attempt, status, error);
         }
       });
     };
@@ -224,6 +240,13 @@ var multiform = (function ($, ns) {
       this.clearStatus();
       this.saveLocal(data, tid);
       this.attemptSync(data, tid, isSubmit, note);
+    };
+
+    this.loadStatus = function () {
+      var msg = 'There was a previous failed save attempt.';
+      if (this.failures.length) {
+        this.onError(this.failures[0], 'Previous error', msg);
+      }
     };
 
     // remove html base tag, if any:

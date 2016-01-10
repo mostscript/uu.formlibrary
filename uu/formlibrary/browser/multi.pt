@@ -15,11 +15,11 @@
 
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formsave.js?api=20160102h"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formsave.js?api=20160110"></script>
 
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20160102"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20160110"></script>
 
   <script type="text/javascript"
           src=""
@@ -35,7 +35,7 @@
 
 </metal:block>
 <metal:block fill-slot="style_slot">
- <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.css/formlibrary.css?api=20150815" type="text/css" />
+ <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.css/formlibrary.css?api=20160110" type="text/css" />
 
 <style tal:condition="python:'form_css' in view.seriesinfo" tal:content="view/seriesinfo/form_css"></style>
 <style tal:condition="python:view.definition.form_css" tal:content="view/definition/form_css" />

@@ -50,6 +50,9 @@ from uu.formlibrary.utils import WIDGET as GRID_WIDGET
 mkwidget = lambda request: widget.Widget(request)
 TEXT_WIDGET = mkwidget(TestRequest())
 
+# token for no value from select:
+NOVALUE = '--NOVALUE--'
+
 
 def field_type(field):
     if hasattr(field, '_type'):
@@ -276,7 +279,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                             widget.update()
                             # multiple collection like set/list (multi-choice)
                             # has issues where SequenceWidget wants to reset
-                            # widget.value during update... so we have to 
+                            # widget.value during update... so we have to
                             # check the value (ugly hack) and also re-set the
                             # value for the display widget:
                             if ICollection.providedBy(schema_field):
@@ -287,7 +290,6 @@ class ComposedForm(AutoExtensibleForm, form.Form):
                                         if t.get('value') == v[0]
                                     ][0]
                                     term_item['checked'] = True
-
 
     def updateWidgets(self):
         common_widget_updates(self)
@@ -1143,6 +1145,8 @@ class MultiForm(Item, RecordContainer):
                 value = data.get(name, None)
                 if value in (u'true', u'false') and IBool.providedBy(_field):
                     value = True if value == 'true' else False  # radio widget
+                if value == NOVALUE:
+                    value = None
                 cast_type = field_type(_field)
                 if cast_type:
                     if cast_type is int and isinstance(value, basestring):

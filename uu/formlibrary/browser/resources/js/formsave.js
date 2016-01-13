@@ -28,6 +28,7 @@ var multiform = (function ($, ns) {
       this.saveURL = url;
       this.mimeType = mimeType || 'application/x-www-form-urlencoded';
       this.lastKnownGood = null;
+      this.pathname = window.location.pathname;
       this.loadConfig();    // from local storage, if applicable
     };
     
@@ -40,8 +41,16 @@ var multiform = (function ($, ns) {
       };
     };
 
+    this.configKey = function () {
+      /** page specific configuration key to keep storage page-specific,
+        * and avoid incidental shared state across forms, as such could
+        * be a problem for retry of failed save.
+        */
+      return 'multiform_save_manager' + this.pathname;
+    };
+
     this.loadConfig = function () {
-      var config = localStorage.getItem('multiform_save_manager');
+      var config = localStorage.getItem(this.configKey());
       if (!config) return;
       config = JSON.parse(config);
       this.attempts = (config.attempts) ? config.attempts : this.attempts;
@@ -53,7 +62,7 @@ var multiform = (function ($, ns) {
     };
 
     this.syncConfig = function () {
-      localStorage.setItem('multiform_save_manager', JSON.stringify(this));
+      localStorage.setItem(this.configKey(), JSON.stringify(this));
     };
 
     this.retryLastFailedSave = function () {

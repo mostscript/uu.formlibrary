@@ -5,6 +5,7 @@ from plone.memoize import ram
 from z3c.form import form, field
 from z3c.form.interfaces import IDataConverter
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.interface import alsoProvides
 from zope.pagetemplate.interfaces import IPageTemplate
 from zope.schema import getFieldsInOrder
 from zope.schema.interfaces import ICollection
@@ -28,7 +29,7 @@ marker = object()
 
 
 def converter_cache_key(method, self, name, value):
-    return (name, value)
+    return (self.definition.signature, name, value)
 
 
 class MetadataForm(ComposedForm):
@@ -219,9 +220,10 @@ class MultiFormEntry(BaseFormView):
         }
         row_view_cls = row_views[(self.VIEWNAME, self.displaymode)]
         self.dummy_record = self.context.create()
+        alsoProvides(self.dummy_record, self.schema)
         self.baseform = row_view_cls(
             self.dummy_record,
-            self.dummy_record.schema,
+            self.schema,
             self.request
             )
         self.baseform.update()
@@ -250,7 +252,7 @@ class MultiFormEntry(BaseFormView):
     def fix_item_values(self, items, value):
         vtype = type(value)
         for item in items:
-            if vtype is set:
+            if vtype in (set, list):
                 # multi-choice  (checkbox)
                 item['checked'] = (item.get('value', marker) in value)
             elif vtype is bool:
@@ -263,7 +265,10 @@ class MultiFormEntry(BaseFormView):
 
     @ram.cache(converter_cache_key)
     def toWidgetValue(self, fieldname, value):
-        return self.converters[fieldname].toWidgetValue(value)
+        converter = self.converters[fieldname]
+        if value == '--NOVALUE--':
+            value = None
+        return converter.toWidgetValue(value)
 
     def _values(self, record, fieldname):
         """returns raw, widget values as tuple"""

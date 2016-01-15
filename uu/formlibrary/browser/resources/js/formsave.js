@@ -19,13 +19,14 @@ var multiform = (function ($, ns) {
     
     var localStorage = window.localStorage;
 
-    this.init = function (url, mimeType) {
+    this.init = function (saveURL, submitURL, mimeType) {
       this.prefix = 'multiform_save';
       this.attempts = [];   // attempt metadata, usually just last
       this.failures = [];   // failed attempt metadata
       this._status = [];    // status messages
       this.unsavedData = false;   // may be false or string key of unsaved
-      this.saveURL = url;
+      this.saveURL = saveURL;
+      this.submitURL = submitURL || saveURL;
       this.mimeType = mimeType || 'application/x-www-form-urlencoded';
       this.lastKnownGood = null;
       this.pathname = window.location.pathname;
@@ -209,7 +210,7 @@ var multiform = (function ($, ns) {
       this.attempts.push(attempt);
       // Try ajax: callback for success is to remove attempt, callback for
       $.ajax({
-        url: this.saveURL,
+        url: (isSubmit) ? this.submitURL : this.saveURL,
         type: 'POST',
         data: data,
         contentType: this.mimeType,
@@ -264,7 +265,7 @@ var multiform = (function ($, ns) {
 
   };
 
-  ns.save = new ns.SaveManager('@@form_save');
+  ns.save = new ns.SaveManager('@@form_save', '@@form_save_submit');
 
   return ns;
 

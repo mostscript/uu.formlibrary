@@ -137,8 +137,9 @@ class MultiFormEntry(BaseFormView):
                         wftool.doActionFor(self.context, 'submit')
                         self.context.reindexObject()
                         msg += ' (form submitted for review)'
-                        url = self.context.absolute_url()
-                        self.request.RESPONSE.redirect(url)
+                        if not kwargs.get('saveonly', False):
+                            url = self.context.absolute_url()
+                            self.request.RESPONSE.redirect(url)
             if self.has_metadata:
                 self.mdform.update()
                 md_msg = 'Saved metadata fields on multi-record form.'
@@ -355,3 +356,13 @@ class MultiFormSave(MultiFormEntry):
         kwargs['saveonly'] = True
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
+
+
+class MultiFormSaveSubmit(MultiFormSave):
+    """Save and submit"""
+
+    def update(self, *args, **kwargs):
+        self.request.form['save_submit'] = True
+        kwargs['saveonly'] = True
+        super(MultiFormSaveSubmit, self).update(*args, **kwargs)
+

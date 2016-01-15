@@ -85,6 +85,9 @@ uu.formlibrary.multiform.getform = function(id) {
           }
         else {
           if (!input[0].checked) {
+            if (Object.keys(o).indexOf(fieldname) === -1) {
+              o[fieldname] = [];  // at very least, support an empty set
+            }
             continue;
             }
           }

@@ -6,7 +6,7 @@ from uu.formlibrary.measure.cache import DataPointCache
 
 def handle_multiform_modify(context, event):
     """Will add or replace catalog for a multiform"""
-    if event and event.descriptions:
+    if event and len(getattr(event, 'descriptions', [])):
         if 'items' not in getattr(event.descriptions[0], 'attributes', ()):
             return
     context.catalog = SimpleCatalog(context)

@@ -30,6 +30,7 @@ setup(
         'setuptools',
         'zope.schema>=3.8.0',
         'collective.z3cform.datagridfield>=0.9',
+        'collective.z3cform.datetimewidget',
         'plone.app.dexterity',
         'plone.uuid',
         'plone.alterego',

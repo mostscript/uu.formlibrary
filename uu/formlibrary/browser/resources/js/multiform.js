@@ -85,6 +85,9 @@ uu.formlibrary.multiform.getform = function(id) {
           }
         else {
           if (!input[0].checked) {
+            if (Object.keys(o).indexOf(fieldname) === -1) {
+              o[fieldname] = [];  // at very least, support an empty set
+            }
             continue;
             }
           }
@@ -305,7 +308,10 @@ uu.formlibrary.multiform.new_row_url = function() {
 uu.formlibrary.multiform.submit = function(event) {
   var int_validates = true,
     date_validates = true,
-    float_validates = true;
+    float_validates = true,
+    saveManager = multiform.save,
+    isSubmit = uu.formlibrary.multiform.last_action === 'save_submit',
+    note = $("#coredata input[type=submit][clicked=true]").val() || 'Saved data';
   /* validate first, only submit if no errors */
   if ($('input.int-field').length>0) {
     int_validates = $('input.int-field').data('validator').checkValidity();
@@ -318,8 +324,10 @@ uu.formlibrary.multiform.submit = function(event) {
   }
   if (int_validates && float_validates && date_validates) {
     uu.formlibrary.multiform.copybundle(); /* serialize JSON to hidden 'payload' input */
-    //$('form#coredata').submit(); /* submit the form containing the payload */
-    return true;
+    // Create a application/x-www-form-urlencoded encoded serialization,
+    // save locally, attempt sync to server over AJAX using SaveManager:
+    saveManager.save($('#coredata').serialize(), isSubmit, note);
+    return false;
   } else {
     alert('Please correct input errors and then try saving again.');
     return false;
@@ -382,6 +390,9 @@ uu.formlibrary.multiform.clean_form_display = function() {
 $(document).ready(function(){
   $('input#btn-addrow').click(uu.formlibrary.multiform.handle_new_row);
   uu.formlibrary.multiform.rowhandlers();
+  $('#coredata input[type=submit]').click(function () {
+    uu.formlibrary.multiform.last_action = $(this).attr('name');
+  });
   $('#coredata').submit(uu.formlibrary.multiform.submit);
   $('textarea.entry_notes').focus(function() {
     var defval = "Enter any notes pertaining to this period.";
@@ -390,6 +401,7 @@ $(document).ready(function(){
       }
   });
   uu.formlibrary.multiform.clean_form_display(); /* only for stacked; for record divs in DOM at page load */
+  multiform.save.loadStatus();  
 });
 
 

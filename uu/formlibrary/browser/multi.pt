@@ -8,27 +8,34 @@
 
 <metal:block fill-slot="javascript_head_slot">
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20150804"></script>
+<tal:block condition="python: view.VIEWNAME == 'edit'">
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20150804"></script>
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20150916"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formsave.js?api=20160114"></script>
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formcommon.js?api=20141121"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20160113"></script>
 
-<script type="text/javascript"
-        src=""
-        tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20151112"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formcommon.js?api=20141121"></script>
 
-<script id="field-json" type="application/json" tal:content="view/fields_json"></script>
+  <script type="text/javascript"
+          src=""
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20151112"></script>
+
+  <script id="field-json" type="application/json" tal:content="view/fields_json"></script>
+
+</tal:block>
 
 </metal:block>
 <metal:block fill-slot="style_slot">
- <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.css/formlibrary.css?api=20150815" type="text/css" />
+ <link rel="stylesheet" media="all" href="++resource++uu.formlibrary.css/formlibrary.css" tal:attributes="href string:${view/portalurl}/++resource++uu.formlibrary.css/formlibrary.css?api=20160110" type="text/css" />
 
 <style tal:condition="python:'form_css' in view.seriesinfo" tal:content="view/seriesinfo/form_css"></style>
 <style tal:condition="python:view.definition.form_css" tal:content="view/definition/form_css" />
@@ -78,6 +85,8 @@
   <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
 
   <div tal:condition="python: view.VIEWNAME == 'view'" tal:replace="structure provider:plone.belowcontenttitle" />
+
+  <div id="multiform-status" tal:condition="python: view.VIEWNAME == 'edit'"></div>
 
 <tal:block condition="python: view.displaymode!='Stacked'">
     <table class="formheadings">
@@ -159,8 +168,8 @@
 
   <input type="hidden" name="payload" id="payload" value="" />
   <br />
-  <input id="btn-saveform" name="saveform" type="submit" value="&#x2714; Save form as draft" />
-  <input id="btn-savesubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
+  <input id="btn-saveform" class="allowMultiSubmit" name="saveform" type="submit" value="&#x2714; Save form as draft" />
+  <input id="btn-savesubmit" class="allowMultiSubmit" name="save_submit" type="submit" value="&#x21E5; Save and submit form" />
 </form>
 <div class="form_metadata" tal:condition="python: view.VIEWNAME != 'edit'">
   <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->

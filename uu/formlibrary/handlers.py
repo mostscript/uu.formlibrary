@@ -3,7 +3,7 @@ from zope.annotation.interfaces import IAnnotations
 from zope.component import queryUtility
 from zope.event import notify
 from zope.globalrequest import getRequest
-from zope.lifecycleevent import ObjectModifiedEvent
+from zope.lifecycleevent import ObjectModifiedEvent, Attributes
 from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
 from Products.CMFCore.utils import getToolByName
@@ -21,6 +21,7 @@ from uu.formlibrary.interfaces import IFormComponents, IMultiForm
 from uu.formlibrary.forms import form_definition
 from uu.formlibrary.record import FormEntry
 from uu.formlibrary.utils import grid_wrapper_schema
+from uu.record.interfaces import IRecordContainer
 from uu.workflows.utils import history_log
 
 
@@ -111,10 +112,23 @@ def sync_multi_form(form, definition):
             modified = True
     if modified:
         history_log(form, 'Schema updated for form entries.')
-        notify(ObjectModifiedEvent(form))
+        # notify items may be effected by schema change, warranting a
+        # re-index of embedded catalog and reload of cached data-points:
+        notify(
+            ObjectModifiedEvent(form, Attributes(IRecordContainer, 'items'))
+            )
+
+
+def is_definition_modified(context, event=None):
+    if event is None or not getattr(event, 'descriptions', None):
+        return False
+    attr = lambda description: getattr(description, 'attributes', ())
+    return any(['definition' in attr(d) for d in event.descriptions])
 
 
 def form_configuration_modified(context, event):
+    if not is_definition_modified(context, event):
+        return
     if not IBaseForm.providedBy(context):
         raise ValueError('context must be IBaseForm provider')
     ## re-sign context and data-record with current definition/schema:

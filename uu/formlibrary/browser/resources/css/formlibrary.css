@@ -162,3 +162,68 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
 .singlerowform .fielddiv.disabled select {
   color:#eee;
 }
+
+/* multi-record form save manager CSS: */
+
+
+#formcore.failed-save #form-metadata,
+#formcore.failed-save .formrows,
+#formcore.failed-save .add-control,
+#formcore.failed-save #coredata {
+  display:none;
+}
+
+#formcore.pending-ack #form-metadata,
+#formcore.pending-ack .formrows,
+#formcore.pending-ack .add-control,
+#formcore.pending-ack #coredata {
+  opacity:0.35;
+}
+
+#formcore.pending-ack #coredata {
+  display:none;
+}
+
+#formcore.pending-ack #multiform-status {
+  border:1px solid #d80; 
+  border-left:1em solid #f00;   /* different color when success vs fail? */
+  background-color:#fd5;
+  margin:1em 1em 2em 0;
+  box-shadow: 5px 5px 5px black;
+}
+
+#formcore.pending-ack #multiform-status.success {
+  border-left:1em solid #060;
+  background-color:#9da;
+}
+
+#formcore.pending-ack #multiform-status .save-status.warning {
+  color:#b00;
+}
+
+#formcore.pending-ack #multiform-status .save-status {
+  font-size:130%;
+  font-weight: bold;
+  padding:0.25em 0.5em;
+}
+
+#formcore.pending-ack #multiform-status input {
+  margin:0.5em;
+  font-size:160%;
+  min-width:6em;
+}
+
+#multiform-status div.save-status.heading {
+  font-size:165% !important;
+  text-decoration: underline;
+}
+
+#multiform-status div.save-status.detail {
+  font-size:95% !important;
+  color:#555;
+}
+
+#multiform-status div.save-status.detail:before {
+  content:"— ";
+}
+

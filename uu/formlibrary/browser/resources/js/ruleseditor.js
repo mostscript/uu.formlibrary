@@ -410,11 +410,14 @@ var ruleseditor = (function ($) {
     };
 
     this.initMetadata = function (options) {
+      console.log(options);
       if (options.data.title) {
-        $('.rule-title').val(options.data.title).change();
+        $('.rule-title', this.target).val(options.data.title).change();
       }
       if (options.data.description) {
-        $('.rule-description').val(options.data.description).change();
+        $('.rule-description', this.target)
+          .val(options.data.description)
+          .change();
       }
     };
 

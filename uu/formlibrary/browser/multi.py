@@ -1,24 +1,35 @@
 import json
 import uuid
 
+from plone.memoize import ram
 from z3c.form import form, field
+from z3c.form.interfaces import IDataConverter
 from zope.browserpage.viewpagetemplatefile import ViewPageTemplateFile
+from zope.interface import alsoProvides
+from zope.pagetemplate.interfaces import IPageTemplate
 from zope.schema import getFieldsInOrder
 from zope.schema.interfaces import ICollection
 from zope.component.hooks import getSite
+from zope.component import getMultiAdapter
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
+from Products.statusmessages.message import _utf8
 
 from uu.workflows.utils import history_log
 
 from uu.formlibrary.forms import ComposedForm, common_widget_updates
-from uu.formlibrary.search.handlers import handle_multiform_savedata
 
 from common import BaseFormView
 
 
 ROW_TEMPLATE = ViewPageTemplateFile('row.pt')
 DIV_TEMPLATE = ViewPageTemplateFile('formdiv.pt')
+
+marker = object()
+
+
+def converter_cache_key(method, self, name, value):
+    return (self.definition.signature, name, value)
 
 
 class MetadataForm(ComposedForm):
@@ -74,6 +85,7 @@ class MultiFormEntry(BaseFormView):
     def __init__(self, context, request):
         super(MultiFormEntry, self).__init__(context, request)
         self._fields = []
+        self._schema = None
         self._status = IStatusMessage(self.request)
         self.has_metadata = bool(self.definition.metadata_definition)
         if self.has_metadata:
@@ -86,22 +98,23 @@ class MultiFormEntry(BaseFormView):
         return self.index(*args, **kwargs)  # index() via Five/framework magic
 
     def update(self, *args, **kwargs):
+        if not kwargs.get('saveonly', False):
+            self._init_baseform()
         msg = ''
         if 'payload' in self.request.form:
             json = self.request.form.get('payload').strip()
             if json:
                 oldkeys = self.context.keys()
                 # save the data payload to records, also notifies
-                #  ObjectModifiedEvent, if data is modified:
+                # ObjectModifiedEvent, if data is modified, which
+                # will result in reindexing embedded catalog used
+                # by measures:
                 self.context.update_all(json)
-                # now index the saved data in embedded index for
-                #  potential use by measures:
-                handle_multiform_savedata(self.context)
                 newkeys = self.context.keys()
                 count_new = len(set(newkeys) - set(oldkeys))
                 count_updated = len(set(oldkeys) & set(newkeys))
                 count_removed = len(set(oldkeys) - set(newkeys))
-                msg = 'Data has been saved.'
+                msg = 'Data has been saved. '
                 if count_new or count_updated or count_removed:
                     msg += '('
                 if count_new:
@@ -124,8 +137,9 @@ class MultiFormEntry(BaseFormView):
                         wftool.doActionFor(self.context, 'submit')
                         self.context.reindexObject()
                         msg += ' (form submitted for review)'
-                        url = self.context.absolute_url()
-                        self.request.RESPONSE.redirect(url)
+                        if not kwargs.get('saveonly', False):
+                            url = self.context.absolute_url()
+                            self.request.RESPONSE.redirect(url)
             if self.has_metadata:
                 self.mdform.update()
                 md_msg = 'Saved metadata fields on multi-record form.'
@@ -135,10 +149,14 @@ class MultiFormEntry(BaseFormView):
 
     @property
     def schema(self):
-        entry_uids = self.context.keys()
-        if not entry_uids:
-            return self.definition.schema
-        return self.context[entry_uids[0]].schema  # of first contained record
+        if not self._schema:
+            entry_uids = self.context.keys()
+            if not entry_uids:
+                self._schema = self.definition.schema
+            else:
+                # use schema of first contained record
+                self._schema = self.context[entry_uids[0]].schema
+        return self._schema
 
     def fields(self):
         if not self._fields:
@@ -190,12 +208,11 @@ class MultiFormEntry(BaseFormView):
             self._keys = self.context.keys()  # ordered uids of entries
         return self._keys
 
-    def rowform(self, uid=None):
-        if uid is None or uid not in self.entry_uids():
-            record = self.context.create()  # create new with UUID
-        else:
-            record = self.context.get(uid)
-        self._last_uid = record.record_uid
+    def _init_baseform(self):
+        """
+        Initialize base form for re-use * N rows to avoid re-construction;
+        should be called by self.update(), just once.
+        """
         row_views = {
             ('edit', 'Stacked'): DivRowForm,
             ('view', 'Stacked'): DivRowDisplayForm,
@@ -203,9 +220,84 @@ class MultiFormEntry(BaseFormView):
             ('view', 'Columns'): RowDisplayForm,
         }
         row_view_cls = row_views[(self.VIEWNAME, self.displaymode)]
-        form = row_view_cls(record, record.schema, self.request)
-        form.update()
-        return form.render()
+        self.dummy_record = self.context.create()
+        alsoProvides(self.dummy_record, self.schema)
+        self.baseform = row_view_cls(
+            self.dummy_record,
+            self.schema,
+            self.request
+            )
+        self.baseform.update()
+        # create a mapping of data converters by fieldname
+        self.converters = {}    # fieldname to converter
+        self.defaults = {}      # fieldname to default value
+        for fieldname in self.baseform.fields:
+            widget = self.baseform.widgets[fieldname]
+            field = self.schema[fieldname]
+            self.converters[fieldname] = IDataConverter(widget)
+            self.defaults[fieldname] = field.default
+            # lookup template once, bind -- to avoid repeated lookup
+            widget.template = getMultiAdapter(
+                (
+                    widget.context,
+                    self.request,
+                    self.baseform,
+                    field,
+                    widget
+                ),
+                IPageTemplate,
+                name=widget.mode
+                )
+        self.baseform.render()  # force chameleon compilation here
+
+    def fix_item_values(self, items, value):
+        vtype = type(value)
+        for item in items:
+            if vtype in (set, list):
+                # multi-choice  (checkbox)
+                item['checked'] = (item.get('value', marker) in value)
+            elif vtype is bool:
+                # compare vs. string repr of boolean value
+                _item_value = True if item.get('value') == 'true' else False
+                item['checked'] = (_item_value == value)
+            else:
+                # single-choice (radio/select)
+                item['checked'] = (value == item.get('value', marker))
+
+    @ram.cache(converter_cache_key)
+    def toWidgetValue(self, fieldname, value):
+        converter = self.converters[fieldname]
+        if value == '--NOVALUE--':
+            value = None
+        return converter.toWidgetValue(value)
+
+    def _values(self, record, fieldname):
+        """returns raw, widget values as tuple"""
+        default = self.defaults.get(fieldname, None)
+        value = getattr(record, fieldname, default)
+        return value, self.toWidgetValue(fieldname, value)
+
+    def apply_values(self, record):
+        for fieldname, widget in self.baseform.widgets.items():
+            value, widget.value = self._values(record, fieldname)
+            if type(getattr(widget, 'items', None)) is list:
+                self.fix_item_values(widget.items, value)
+
+    def rowform(self, uid=None):
+        """
+        optimized row form re-uses same baseform, applying values and
+        identity/name in place.  This avoids constructing new form and
+        associated widgets, converters, etc.
+        """
+        if uid is None or uid not in self.entry_uids():
+            record = self.context.create()  # create new with UUID
+        else:
+            record = self.context.get(uid)
+        self._last_uid = record.record_uid
+        self.apply_values(record)
+        orig_html = self.baseform.render()
+        dummy_uid = self.dummy_record.record_uid
+        return orig_html.replace(dummy_uid, record.record_uid)
 
     def last_row_uid(self):
         """return the last row uid for row rendered by rowform or random"""
@@ -242,4 +334,35 @@ class MultiFormEntry(BaseFormView):
 
 class MultiFormDisplay(MultiFormEntry):
     VIEWNAME = 'view'
+
+
+class MultiFormSave(MultiFormEntry):
+    """Save only view (ajax): returns json of status messages"""
+
+    def get_status_message(self):
+        """get any set status message set during update()"""
+        return [_utf8(msg.message) for msg in self._status.show()]
+
+    def index(self, *args, **kwargs):
+        messages = self.get_status_message()
+        output = json.dumps({
+            'messages': messages
+            })
+        self.request.response.setHeader('Content-Type', 'application/json')
+        self.request.response.setHeader('Content-Length', len(output))
+        return output
+
+    def __call__(self, *args, **kwargs):
+        kwargs['saveonly'] = True
+        self.update(*args, **kwargs)
+        return self.index(*args, **kwargs)
+
+
+class MultiFormSaveSubmit(MultiFormSave):
+    """Save and submit"""
+
+    def update(self, *args, **kwargs):
+        self.request.form['save_submit'] = True
+        kwargs['saveonly'] = True
+        super(MultiFormSaveSubmit, self).update(*args, **kwargs)
 

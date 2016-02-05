@@ -92,6 +92,21 @@
     permission="uu.workflows.EnterData"
     />
 
+  <!-- save only view for ajax save of multi record form -->
+  <browser:page
+    name="form_save"
+    for="uu.formlibrary.interfaces.IMultiForm"
+    class=".multi.MultiFormSave"
+    permission="uu.workflows.EnterData"
+    />
+
+  <browser:page
+    name="form_save_submit"
+    for="uu.formlibrary.interfaces.IMultiForm"
+    class=".multi.MultiFormSaveSubmit"
+    permission="uu.workflows.EnterData"
+    />
+
   <browser:page
     name="new_row"
     for="uu.formlibrary.interfaces.IMultiForm"

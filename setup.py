@@ -38,6 +38,8 @@ setup(
         'plone.synchronize',
         'plone.schemaeditor>=1.0',
         'plone.app.linkintegrity',
+        'plone.app.textfield',
+        'plone.app.widgets<2.0',
         'zope.globalrequest',
         'zope.app.testing',  # for z3c.form.testing requirement
         'Products.CMFPlone',

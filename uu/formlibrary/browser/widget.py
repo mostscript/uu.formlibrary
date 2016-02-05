@@ -1,3 +1,6 @@
+from plone.app.widgets.interfaces import IWidgetsLayer
+from plone.app.widgets.dx import RichTextWidget
+from plone.app.textfield.interfaces import IRichText
 from z3c.form import widget
 from z3c.form.browser import text
 from zope.component import adapter
@@ -40,3 +43,8 @@ def DividerFieldWidget(field, request):
     """field widget factory for section divider label"""
     return widget.FieldWidget(field, DividerWidget(request))
 
+
+@adapter(IRichText, IWidgetsLayer)
+@implementer(IFieldWidget)
+def RichTextFieldWidget(field, request):
+    return widget.FieldWidget(field, RichTextWidget(request))

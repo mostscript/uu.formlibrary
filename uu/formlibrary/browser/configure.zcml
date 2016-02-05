@@ -215,4 +215,6 @@
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
+  <adapter factory=".widget.RichTextFieldWidget" />
+
 </configure>

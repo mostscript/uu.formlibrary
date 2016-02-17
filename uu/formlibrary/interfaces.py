@@ -7,7 +7,6 @@ from persistent.list import PersistentList
 from plone.app.textfield import RichText
 from plone.directives import form, dexterity
 from plone.autoform import directives
-from plone.app.widgets.dx import RelatedItemsWidget
 from plone.formwidget.contenttree import UUIDSourceBinder
 from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
@@ -34,6 +33,7 @@ from uu.retrieval.interfaces import ISimpleCatalog
 from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 from uu.formlibrary import _
+from uu.formlibrary.browser.widget import CustomRootRelatedWidget
 from uu.formlibrary.utils import DOW
 
 
@@ -344,9 +344,9 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
     #metadata_definition = schema.Choice(
     directives.widget(
         'metadata_definition',
-        RelatedItemsWidget,
+        CustomRootRelatedWidget,
         pattern_options={
-            'selectableTypes': ['uu.formlibrary.definition'],
+            'selectableTypes': ['Form definition'],
             'maximumSelectionSize': 1,
             'baseCriteria': [{
                 'i': 'portal_type',
@@ -354,6 +354,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
                 'v': 'uu.formlibrary.definition'
                 }],
             },
+        custom_root_query={'portal_type': 'uu.formlibrary.library'},
         )
     metadata_definition = schema.BytesLine(
         title=u'Metadata definition',
@@ -811,14 +812,29 @@ class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
     provides the basis for how self.schema is provided.
     """
 
-    form.widget(definition=ContentTreeFieldWidget)
-    definition = schema.Choice(
+    #form.widget(definition=ContentTreeFieldWidget)
+    directives.widget(
+        'definition',
+        CustomRootRelatedWidget,
+        pattern_options={
+            'selectableTypes': ['Form definition'],
+            'maximumSelectionSize': 1,
+            'baseCriteria': [{
+                'i': 'portal_type',
+                'o': 'plone.app.querystring.operation.string.is',
+                'v': 'uu.formlibrary.definition'
+                }],
+            },
+        custom_root_query={'portal_type': 'uu.formlibrary.library'},
+    )
+    definition = schema.BytesLine(
         title=u'Bound form definition',
         description=u'Select a form definition to bind to this form. '
                     u'The definition that you choose will control the '
                     u'available fields and behavior of this form instance.',
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
-        )
+        constraint=is_content_uuid,
+        #source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
+    )
 
 
 class ISimpleForm(IBaseForm):

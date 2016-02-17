@@ -1,6 +1,7 @@
 <configure
   xmlns="http://namespaces.zope.org/zope"
   xmlns:browser="http://namespaces.zope.org/browser"
+  xmlns:zcml="http://namespaces.zope.org/zcml"
   i18n_domain="uu.formlibrary">
 
   <!-- FormInputView can adapt either ISimpleForm or
@@ -216,5 +217,7 @@
     />
 
   <adapter factory=".widget.RichTextFieldWidget" />
+
+  <adapter factory=".widget.UIDRelatedItemsConverter" />
 
 </configure>

@@ -32,6 +32,7 @@ setup(
         'collective.z3cform.datagridfield>=0.9',
         'collective.z3cform.datetimewidget',
         'plone.app.dexterity',
+        'plone.app.widgets',
         'plone.uuid',
         'plone.alterego',
         'plone.supermodel',

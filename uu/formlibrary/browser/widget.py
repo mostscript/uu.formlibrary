@@ -1,16 +1,21 @@
-from plone.app.textfield.interfaces import IRichText
+from Products.Archetypes.Registry import registerWidget
 from plone.app.layout.navigation.root import getNavigationRootObject
-from plone.app.widgets.interfaces import IWidgetsLayer
 try:
-    from plone.app.widgets.dx import RichTextWidget
     from plone.app.widgets.dx import IRelatedItemsWidget
     from plone.app.widgets.dx import RelatedItemsWidget
     from plone.app.widgets.dx import RelationChoiceRelatedItemsWidgetConverter
+    from plone.app.widgets.dx import DateWidget
+    from plone.app.widgets.dx import DatetimeWidget
+    from plone.app.widgets.at import DateWidget as ATDateWidget
+    from plone.app.widgets.at import DatetimeWidget as ATDatetimeWidget
 except ImportError:
-    from plone.app.z3cform.widgets import RichTextWidget
     from plone.app.z3cform.widgets import IRelatedItemsWidget
     from plone.app.z3cform.widgets import RelatedItemsWidget
     from plone.app.z3cform.widgets import RelationChoiceRelatedItemsWidgetConverter
+    from plone.app.z3cform.widgets import DateWidget
+    from plone.app.z3cform.widgets import DatetimeWidget
+    from Products.Archetypes.Widgets import DateWidget as ATDateWidget
+    from Products.Archetypes.Widgets import DatetimeWidget as ATDatetimeWidget
 
 from plone.app.widgets.utils import get_portal
 
@@ -59,12 +64,6 @@ class DividerWidget(text.TextWidget):
 def DividerFieldWidget(field, request):
     """field widget factory for section divider label"""
     return widget.FieldWidget(field, DividerWidget(request))
-
-
-@adapter(IRichText, IWidgetsLayer)
-@implementer(IFieldWidget)
-def RichTextFieldWidget(field, request):
-    return widget.FieldWidget(field, RichTextWidget(request))
 
 
 class UIDRelatedItemsConverter(RelationChoiceRelatedItemsWidgetConverter):
@@ -139,3 +138,41 @@ class CustomRootRelatedWidget(RelatedItemsWidget):
 @implementer(IFieldWidget)
 def CustomRootRelatedFieldWidget(field, request, extra=None):
     return FieldWidget(field, CustomRootRelatedWidget(request))
+
+
+class UpiqDateWidget(DateWidget):
+    pattern = 'upiq-date'
+
+
+class UpiqDatetimeWidget(DatetimeWidget):
+    pattern = 'upiq-date'
+
+
+class ATUpiqDateWidget(ATDateWidget):
+    _properties = ATDateWidget._properties.copy()
+    _properties.update({
+        'pattern': 'upiq-date',
+        'pattern_options': {},
+    })
+
+registerWidget(
+    ATUpiqDateWidget,
+    title='Date widget',
+    description=('Date widget'),
+    used_for=('Products.Archetypes.Field.DateTimeField',)
+)
+
+
+class ATUpiqDatetimeWidget(ATDatetimeWidget):
+    _properties = ATDatetimeWidget._properties.copy()
+    _properties.update({
+        'pattern': 'upiq-date',
+        'pattern_options': {},
+    })
+
+registerWidget(
+    ATUpiqDatetimeWidget,
+    title='Date widget',
+    description=('Date widget'),
+    used_for=('Products.Archetypes.Field.DateTimeField',)
+)

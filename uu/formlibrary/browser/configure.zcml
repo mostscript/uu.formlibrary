@@ -216,8 +216,24 @@
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
-  <adapter factory=".widget.RichTextFieldWidget" />
+  <adapter factory=".widget_overrides.RichTextFieldWidget" />
+
+  <adapter factory=".widget_overrides.UpiqDateFieldWidget" />
+
+  <adapter factory=".widget_overrides.UpiqDatetimeFieldWidget" />
+
+  <adapter factory=".widget_overrides.EffectiveDateFieldWidget" />
+
+  <adapter factory=".widget_overrides.ExpirationDateFieldWidget" />
 
   <adapter factory=".widget.UIDRelatedItemsConverter" />
+  <configure zcml:condition="installed Products.ATContentTypes">
+    <adapter
+      name="uu.formlibrary.widgets"
+      factory=".widget_overrides.MetadataExtender"
+      for="Products.ATContentTypes.interface.IATContentType"
+      provides="archetypes.schemaextender.interfaces.ISchemaModifier"
+      />
+  </configure>
 
 </configure>

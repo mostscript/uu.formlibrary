@@ -12,4 +12,15 @@
         provides="Products.GenericSetup.interfaces.EXTENSION"
         />
 
+    <genericsetup:upgradeDepends
+       title="Update js/css registry"
+        description="Add upiq-date pattern js/css"
+        source="2"
+        destination="3"
+        profile="uu.formlibrary:default"
+        import_steps="jsregistry cssregistry"
+        purge="False"
+        run_deps="False"
+        />
+
 </configure>

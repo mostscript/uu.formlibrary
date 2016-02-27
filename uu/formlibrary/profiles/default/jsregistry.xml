@@ -14,4 +14,26 @@
     insert-after="++resource++plone.app.jquerytools.js"
     />
 
+  <javascript
+    cacheable="True"
+    compression="none"
+    cookable="True"
+    enabled="True"
+    id="++resource++uu.formlibrary.js/plone.min.js"
+    inline="False"
+    expression=""
+    insert-after="++resource++plone.app.widgets.js"
+    />
+
+  <javascript
+    cacheable="True"
+    compression="none"
+    cookable="True"
+    enabled="True"
+    id="++resource++uu.formlibrary.js/upiq-date-pattern.js"
+    inline="False"
+    expression=""
+    insert-after="++resource++uu.formlibrary.js/plone.min.js"
+    />
+
 </object>

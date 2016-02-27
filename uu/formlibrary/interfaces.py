@@ -5,6 +5,7 @@ import uuid
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
 from plone.app.textfield import RichText
+from plone.app.widgets.interfaces import IWidgetsLayer
 from plone.directives import form, dexterity
 from plone.autoform import directives
 from plone.formwidget.contenttree import UUIDSourceBinder
@@ -97,8 +98,11 @@ def valid_json(v):
     return True
 
 
-class IFormLibraryProductLayer(Interface):
-    """Marker for form library product layer"""
+class IFormLibraryProductLayer(IWidgetsLayer):
+    """
+    Marker for form library product layer. Inherits from p.a.widgets
+    IWidgetsLayer to ensure it overrides any registrations for that layer.
+    """
 
 
 class ISchemaProvider(Interface):

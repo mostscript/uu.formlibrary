@@ -86,9 +86,14 @@ class SeriesXLSView(BaseXLSView):
     def content(self):
         return self.context.objectValues()  # CMF/OFS contents
 
-    def _flex_form_hasdata(self, form):
+    def _datagroups(self, form):
         definition = IFormDefinition(form)
-        groups = IFormComponents(definition).groups
+        groups = {'': definition}
+        groups.update(IFormComponents(definition).groups)
+        return groups
+
+    def _flex_form_hasdata(self, form):
+        groups = self._datagroups(form)
         # form.data will not contain fieldset records on created but
         # otherwise unsaved form:
         _fieldsets = dict([(k, form.data.get(k)) for k in groups.keys()])

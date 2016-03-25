@@ -370,6 +370,7 @@ var ruleseditor = (function ($) {
         comparators: ns.comparators,
         target: whenTarget,
         namespace: 'fieldrule-criteria',
+        enforceUniqueness: false,
         id: uid
       });
       this.critEditor.operator = operator.toUpperCase();

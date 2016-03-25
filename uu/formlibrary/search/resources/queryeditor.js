@@ -406,12 +406,14 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
       if (this.schema.keys().indexOf(v.name) === -1) {
         throw new Error('improper field, not in schema');
       }
-      if (this.context && this.context.fieldnameInUse(v.name)) {
-        if (!existing || (existing && existing.name !== v.name)) {
-          // fieldname is in use, but not by this FieldQuery:
-          // treat as duplicate/conflict, warn and return existing:
-          ns.warn('Field already in use in this filter: ' + v.title);
-          return this._field;
+      if (this.context && this.context.enforceUniqueness) {
+        if (this.context.fieldnameInUse(v.name)) {
+          if (!existing || (existing && existing.name !== v.name)) {
+            // fieldname is in use, but not by this FieldQuery:
+            // treat as duplicate/conflict, warn and return existing:
+            ns.warn('Field already in use in this filter: ' + v.title);
+            return this._field;
+          }
         }
       }
       return v;
@@ -837,8 +839,10 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
     };
 
     this.init = function RecordFilter(options) {
+      var unique = options.enforceUniqueness;
       validateOptions(options);
       ns.RecordFilter.prototype.init.apply(this, [options]);
+      this.enforceUniqueness = (unique === undefined) ? true : unique;
       this._schema = options.schema || undefined;
       this._comparators = options.comparators || undefined;
       if ($(this.target).length) {

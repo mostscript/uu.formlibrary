@@ -59,6 +59,7 @@ uu.formlibrary.multiform.getform = function(id) {
   for (var i=0; i<inputs.length; i++) {
     var multivalued = false;
     var input = $(inputs[i]);
+    if (input.attr('name') === '_authenticator') continue;   // plone.protect
     var fieldname = input.attr('name').split('~')[1].split(':')[0].split('.').pop();
     if (fieldname.split('empty-marker').length == 2) {
       continue;

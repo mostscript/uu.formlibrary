@@ -11,6 +11,7 @@ from zope.annotation.interfaces import IAnnotations
 from zope.component import adapts
 from zope.component.hooks import getSite
 from zope.interface import implements
+from zope.schema import ValidationError
 
 from uu.workflows.utils import history_log
 from uu.formlibrary import product_log
@@ -268,7 +269,7 @@ class DataPointCache(object):
             try:
                 point = measure._datapoint(form)
                 self.store(key, point)
-            except KeyError:
+            except (KeyError, ValidationError):
                 exc = sys.exc_info()
                 product_log.warn(
                     'Measure %s unable to cache point for form %s -- %s' % (

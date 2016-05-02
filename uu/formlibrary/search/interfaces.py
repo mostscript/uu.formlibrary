@@ -26,6 +26,8 @@ COMPARATORS = (
     'Lt',
     'NotEq',
     'NotInRange',
+    'NotAny',
+    'NotAll',
     )
 COMPARATOR_VOCABULARY = SimpleVocabulary(
     [SimpleTerm(k) for k in COMPARATORS]

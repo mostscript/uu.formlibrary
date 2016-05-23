@@ -110,7 +110,7 @@ class JSONListing(object):
             recursive=self.RECURSIVE,
             root=kwargs.get('root', False),
             portal_type=kwargs.get('portal_type', None),
-            sort_on=kwargs.get('sort_on', 'sortable_title'),
+            sort_on=kwargs.get('sort_on', 'getObjPositionInParent'),
             sort_order=kwargs.get('sort_order', 'ascending'),
             )
 

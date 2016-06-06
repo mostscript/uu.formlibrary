@@ -8,8 +8,6 @@ from plone.app.textfield import RichText
 from plone.app.widgets.interfaces import IWidgetsLayer
 from plone.directives import form, dexterity
 from plone.autoform import directives
-from plone.formwidget.contenttree import UUIDSourceBinder
-from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
 from zope.component.hooks import getSite
@@ -486,108 +484,6 @@ class IFormEntry(ISchemaSignedEntity):
     for a single record, bound to a schema via md5 signature of
     the schema's serialization (provided via uu.dynamicschema).
     """
-
-
-class IFormQuery(form.Schema):
-    """
-    Query specification for filtering a set of forms.
-    """
-
-    form.fieldset(
-        'filters',
-        label=u'Query filters',
-        fields=[
-            'query_title',
-            'query_subject',
-            'query_state',
-            'query_start',
-            'query_end',
-            ]
-        )
-
-    title = schema.TextLine(
-        title=u'Title',
-        description=u'Name of form set.',
-        required=True,
-        )
-
-    description = schema.Text(
-        title=u'Description',
-        description=u'Description of the form set resulting from '
-                    u'selection or query.',
-        required=False,
-        )
-
-    # locations can be specific forms or series, or parent* folders
-    form.widget(locations=MultiContentTreeFieldWidget)
-    locations = schema.List(
-        title=u'Included locations',
-        description=u'Select locations (specific forms or containing '
-                    u'folders, including form series and/or parent '
-                    u'folders) to include.  If you do not choose at '
-                    u'least one location, all forms will be included and '
-                    u'optionally filtered. If you choose locations, only '
-                    u'forms within those locations will be included and '
-                    u'optionally filtered by any chosen filter criteria.',
-        value_type=schema.Choice(
-            source=UUIDSourceBinder(),
-            ),
-        required=False,
-        defaultFactory=list,
-        )
-
-    sort_on_start = schema.Bool(
-        title=u'Sort on start date?',
-        description=u'Should resulting forms included be sorted by '
-                    u'their respective start dates?',
-        required=False,
-        default=True,
-        )
-
-    query_title = schema.TextLine(
-        title=u'Filter: title',
-        description=u'Full text search of title of forms.',
-        required=False,
-        )
-
-    query_subject = schema.List(
-        title=u'Filter: tags',
-        description=u'Query for any forms matching tags or subject.',
-        value_type=schema.TextLine(),
-        required=False,
-        defaultFactory=list,  # req zope.schema >= 3.8.0
-        )
-
-    query_state = schema.List(
-        title=u'Filter: workflow state(s)',
-        description=u'List of workflow states. If not specified, items in '
-                    u'any state will be considered.',
-        value_type=schema.Choice(
-            vocabulary=u'plone.app.vocabularies.WorkflowStates',  # named vocab
-            ),
-        required=False,
-        defaultFactory=list,  # req zope.schema >= 3.8.0
-        )
-
-    form.widget(query_start=SmartdateFieldWidget)
-    query_start = schema.Date(
-        title=u'Filter: date range start',
-        description=u'Date range inclusion query (start).',
-        required=False,
-        )
-
-    form.widget(query_end=SmartdateFieldWidget)
-    query_end = schema.Date(
-        title=u'Filter: date range end',
-        description=u'Date range inclusion query (end).',
-        required=False,
-        )
-
-    def brains(self):
-        """Return an iterable of catalog brains for forms included."""
-
-    def forms(self):
-        """Return an iterable of form objects included."""
 
 
 class IFormSet(Interface):

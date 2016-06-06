@@ -9,7 +9,6 @@ from plone.app.widgets.interfaces import IWidgetsLayer
 from plone.directives import form, dexterity
 from plone.autoform import directives
 from plone.formwidget.contenttree import UUIDSourceBinder
-from plone.formwidget.contenttree import ContentTreeFieldWidget
 from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
@@ -82,6 +81,18 @@ FORM_TYPE_NAMES = {
     SIMPLE_FORM_TYPE: u'Flex form',
     }
 FORM_TYPES = tuple(FORM_TYPE_NAMES.keys())
+
+definition_pattern_options = {
+    'selectableTypes': ['Form definition'],
+    'maximumSelectionSize': 1,
+    'baseCriteria': [{
+        'i': 'portal_type',
+        'o': 'plone.app.querystring.operation.string.is',
+        'v': DEFINITION_TYPE,
+        }],
+    }
+
+formlibrary_root_query = {'portal_type': LIBRARY_TYPE}
 
 
 mkterm = lambda token, title: SimpleTerm(token, title=title)
@@ -344,21 +355,11 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         defaultFactory=PersistentList,  # req. zope.schema >= 3.8.0
         )
 
-    #form.widget(metadata_definition=ContentTreeFieldWidget)
-    #metadata_definition = schema.Choice(
     directives.widget(
         'metadata_definition',
         CustomRootRelatedWidget,
-        pattern_options={
-            'selectableTypes': ['Form definition'],
-            'maximumSelectionSize': 1,
-            'baseCriteria': [{
-                'i': 'portal_type',
-                'o': 'plone.app.querystring.operation.string.is',
-                'v': 'uu.formlibrary.definition'
-                }],
-            },
-        custom_root_query={'portal_type': 'uu.formlibrary.library'},
+        pattern_options=definition_pattern_options,
+        custom_root_query=formlibrary_root_query,
         )
     metadata_definition = schema.BytesLine(
         title=u'Metadata definition',
@@ -366,7 +367,6 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
                     u'for this form (optional).',
         required=False,
         constraint=is_content_uuid,
-        #source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         )
 
     def log(*args, **kwargs):
@@ -816,20 +816,11 @@ class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
     provides the basis for how self.schema is provided.
     """
 
-    #form.widget(definition=ContentTreeFieldWidget)
     directives.widget(
         'definition',
         CustomRootRelatedWidget,
-        pattern_options={
-            'selectableTypes': ['Form definition'],
-            'maximumSelectionSize': 1,
-            'baseCriteria': [{
-                'i': 'portal_type',
-                'o': 'plone.app.querystring.operation.string.is',
-                'v': 'uu.formlibrary.definition'
-                }],
-            },
-        custom_root_query={'portal_type': 'uu.formlibrary.library'},
+        pattern_options=definition_pattern_options,
+        custom_root_query=formlibrary_root_query,
     )
     definition = schema.BytesLine(
         title=u'Bound form definition',
@@ -837,7 +828,6 @@ class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
                     u'The definition that you choose will control the '
                     u'available fields and behavior of this form instance.',
         constraint=is_content_uuid,
-        #source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
     )
 
 
@@ -1036,12 +1026,16 @@ class IPopulateForms(form.Schema):
         default=SIMPLE_FORM_TYPE,
         )
 
-    form.widget(definition=ContentTreeFieldWidget)
-    definition = schema.Choice(
+    directives.widget(
+        'definition',
+        CustomRootRelatedWidget,
+        pattern_options=definition_pattern_options,
+        custom_root_query=formlibrary_root_query,
+    )
+    definition = schema.BytesLine(
         title=u'Choose form definition',
         description=u'Select a form definition to bind to these created '
                     u'forms.',
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
         required=True,
         )
 

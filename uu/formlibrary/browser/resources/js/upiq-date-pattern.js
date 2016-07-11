@@ -1,8 +1,14 @@
 var define, require;
 
+// shim moment from globals (for Plone 4):
+if (window.moment) {
+  define('moment', function () {
+    return window.moment;
+  });
+}
+
 define('parsedate', ['moment'], function (moment) {
   /** sensible date-parsing of human-entered date strings, using moment
-   *  ALL TIMES UTC for sanity!
    */
   "use strict";
   var ns = {};
@@ -124,7 +130,7 @@ define('parsedate', ['moment'], function (moment) {
 
 define('mockup-patterns-upiq-date',[
   'jquery',
-  'mockup-patterns-pickadate',
+  'pat-base',
   'parsedate'
 ], function($, PickADate, parsedate) {
   'use strict';
@@ -238,8 +244,8 @@ define('mockup-patterns-upiq-date',[
 
 define('mockup-upiq-widgets',[
   'jquery',
-  'mockup-registry',
-  'mockup-patterns-base',
+  'pat-registry',
+  'pat-base',
   'mockup-patterns-pickadate',
   'mockup-patterns-upiq-date',
   'moment',

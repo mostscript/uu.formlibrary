@@ -128,145 +128,88 @@ define('parsedate', ['moment'], function (moment) {
 });
 
 
-define('mockup-patterns-upiq-date',[
-  'jquery',
-  'pat-base',
-  'parsedate'
-], function($, PickADate, parsedate) {
-  'use strict';
-
-  var UpiqADate = PickADate.extend({
-    name: 'upiq-date',
-    init: function() {
-      UpiqADate.__super__.init.call(this);
-      var self = this,
-          value = self.$el.val().split(' '),
-          dateValue = value[0] || '',
-          timeValue = value[1] || '';
-
-      if (self.options.date === false) {
-        timeValue = value[0];
-      }
-
-      if (self.options.date !== false) {
-        self.$date_entry = $('<input type="text" />').prependTo(self.$wrapper.find('.'+self.options.classDateWrapperName));
-        self.$date_entry.addClass('pattern-upiq-date-text-entry');
-        self.$date_entry.val(dateValue);
-        self.$date_entry.on('blur', function (e) {
-          var text_value = self.$date_entry.val().toLowerCase();
-          var date_value = '';
-          if (text_value) {
-            var m_value = parsedate.parse(text_value);
-            if (m_value) {
-              if (self.options.timezone !== null) {
-                m_value.zone(self.options.timezone);
-              } else {
-                m_value.local();
+define(
+  'pat-upiq-date',
+  [
+    'jquery',
+    'pat-base',
+    'mockup-patterns-pickadate',
+    'parsedate'
+  ],
+  function ($, base, PickADate, parsedate) {
+    'use strict';
+    
+    var UpiqADate = PickADate.extend({
+      name: 'upiq-date',
+      trigger: '.pat-upiq-date',
+      init: function () {
+        var self = this,
+            core = new PickADate(this.$el, {}),
+            addKey = function (event) {
+              self.entry += String.fromCharCode(event.keyCode);
+              core.$date.val(self.entry);
+              self.dirty = true;
+            },
+            clearValue = function (event) {
+              self.entry = '';
+              self.dirty = false;
+            },
+            normalizeAndSetValue = function () {
+              var normalized = '';
+              if (self.entry) {
+                normalized = parsedate.parse(self.entry);
+                if (normalized.toString() === 'Invalid Date') {
+                  core.$date.val('Invalid date, please try again');
+                  self.entry = '';
+                  core.$el.val(self.entry);
+                }
+                normalized = normalized.toISOString().split('T')[0];
               }
-              // Convert to unix time with ms
-              date_value = m_value.format('YYYY-MM-DD');
-            }
+              core.$date.val(normalized);
+              core.$el.val(normalized);
+              clearValue();  // reset buffer
+            },
+            considerKey = function (event) {
+              var code = event.keyCode,
+                  isDigit = (code >= 48 && code <= 57),
+                  isAlpha = (code >= 65 && code <= 90),
+                  considered = [32, 44, 47, 45];
+              return (isDigit || isAlpha || considered.indexOf(code) !== -1);
+            },
+            keyHandlers = {
+              13: function (event) {
+                normalizeAndSetValue();
+                // prevent <Enter> from accidentally submitting form
+                event.preventDefault();
+                return false;
+              },
+              191: function (event) {
+                addKey({keyCode:47});
+              },
+              8: clearValue
+            };
+        this.dirty = false;
+        this.entry = '';
+        this.core = core;
+        core.$date.on('keydown', function (event) {
+          if (keyHandlers[event.keyCode]) {
+            return keyHandlers[event.keyCode](event);
           }
-          self.$date.pickadate('picker').set('select', date_value, {format: 'yyyy-mm-dd'});
-          self.updateValue();
-          self.$date_entry.hide();
-          self.$date.show();
+          if (considerKey(event)) {
+            addKey(event);
+          }
         });
-        self.$date_entry.hide();
-        self.$date.on('keydown', function (event) {
-          if ((event.keyCode >= 48 && event.keyCode <= 57) ||
-              (event.keyCode >= 65 && event.keyCode <= 90)) {
-            self.$date_entry.show().focus().val(String.fromCharCode(event.keyCode));
-            self.$date.hide();
-            event.stopPropagation();
-            return false;
+        core.$date.on('blur', function (event) {
+          if (self.dirty) {
+            normalizeAndSetValue();
           }
-          return true;
-        });
-        self.$date_entry.on('keydown', function (event) {
-          if (event.keyCode == 13) {
-            self.$date_entry.blur();
-            self.$date.focus();
-            event.stopPropagation();
-            return false;
-          }
-          return true;
-        });
-      }
-      if (self.options.time !== false) {
-        self.$time_entry = $('<input type="text" />').prependTo(self.$wrapper.find('.'+self.options.classTimeWrapperName));
-        self.$time_entry.addClass('pattern-upiq-time-text-entry');
-        self.$time_entry.val(timeValue);
-        self.$time_entry.on('blur', function (e) {
-          var text_value = self.$time_entry.val().toLowerCase();
-          var time_value = '';
-          if (text_value) {
-            var m_value = parsedate.parsetime(text_value);
-            if (m_value) {
-              time_value = m_value.format('HH:mm');
-            }
-          }
-          self.$time.pickatime('picker').set('select', time_value, {format: 'HH:i'});
-          // Only reshow picker if blanked
-          if (time_value === '') {
-            self.$time_entry.hide();
-            self.$time.pickatime('picker').clear().close();
-            self.$time.show();        
-          }
-          self.updateValue();
-        });
-        self.$time_entry.hide();
-        self.$time.on('keydown', function (event) {
-          if ((event.keyCode >= 48 && event.keyCode <= 57) ||
-              (event.keyCode >= 65 && event.keyCode <= 90)) {
-            self.$time_entry.show().focus().val(String.fromCharCode(event.keyCode));
-            self.$time.hide();
-            event.stopPropagation();
-            return false;
-          }
-          return true;
-        });
-        self.$time_entry.on('keydown', function (event) {
-          if (event.keyCode == 13) {
-            self.$time_entry.blur();
-            event.stopPropagation();
-            return false;
-          }
-          return true;
         });
       }
-    }
-  });
-
-  return UpiqADate;
-
-});
-
-define('mockup-upiq-widgets',[
-  'jquery',
-  'pat-registry',
-  'pat-base',
-  'mockup-patterns-pickadate',
-  'mockup-patterns-upiq-date',
-  'moment',
-], function($, Registry, Base) {
-  'use strict';
-
-  var UpiqWidgets = Base.extend({
-    name: 'upiq-widgets',
-    init: function() {
-      var self = this;
-    }
-  });
-
-  // initialize only if we are in top frame
-  if (window.parent === window) {
-    $(document).ready(function() {
-      Registry.scan($('body'));
     });
+
+    return UpiqADate;
+
   }
+);
 
-  return UpiqWidgets;
-});
-
-require(["mockup-upiq-widgets"]);
+require(['pat-upiq-date']);

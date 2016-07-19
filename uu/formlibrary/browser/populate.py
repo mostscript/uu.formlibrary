@@ -96,6 +96,10 @@ class PopulateForms(AutoExtensibleForm, form.Form):
             msg += u' (%s)' % reason
         self._status.addStatusMessage(msg, type='info')
 
+    def updateWidgets(self):
+        super(PopulateForms, self).updateWidgets()
+        self.widgets['definition'].context = self.request.PUBLISHED
+
     def update(self, *args, **kwargs):
         super(PopulateForms, self).update()
         ## fieldset label fixup for periodic series group:
@@ -190,4 +194,8 @@ class PopulateFormsView(FormWrapper):
 
     def __init__(self, context, request):
         FormWrapper.__init__(self, context, request)
+        self.REQUEST = request
+
+    def absolute_url(self):
+        return self.request.URL
 

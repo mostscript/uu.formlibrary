@@ -146,22 +146,23 @@ define(
         var self = this,
             core = new PickADate(this.$el, {}),
             addKey = function (event) {
-              self.entry += String.fromCharCode(event.keyCode);
-              core.$date.val(self.entry);
-              self.dirty = true;
+              self.dateEntry += String.fromCharCode(event.keyCode);
+              core.$date.val(self.dateEntry);
+              self.dateDirty = true;
+              return true;
             },
             clearValue = function (event) {
-              self.entry = '';
-              self.dirty = false;
+              self.dateEntry = '';
+              self.dateDirty = false;
             },
             normalizeAndSetValue = function () {
               var normalized = '';
-              if (self.entry) {
-                normalized = parsedate.parse(self.entry);
+              if (self.dateEntry) {
+                normalized = parsedate.parse(self.dateEntry);
                 if (normalized.toString() === 'Invalid Date') {
                   core.$date.val('Invalid date, please try again');
-                  self.entry = '';
-                  core.$el.val(self.entry);
+                  self.dateEntry = '';
+                  core.$el.val(self.dateEntry);
                 }
                 normalized = normalized.toISOString().split('T')[0];
               }
@@ -176,31 +177,42 @@ define(
                   considered = [32, 44, 47, 45];
               return (isDigit || isAlpha || considered.indexOf(code) !== -1);
             },
+            ignore = function (event) { return true; },
             keyHandlers = {
+              8: clearValue,    // backspace
               13: function (event) {
                 normalizeAndSetValue();
                 // prevent <Enter> from accidentally submitting form
                 event.preventDefault();
                 return false;
               },
+              16: ignore,       // shift
+              17: ignore,       // control
+              18: ignore,       // alt
+              27: ignore,       // esc
+              32: ignore,       // space
+              37: ignore,       // cursor...
+              38: ignore,
+              39: ignore,
+              40: ignore,
+              46: clearValue,   // del
+              173: function (event) {
+                addKey({keyCode:45});
+              },
               191: function (event) {
                 addKey({keyCode:47});
               },
-              8: clearValue
+              224: ignore       // command (Apple)
             };
-        this.dirty = false;
-        this.entry = '';
+        this.dateDirty = false;
+        this.dateEntry = '';
         this.core = core;
         core.$date.on('keydown', function (event) {
-          if (keyHandlers[event.keyCode]) {
-            return keyHandlers[event.keyCode](event);
-          }
-          if (considerKey(event)) {
-            addKey(event);
-          }
+          var handler = keyHandlers[event.keyCode] || addKey;
+          return handler(event);
         });
         core.$date.on('blur', function (event) {
-          if (self.dirty) {
+          if (self.dateDirty) {
             normalizeAndSetValue();
           }
         });

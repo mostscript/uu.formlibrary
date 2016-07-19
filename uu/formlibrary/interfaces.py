@@ -2,18 +2,21 @@ from datetime import datetime
 import json
 import uuid
 
+from five import grok
 from persistent.dict import PersistentDict
 from persistent.list import PersistentList
+from plone.app.layout.navigation.root import getNavigationRootObject
 from plone.app.textfield import RichText
 from plone.app.widgets.interfaces import IWidgetsLayer
 from plone.directives import form, dexterity
-from plone.autoform import directives
+#from plone.autoform import directives
 from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
 from zope.component.hooks import getSite
 from zope.container.interfaces import IOrderedContainer
 from zope.interface import Interface, Invalid, invariant
 from zope.interface.interfaces import IInterface
+from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope import schema
 
@@ -31,7 +34,7 @@ from uu.retrieval.interfaces import ISimpleCatalog
 from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 from uu.formlibrary import _
-from uu.formlibrary.browser.widget import CustomRootRelatedWidget
+#from uu.formlibrary.browser.widget import CustomRootRelatedWidget
 from uu.formlibrary.utils import DOW
 
 
@@ -97,6 +100,40 @@ mkterm = lambda token, title: SimpleTerm(token, title=title)
 _mkvocab = lambda s: SimpleVocabulary([mkterm(t, title) for (t, title) in s])
 _terms = lambda s: SimpleVocabulary([SimpleTerm(t) for t in s])
 mkvocab = lambda s: _mkvocab(s) if s and isinstance(s[0], tuple) else _terms(s)
+
+
+def navroot_for(context):
+    site = getSite()
+    return site, getNavigationRootObject(context, site)
+
+
+def content_vocabulary(pairs):
+    return SimpleVocabulary(
+        map(
+            lambda pair: SimpleTerm(value=pair[0], title=pair[1]),
+            pairs
+        )
+    )
+
+
+def local_content(context, portal_type):
+    """
+    Given environmentally inferred context, get vocabulary of UID, title
+    for all content of portal_type within (underneath) current navigation root.
+    """
+    site, navroot = navroot_for(context)
+    search = lambda q: site.portal_catalog.unrestrictedSearchResults(q)
+    query = {
+        'portal_type': portal_type,
+        'path': '/'.join(navroot.getPhysicalPath())
+    }
+    result = [(brain.UID, brain.Title) for brain in search(query)]
+    return content_vocabulary(result)
+
+
+@grok.provider(IContextSourceBinder)
+def local_definitions(context):
+    return local_content(context, DEFINITION_TYPE)
 
 
 def valid_json(v):
@@ -353,18 +390,20 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         defaultFactory=PersistentList,  # req. zope.schema >= 3.8.0
         )
 
-    directives.widget(
-        'metadata_definition',
-        CustomRootRelatedWidget,
-        pattern_options=definition_pattern_options,
-        custom_root_query=formlibrary_root_query,
-        )
-    metadata_definition = schema.BytesLine(
+    #directives.widget(
+    #    'metadata_definition',
+    #    CustomRootRelatedWidget,
+    #    pattern_options=definition_pattern_options,
+    #    custom_root_query=formlibrary_root_query,
+    #    )
+    #metadata_definition = schema.BytesLine(
+    metadata_definition = schema.Choice(
         title=u'Metadata definition',
         description=u'Select a form definition to provide metadata fields '
                     u'for this form (optional).',
         required=False,
         constraint=is_content_uuid,
+        source=local_definitions,
         )
 
     def log(*args, **kwargs):
@@ -712,18 +751,20 @@ class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
     provides the basis for how self.schema is provided.
     """
 
-    directives.widget(
-        'definition',
-        CustomRootRelatedWidget,
-        pattern_options=definition_pattern_options,
-        custom_root_query=formlibrary_root_query,
-    )
-    definition = schema.BytesLine(
+    #directives.widget(
+    #    'definition',
+    #    CustomRootRelatedWidget,
+    #    pattern_options=definition_pattern_options,
+    #    custom_root_query=formlibrary_root_query,
+    #)
+    #definition = schema.BytesLine(
+    definition = schema.Choice(
         title=u'Bound form definition',
         description=u'Select a form definition to bind to this form. '
                     u'The definition that you choose will control the '
                     u'available fields and behavior of this form instance.',
         constraint=is_content_uuid,
+        source=local_definitions,
     )
 
 
@@ -922,17 +963,19 @@ class IPopulateForms(form.Schema):
         default=SIMPLE_FORM_TYPE,
         )
 
-    directives.widget(
-        'definition',
-        CustomRootRelatedWidget,
-        pattern_options=definition_pattern_options,
-        custom_root_query=formlibrary_root_query,
-    )
-    definition = schema.BytesLine(
+    #directives.widget(
+    #    'definition',
+    #    CustomRootRelatedWidget,
+    #    pattern_options=definition_pattern_options,
+    #    custom_root_query=formlibrary_root_query,
+    #)
+    #definition = schema.BytesLine(
+    definition = schema.Choice(
         title=u'Choose form definition',
         description=u'Select a form definition to bind to these created '
                     u'forms.',
         required=True,
+        source=local_definitions,
         )
 
     title_prefixes = schema.List(

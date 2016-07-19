@@ -2,14 +2,15 @@ import operator
 
 from Acquisition import aq_parent, aq_inner
 from plone.app.layout.navigation.interfaces import INavigationRoot
+from plone.autoform import directives
 from plone.directives import form
-from plone.formwidget.contenttree import UUIDSourceBinder
-from plone.formwidget.contenttree import ContentTreeFieldWidget
-from plone.formwidget.contenttree import MultiContentTreeFieldWidget
+#from plone.formwidget.contenttree import UUIDSourceBinder
+#from plone.formwidget.contenttree import ContentTreeFieldWidget
+#from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IAttributeUUID, IUUID
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
-from zope.globalrequest import getRequest
+#from zope.globalrequest import getRequest
 from zope.interface import Interface, Invalid, implements, invariant
 from zope.interface.common.mapping import IWriteMapping, IIterableMapping
 from zope import schema
@@ -18,12 +19,14 @@ from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 from uu.smartdate.browser.widget import SmartdateFieldWidget
 
-from uu.formlibrary.interfaces import DEFINITION_TYPE
+#from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
+from uu.formlibrary.interfaces import local_definitions
 
-from uu.formlibrary.vocabulary import find_context
+#from uu.formlibrary.vocabulary import find_context
 from uu.formlibrary.vocabulary import definition_field_source
 from uu.formlibrary.vocabulary import definition_flex_datasource_fields
+from uu.formlibrary.browser.widget import CustomRootRelatedWidget
 
 
 ## global constants:
@@ -202,18 +205,6 @@ class MeasureGroupContentSourceBinder(object):
         return PermissiveVocabulary(terms)
 
 
-## field default (defaultFactory) methods:
-
-def default_definition():
-    context = find_context(getRequest())  # reconstruct context
-    if not context:
-        return None
-    defn_uid = getattr(context, 'definition', None)
-    if defn_uid is None:
-        return ''
-    return defn_uid
-
-
 ## core interfaces (shared by content types and/or forms):
 
 class IMeasureNaming(form.Schema):
@@ -231,17 +222,16 @@ class IMeasureNaming(form.Schema):
 
 
 class IMeasureFormDefinition(form.Schema):
-    """Bound form definition for a measure or measure group"""
+    """Bound form definition for a measure group"""
 
-    form.widget(definition=ContentTreeFieldWidget)
+    #form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Select a form definition',
         description=u'Select a form definition to use for measure(s). '
                     u'The definition that you choose will control the '
                     u'available fields for query by measure(s).',
-        source=UUIDSourceBinder(portal_type=DEFINITION_TYPE),
+        source=local_definitions,
         required=True,
-        defaultFactory=default_definition,
         )
 
 
@@ -555,7 +545,12 @@ class IFormDataSetSpecification(form.Schema):
         )
 
     # locations can be specific forms or series, or parent* folders
-    form.widget(locations=MultiContentTreeFieldWidget)
+    #form.widget(locations=MultiContentTreeFieldWidget)
+    directives.widget(
+        'locations',
+        CustomRootRelatedWidget,
+        pattern_options={'basePath': '/', 'mode': 'browse'},
+        )
     locations = schema.List(
         title=u'Included locations',
         description=u'Select locations (specific forms or containing '
@@ -565,9 +560,7 @@ class IFormDataSetSpecification(form.Schema):
                     u'optionally filtered. If you choose locations, only '
                     u'forms within those locations will be included and '
                     u'optionally filtered by any chosen filter criteria.',
-        value_type=schema.Choice(
-            source=UUIDSourceBinder(),
-            ),
+        value_type=schema.BytesLine(),
         required=False,
         defaultFactory=list,
         )

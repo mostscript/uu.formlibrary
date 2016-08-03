@@ -229,15 +229,16 @@ define(
         dateBuffer += key;
         self.datePicker.close();
         self.$date.val(dateBuffer);
-        // we return false, or key will appear appended duplicatively to
-        // end of buffer value:
+        // return false, or key appears appended dupe after buffer value
         return false;
       };
 
       self.addTimeKey = function (key) {
         timeBuffer += key;
+        self.timePicker.close();
         self.$time.val(timeBuffer);
-        return true;
+        // return false, or key appears appended dupe after buffer value
+        return false;
       };
 
       self.dateRepr = function () {
@@ -455,9 +456,11 @@ define(
           if (event.type === 'keydown') {
             // keydown for control, plus preempting picker (e.g. spacebar)
             handler = self.commonKeyDown[key] || self.timeKeyDown[key];
+            console.log('Keydown time: ', key);
             return (handler) ? handler(event) : true;
           } else {
-            self.addTimeKey(key);
+            console.log('Keypress time: ', key);
+            return self.addTimeKey(key);
           }
         });
 

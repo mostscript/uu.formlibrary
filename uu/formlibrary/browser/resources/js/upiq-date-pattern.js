@@ -172,7 +172,7 @@ define(
           clearTimeValue = function (event) {
             timeBuffer = '';
             timeValue = undefined;
-            self.timePicker.clear().open();
+            self.timePicker.open();
           },
           codeKeys = {
             // tiny applicable subset of keydown/keyup mapped to DOM L3 values
@@ -359,7 +359,10 @@ define(
             // 24h time, ISO fragment with leading zeros:
             displayTime = moment(self.timeRepr(), ['H:m']).format('HH:mm');
           }
+          // set display value:
           self.$time.val(displayTime);
+          // reset buffer:
+          timeBuffer = '';
         }
 
       };
@@ -456,18 +459,57 @@ define(
           if (event.type === 'keydown') {
             // keydown for control, plus preempting picker (e.g. spacebar)
             handler = self.commonKeyDown[key] || self.timeKeyDown[key];
-            console.log('Keydown time: ', key);
             return (handler) ? handler(event) : true;
           } else {
-            console.log('Keypress time: ', key);
             return self.addTimeKey(key);
           }
         });
 
         // blur of time entry should attempt parse:
         self.$time.on('blur', function (event) {
-          self.sync(event);
+          if (!self.timePicker.get('open')) {
+            self.sync(event);
+          }
+          return true;
         });
+
+        // open picker on focus of input if not open already:
+        self.$time.on('focus', function (event) {
+          if (!self.timePicker.get('open')) {
+            self.timePicker.open();
+          }
+        });
+
+        // grand escape from picker back to input when input justifies it:
+        self.timePicker.$root.on('keypress', function (event) {
+          var input = self.keyFor(event);
+          self.$time.focus();
+          self.addTimeKey(input);
+          return false;
+        });
+
+        // set hook callback:
+        self.timePicker.on('set', function (event) {
+          var h, m;
+          if (event.select) {
+            // Get hour, minute values from minutes since midnight:
+            m = event.select % 60;
+            h = Math.floor(event.select / 60);
+            // set timeValue array from moment object:
+            timeValue = [h, m];
+            self.syncTimeDisplay();
+            timeBuffer = '';
+            // focus the input after click of select from picker
+            setTimeout(function () {
+                self.$time.focus();
+                self.timePicker.close();
+              },
+              100
+            );
+          }
+          return true;
+        });
+
       };
 
       self.activate = function () {

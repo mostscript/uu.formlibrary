@@ -271,7 +271,7 @@ define(
         }
         // date and time both defined, output combined ISO 8601
         if (useDate && useTime) {
-          return dRep + 'T' + tRep;
+          return dRep + ' ' + tRep;
         }
         // date defined, no time
         if (useDate && !useTime) {

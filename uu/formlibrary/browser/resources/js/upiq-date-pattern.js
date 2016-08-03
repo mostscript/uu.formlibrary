@@ -168,11 +168,13 @@ define(
             dateValue = undefined;
             self.$date.attr('placeholder', 'Enter date...');
             self.datePicker.open();
+            self.syncInput();
           },
           clearTimeValue = function (event) {
             timeBuffer = '';
             timeValue = undefined;
             self.timePicker.open();
+            self.syncInput();
           },
           codeKeys = {
             // tiny applicable subset of keydown/keyup mapped to DOM L3 values
@@ -343,7 +345,6 @@ define(
         var opts = self.options,
             useTime = !!(opts.time && timeValue && timeValue.length >= 2),
             displayTime;
-        
         // re-show time picker if focused, blank (or blanked due to invalid):
         if (!timeBuffer && event.currentTarget === self.$time[0]) {
             self.$time.val('');

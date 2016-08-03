@@ -227,6 +227,23 @@ define(
         self.timePicker = (useTime) ? self.$time.pickatime(key) : undefined;
       };
 
+      self.loadDate = function () {
+        var dVal = self.$date.attr('data-value');
+        dateValue = moment(dVal);
+      };
+
+      self.loadTime = function () {
+        var tVal = self.$time.attr('data-value'),
+            parts, h, m;
+        if (tVal) {
+          parts = tVal.split(':');
+          h = parseInt(parts[0], 10);
+          m = parseInt(parts[1], 10);
+          timeValue = [h, m];
+          self.syncTimeDisplay();
+        }
+      };
+
       self.addDateKey = function (key) {
         dateBuffer += key;
         self.datePicker.close();
@@ -326,7 +343,8 @@ define(
             useDate = !!(opts.date && dateValue && dateValue.isValid());
 
         // re-show date picker if focused, blank (or cleared)
-        if (!dateBuffer && event.currentTarget === self.$date[0]) {
+        //if (!dateBuffer && event.currentTarget === self.$date[0]) {
+        if (!dateBuffer && !(dateValue && dateValue.isValid())) {
             self.$date.val('');
             self.datePicker.clear().open();
         }
@@ -346,7 +364,7 @@ define(
             useTime = !!(opts.time && timeValue && timeValue.length >= 2),
             displayTime;
         // re-show time picker if focused, blank (or blanked due to invalid):
-        if (!timeBuffer && event.currentTarget === self.$time[0]) {
+        if (!timeBuffer && !(timeValue && timeValue.length >= 2)) {
             self.$time.val('');
             self.timePicker.clear().open();
         }
@@ -514,12 +532,16 @@ define(
       };
 
       self.activate = function () {
+        // Activate date widget:
         if (self.options.date) {
           self.activateDate();
+          self.loadDate();
         }
-
+        // Activate time widget:
         if (self.options.time) {
           self.activateTime();
+          // Load existing time with more precision than picker:
+          self.loadTime();
         }
 
       };

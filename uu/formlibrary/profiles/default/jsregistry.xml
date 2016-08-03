@@ -29,7 +29,7 @@
     compression="none"
     cookable="True"
     enabled="True"
-    id="++resource++uu.formlibrary.js/upiq-date-pattern.js"
+    id="++resource++uu.formlibrary.js/type-a-date-pattern.js"
     inline="False"
     expression=""
     insert-after="++resource++uu.formlibrary.js/moment.min.js"

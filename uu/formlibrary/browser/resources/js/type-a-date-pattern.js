@@ -143,7 +143,7 @@ define('parsedate', ['moment'], function (moment) {
 
 
 define(
-  'pat-upiq-date',
+  'pat-type-a-date',
   [
     'jquery',
     'pat-base',
@@ -529,9 +529,9 @@ define(
       return self;
     };
 
-    var UpiqADate = PickADate.extend({
-      name: 'upiq-date',
-      trigger: '.pat-upiq-date',
+    var TypeADate = PickADate.extend({
+      name: 'type-a-date',
+      trigger: '.pat-type-a-date',
       init: function () {
         /** use core pattern, instantiating adapter will add enhancements */
         var core = new PickADate(this.$el, this.options),
@@ -540,9 +540,9 @@ define(
       }
     });
 
-    return UpiqADate;
+    return TypeADate;
 
   }
 );
 
-require(['pat-upiq-date']);
+require(['pat-type-a-date']);

@@ -9,9 +9,9 @@ except ImportError:
     from plone.app.z3cform.widgets import RichTextWidget
 
 from uu.formlibrary.interfaces import IFormLibraryProductLayer
-from uu.formlibrary.browser.widget import UpiqDateWidget
-from uu.formlibrary.browser.widget import UpiqDatetimeWidget
-from uu.formlibrary.browser.widget import ATUpiqDatetimeWidget
+from uu.formlibrary.browser.widget import TypeADateWidget
+from uu.formlibrary.browser.widget import TypeADatetimeWidget
+from uu.formlibrary.browser.widget import ATTypeADatetimeWidget
 
 from z3c.form.interfaces import IFieldWidget
 from z3c.form.util import getSpecification
@@ -30,20 +30,20 @@ def RichTextFieldWidget(field, request):
 
 @adapter(IDate, IFormLibraryProductLayer)
 @implementer(IFieldWidget)
-def UpiqDateFieldWidget(field, request, extra=None):
-    return FieldWidget(field, UpiqDateWidget(request))
+def TypeADateFieldWidget(field, request, extra=None):
+    return FieldWidget(field, TypeADateWidget(request))
 
 
 @adapter(IDatetime, IFormLibraryProductLayer)
 @implementer(IFieldWidget)
-def UpiqDatetimeFieldWidget(field, request, extra=None):
-    return FieldWidget(field, UpiqDatetimeWidget(request))
+def TypeADatetimeFieldWidget(field, request, extra=None):
+    return FieldWidget(field, TypeADatetimeWidget(request))
 
 
 @adapter(getSpecification(IPublication['effective']), IFormLibraryProductLayer)
 @implementer(IFieldWidget)
 def EffectiveDateFieldWidget(field, request):
-    widget = FieldWidget(field, UpiqDatetimeWidget(request))
+    widget = FieldWidget(field, TypeADatetimeWidget(request))
     widget.pattern_options.setdefault('date', {})
     widget.pattern_options['date']['firstDay'] = first_weekday()
     return widget
@@ -52,7 +52,7 @@ def EffectiveDateFieldWidget(field, request):
 @adapter(getSpecification(IPublication['expires']), IFormLibraryProductLayer)
 @implementer(IFieldWidget)
 def ExpirationDateFieldWidget(field, request):
-    widget = FieldWidget(field, UpiqDatetimeWidget(request))
+    widget = FieldWidget(field, TypeADatetimeWidget(request))
     widget.pattern_options.setdefault('date', {})
     widget.pattern_options['date']['firstDay'] = first_weekday()
     return widget
@@ -68,21 +68,21 @@ if MetadataExtender is not None:
             old = field.widget
 
             if field.__name__ in ['startDate']:
-                field.widget = ATUpiqDatetimeWidget(
+                field.widget = ATTypeADatetimeWidget(
                     label=old.label,
                     description=old.description,
                     pattern_options={'date': {'firstDay': first_weekday()}},
                 )
 
             if field.__name__ in ['endDate']:
-                field.widget = ATUpiqDatetimeWidget(
+                field.widget = ATTypeADatetimeWidget(
                     label=old.label,
                     description=old.description,
                     pattern_options={'date': {'firstDay': first_weekday()}},
                 )
 
             if field.__name__ in ['effectiveDate', 'expirationDate']:
-                field.widget = ATUpiqDatetimeWidget(
+                field.widget = ATTypeADatetimeWidget(
                     label=old.label,
                     description=old.description,
                     pattern_options={'date': {'firstDay': first_weekday()}},

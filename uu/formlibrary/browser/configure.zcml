@@ -218,9 +218,9 @@
 
   <adapter factory=".widget_overrides.RichTextFieldWidget" />
 
-  <adapter factory=".widget_overrides.UpiqDateFieldWidget" />
+  <adapter factory=".widget_overrides.TypeADateFieldWidget" />
 
-  <adapter factory=".widget_overrides.UpiqDatetimeFieldWidget" />
+  <adapter factory=".widget_overrides.TypeADatetimeFieldWidget" />
 
   <adapter factory=".widget_overrides.EffectiveDateFieldWidget" />
 

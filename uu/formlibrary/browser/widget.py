@@ -11,7 +11,7 @@ try:
 except ImportError:
     from plone.app.z3cform.widgets import IRelatedItemsWidget
     from plone.app.z3cform.widgets import RelatedItemsWidget
-    from plone.app.z3cform.widgets import RelationChoiceRelatedItemsWidgetConverter
+    from plone.app.z3cform.widgets import RelationChoiceRelatedItemsWidgetConverter  # noqa
     from plone.app.z3cform.widgets import DateWidget
     from plone.app.z3cform.widgets import DatetimeWidget
     from Products.Archetypes.Widgets import DateWidget as ATDateWidget
@@ -140,38 +140,38 @@ def CustomRootRelatedFieldWidget(field, request, extra=None):
     return FieldWidget(field, CustomRootRelatedWidget(request))
 
 
-class UpiqDateWidget(DateWidget):
-    pattern = 'upiq-date'
+class TypeADateWidget(DateWidget):
+    pattern = 'type-a-date'
 
 
-class UpiqDatetimeWidget(DatetimeWidget):
-    pattern = 'upiq-date'
+class TypeADatetimeWidget(DatetimeWidget):
+    pattern = 'type-a-date'
 
 
-class ATUpiqDateWidget(ATDateWidget):
+class ATTypeADateWidget(ATDateWidget):
     _properties = ATDateWidget._properties.copy()
     _properties.update({
-        'pattern': 'upiq-date',
+        'pattern': 'type-a-date',
         'pattern_options': {},
     })
 
 registerWidget(
-    ATUpiqDateWidget,
+    ATTypeADateWidget,
     title='Date widget',
     description=('Date widget'),
     used_for=('Products.Archetypes.Field.DateTimeField',)
 )
 
 
-class ATUpiqDatetimeWidget(ATDatetimeWidget):
+class ATTypeADatetimeWidget(ATDatetimeWidget):
     _properties = ATDatetimeWidget._properties.copy()
     _properties.update({
-        'pattern': 'upiq-date',
+        'pattern': 'type-a-date',
         'pattern_options': {},
     })
 
 registerWidget(
-    ATUpiqDatetimeWidget,
+    ATTypeADatetimeWidget,
     title='Date widget',
     description=('Date widget'),
     used_for=('Products.Archetypes.Field.DateTimeField',)

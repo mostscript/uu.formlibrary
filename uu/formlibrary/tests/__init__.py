@@ -1,5 +1,5 @@
 import sys
-import unittest2 as unittest
+import unittest
 
 from zope.interface import alsoProvides
 from zope.publisher.browser import setDefaultSkin

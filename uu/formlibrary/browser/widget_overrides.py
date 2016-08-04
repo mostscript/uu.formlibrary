@@ -18,8 +18,14 @@ from z3c.form.util import getSpecification
 from z3c.form.widget import FieldWidget
 from zope.component import adapter
 from zope.interface import implementer
-from zope.schema.interfaces import IDate
-from zope.schema.interfaces import IDatetime
+
+# use IDateField/IDatetimeField, not zope.schema ifaces: https://goo.gl/4hHIqB
+try:
+    # Plone 4
+    from plone.app.z3cform.widget import IDateField, IDatetimeField
+except ImportError:
+    # Plone 5:
+    from plone.app.z3cform.interfaces import IDateField, IDatetimeField
 
 
 @adapter(IRichText, IFormLibraryProductLayer)
@@ -28,13 +34,13 @@ def RichTextFieldWidget(field, request):
     return FieldWidget(field, RichTextWidget(request))
 
 
-@adapter(IDate, IFormLibraryProductLayer)
+@adapter(IDateField, IFormLibraryProductLayer)
 @implementer(IFieldWidget)
 def TypeADateFieldWidget(field, request, extra=None):
     return FieldWidget(field, TypeADateWidget(request))
 
 
-@adapter(IDatetime, IFormLibraryProductLayer)
+@adapter(IDatetimeField, IFormLibraryProductLayer)
 @implementer(IFieldWidget)
 def TypeADatetimeFieldWidget(field, request, extra=None):
     return FieldWidget(field, TypeADatetimeWidget(request))

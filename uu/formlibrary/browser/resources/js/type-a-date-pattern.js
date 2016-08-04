@@ -220,8 +220,8 @@ define(
         self.$date = (useDate) ? self.context.$date : null;
         self.$time = (useTime) ? self.context.$time : null;
         // Fix date, time elements to not be readonly
-        self.$date[0].removeAttribute('readonly');
-        self.$time[0].removeAttribute('readonly');
+        if (useDate) self.$date[0].removeAttribute('readonly');
+        if (useTime) self.$time[0].removeAttribute('readonly');
         // Pick-a-data model objects:
         self.datePicker = (useDate) ? self.$date.pickadate(key) : undefined;
         self.timePicker = (useTime) ? self.$time.pickatime(key) : undefined;
@@ -363,13 +363,14 @@ define(
         var opts = self.options,
             useTime = !!(opts.time && timeValue && timeValue.length >= 2),
             displayTime;
-        // re-show time picker if focused, blank (or blanked due to invalid):
-        if (!timeBuffer && !(timeValue && timeValue.length >= 2)) {
-            self.$time.val('');
-            self.timePicker.clear().open();
-        }
 
         if (useTime) {
+          // re-show time picker if focused, blank (or blanked due to invalid):
+          if (!timeBuffer && !(timeValue && timeValue.length >= 2)) {
+              self.$time.val('');
+              self.timePicker.clear().open();
+          }
+          // compute display time according to convention:
           if (twelveHour) {
             displayTime = moment(self.timeRepr(), ['H:m']).format('h:mm A');
             // use AP style a.m./p.m. abbreviation to match picker output:

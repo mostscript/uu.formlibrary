@@ -177,12 +177,24 @@ define(
             self.syncInput();
           },
           codeKeys = {
-            // tiny applicable subset of keydown/keyup mapped to DOM L3 values
+            // applicable subset of keydown/keyup mapped to DOM L3 values
             8:  'Backspace',
+            9: 'Tab',
             13: 'Enter',
-            46: 'Delete'
+            46: 'Delete',
+            37: 'ArrowLeft',
+            38: 'ArrowUp',
+            39: 'ArrowDown',
+            40: 'ArrowRight'
           },
           twelveHour = parsedate.twelveHour();
+
+      // add sequential function keys to codeKeys:
+      (function () {
+        for (var i=113; i < 124; i += 1) {
+          codeKeys[i] = 'F' + (i - 112);
+        }
+      }());
 
       self.commonKeyDown = {
         Enter: function (event) {
@@ -190,6 +202,9 @@ define(
           // prevent <Enter> from accidentally submitting form
           event.preventDefault();
           return false;
+        },
+        Tab: function (event) {
+          return true;
         }
       };
 
@@ -414,27 +429,43 @@ define(
         return defaultFormatter(event);
       };
 
+      self.isControlKey = function (event) {
+        /** is key pressed a control or navigation key? */
+        var key = self.keyFor(event),
+            isFn = key && key.length === 2 && key[0] === 'F',
+            isNav = key && (key === 'Tab' || key.slice(0,5) === 'Arrow'),
+            modified = event.metaKey || event.ctrlKey || event.altKey;
+        return (modified || isFn || isNav);
+      };
+
+      self.handleKey = function (event) {
+        var key = self.keyFor(event),
+            handler;
+        if (event.type === 'keydown') {
+          // keydown for control, plus preempting picker (e.g. spacebar)
+          handler = self.commonKeyDown[key] || self.dateKeyDown[key];
+          return (handler) ? handler(event) : true;
+        } else {
+          // ignore commands by ctrl/meta, function, navigation keys:
+          if (self.isControlKey(event)) {
+            return true;
+          }
+          // most normal input via keypress
+          return self.addDateKey(key);
+        }
+      };
+
       self.activateDate = function () {
         // hookup date keyboard entry:
-        self.$date.on('keydown keypress', function (event) {
-          var key = self.keyFor(event),
-              handler;
-          if (event.type === 'keydown') {
-            // keydown for control, plus preempting picker (e.g. spacebar)
-            handler = self.commonKeyDown[key] || self.dateKeyDown[key];
-            return (handler) ? handler(event) : true;
-          } else {
-            // most normal input via keypress
-            return self.addDateKey(key);
-          }
-        });
+        self.$date.on('keydown keypress', self.handleKey);
 
         // grand escape from picker back to input when input justifies it:
         self.datePicker.$root.on('keypress', function (event) {
-          var input = self.keyFor(event);
-          self.$date.focus();
-          self.addDateKey(input);
-          return false;
+          if (!self.isControlKey(event)) {
+            self.$date.focus();
+            return self.handleKey(event);
+          }
+          return true;
         });
 
         // blur should attempt parse, but only when picker not open:

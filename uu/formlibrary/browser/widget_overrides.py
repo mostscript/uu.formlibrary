@@ -1,12 +1,9 @@
 from plone.app.dexterity.behaviors.metadata import IPublication
-from plone.app.textfield.interfaces import IRichText
 from plone.app.widgets.utils import first_weekday
 try:
     from plone.app.widgets.at_bbb import MetadataExtender
-    from plone.app.widgets.dx import RichTextWidget
 except ImportError:
     MetadataExtender = None
-    from plone.app.z3cform.widgets import RichTextWidget
 
 from uu.formlibrary.interfaces import IFormLibraryProductLayer
 from uu.formlibrary.browser.widget import TypeADateWidget
@@ -26,12 +23,6 @@ try:
 except ImportError:
     # Plone 5:
     from plone.app.z3cform.interfaces import IDateField, IDatetimeField
-
-
-@adapter(IRichText, IFormLibraryProductLayer)
-@implementer(IFieldWidget)
-def RichTextFieldWidget(field, request):
-    return FieldWidget(field, RichTextWidget(request))
 
 
 @adapter(IDateField, IFormLibraryProductLayer)

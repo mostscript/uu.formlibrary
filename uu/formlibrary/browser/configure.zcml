@@ -216,8 +216,6 @@
     layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
-  <adapter factory=".widget_overrides.RichTextFieldWidget" />
-
   <adapter factory=".widget_overrides.TypeADateFieldWidget" />
 
   <adapter factory=".widget_overrides.TypeADatetimeFieldWidget" />

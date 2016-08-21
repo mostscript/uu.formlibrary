@@ -1,5 +1,6 @@
 import calendar
 from datetime import date, datetime, timedelta
+import re
 
 from plone.autoform.interfaces import WIDGETS_KEY
 from plone.schemaeditor import schema as se_schema
@@ -16,6 +17,8 @@ def getDateFieldSchema(field):
 
 
 WIDGET = 'collective.z3cform.datagridfield.datagridfield.DataGridFieldFactory'
+
+USA_DATE = re.compile('^([01]?[0-9])/([0123]?[0-9])/([0-9]+)$')
 
 
 def grid_wrapper_schema(schema, title=u'', description=u''):
@@ -491,4 +494,39 @@ def local_query(context, query, types=None, depth=2):
             'operator': 'or',
             }
     return query
+
+
+def normalize_usa_date(v):
+    """
+    normalize a date string value of m/d/y form to a datetime.date object.
+    If normalization is not possible, return None.
+    """
+    if not isinstance(v, basestring):
+        return None
+    match = USA_DATE.search(v)
+    if not match:
+        return None
+    groups = match.groups()
+    try:
+        month = int(groups[0])
+        day = int(groups[1])
+        year = int(groups[2])
+    except TypeError:
+        return None
+    if not ((0 < month < 13) and (0 < day <= 31) and (0 < year)):
+        return None
+    if len(str(year)) <= 2:
+        today = date.today()
+        century_base = today.year - (today.year % 100)
+        if year >= 70:
+            century_base -= 100
+        year = century_base + year
+    if len(str(year)) != 4:
+        return None
+    try:
+        if year < 1900:
+            raise RuntimeError('dates prior to 1900 unsupported')  # for now
+        return date(year, month, day)
+    except ValueError:
+        return None
 

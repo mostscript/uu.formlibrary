@@ -17,15 +17,14 @@ from zope.schema import getFieldNamesInOrder, ValidationError
 from zope.schema import interfaces as fieldtypes
 
 from uu.retrieval.utils import identify_interface
-from uu.smartdate.converter import normalize_usa_date
 
+from uu.formlibrary.measure.interfaces import IMeasureDefinition
 from uu.formlibrary.search.interfaces import COMPARATORS
 from uu.formlibrary.search.interfaces import IFieldQuery
 from uu.formlibrary.search.interfaces import IJSONFilterRepresentation
 from uu.formlibrary.search.interfaces import IRecordFilter, IFilterGroup
 from uu.formlibrary.search.interfaces import IComposedQuery
-
-from uu.formlibrary.measure.interfaces import IMeasureDefinition
+from uu.formlibrary.utils import normalize_usa_date
 
 
 # field serialization, used by FieldQuery:

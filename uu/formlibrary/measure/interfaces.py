@@ -17,8 +17,6 @@ from zope import schema
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
-from uu.smartdate.browser.widget import SmartdateFieldWidget
-
 #from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import local_definitions
@@ -599,14 +597,12 @@ class IFormDataSetSpecification(form.Schema):
         defaultFactory=list,  # req zope.schema >= 3.8.0
         )
 
-    form.widget(query_start=SmartdateFieldWidget)
     query_start = schema.Date(
         title=u'Filter: date range start',
         description=u'Date range inclusion query (start).',
         required=False,
         )
 
-    form.widget(query_end=SmartdateFieldWidget)
     query_end = schema.Date(
         title=u'Filter: date range end',
         description=u'Date range inclusion query (end).',

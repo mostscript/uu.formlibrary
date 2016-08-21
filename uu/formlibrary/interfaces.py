@@ -31,7 +31,6 @@ from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.dynamicschema.interfaces import valid_xml_schema
 from uu.record.interfaces import IRecordContainer
 from uu.retrieval.interfaces import ISimpleCatalog
-from uu.smartdate.browser.widget import SmartdateFieldWidget
 
 from uu.formlibrary import _
 #from uu.formlibrary.browser.widget import CustomRootRelatedWidget
@@ -710,14 +709,12 @@ class IPeriodicFormInstance(form.Schema, IAttributeUUID):
         required=True,
         )
 
-    form.widget(start=SmartdateFieldWidget)
     start = schema.Date(
         title=_(u'Start date'),
         description=_(u'Start date for reporting period.'),
         required=False,
         )
 
-    form.widget(end=SmartdateFieldWidget)
     end = schema.Date(
         title=_(u'End date'),
         description=_(u'End date for reporting period.'),
@@ -829,14 +826,12 @@ class IPeriodicSeries(form.Schema):
         default='Monthly',
         )
 
-    form.widget(start=SmartdateFieldWidget)
     start = schema.Date(
         title=_(u'Start date'),
         description=_(u'Start date for series.'),
         required=False,
         )
 
-    form.widget(end=SmartdateFieldWidget)
     end = schema.Date(
         title=_(u'End date'),
         description=_(u'End date for series.'),

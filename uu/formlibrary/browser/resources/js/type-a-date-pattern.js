@@ -1,3 +1,17 @@
+/** type-a-date pattern for Plone Mockup 2
+ *  Copyright (c) 2016 The University of Utah; MIT-style license.
+ *  https://github.com/upiq/uu.formlibrary/blob/widgets-work/docs/COPYING.txt
+ *
+ *  Please feel free to use this pattern; it is the intent of the author to
+ *  eventually contribute this to Mockup core (Plone Foundation), which may
+ *  happen once I have the time to write some tests.
+ *
+ *  Questions: contact sdupton@gmail.com  ||  sean.upton@hsc.utah.edu
+ *  -- Sean Upton / 2016-08-21
+ */
+
+/*jshint browser: true, nomen: false, eqnull: true, es5:true, trailing:true */
+
 var define, require;
 
 // shim moment from globals (for Plone 4):

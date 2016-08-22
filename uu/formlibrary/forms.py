@@ -19,7 +19,6 @@ from z3c.form.testing import TestRequest
 from zope.component import adapter, queryUtility, getMultiAdapter, queryAdapter
 from zope.event import notify
 from zope.interface import implements, implementer
-from zope.globalrequest import getRequest
 from zope.lifecycleevent import ObjectModifiedEvent
 from zope.lifecycleevent import Attributes
 from zope.schema import getFieldsInOrder
@@ -31,10 +30,10 @@ from uu.dynamicschema.interfaces import DEFAULT_SIGNATURE, DEFAULT_MODEL_XML
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.record.base import RecordContainer
 from uu.record.interfaces import IRecord
-from uu.smartdate.converter import ColloquialDateConverter
-from uu.smartdate.browser.widget import SmartdateFieldWidget
+
 from uu.workflows.utils import history_log
 
+from uu.formlibrary.browser.widget_overrides import TypeADateFieldWidget
 from uu.formlibrary.definition import form_definition
 from uu.formlibrary.interfaces import ISimpleForm, IMultiForm
 from uu.formlibrary.interfaces import IBaseForm, IFormDefinition
@@ -42,7 +41,7 @@ from uu.formlibrary.interfaces import IFormComponents
 from uu.formlibrary.interfaces import ISchemaProvider
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.record import FormEntry
-from uu.formlibrary.utils import grid_wrapper_schema
+from uu.formlibrary.utils import grid_wrapper_schema, normalize_usa_date
 from uu.formlibrary.utils import WIDGET as GRID_WIDGET
 
 
@@ -110,7 +109,7 @@ def common_widget_updates(context):
             formfield.widgetFactory = CheckBoxFieldWidget
 
     for formfield in datefields:
-        formfield.widgetFactory = SmartdateFieldWidget
+        formfield.widgetFactory = TypeADateFieldWidget
 
     for formfield in boolfields:
         formfield.widgetFactory = RadioFieldWidget
@@ -307,7 +306,7 @@ class ComposedForm(AutoExtensibleForm, form.Form):
             date_fields = [f for f in subform.fields.values()
                            if IDate.providedBy(f.field)]
             for formfield in date_fields:
-                formfield.widgetFactory = SmartdateFieldWidget
+                formfield.widgetFactory = TypeADateFieldWidget
         self._widgets_initialized.append(subform)
 
     def getPrefix(self, schema):
@@ -1111,25 +1110,24 @@ class MultiForm(Item, RecordContainer):
     def _normalize_date_value(self, field, data):
         """
         Normalize from data a date field; if data contains a singular
-        string value, use the ColloquialDateConverter from uu.smartdate
+        string value, try USA mm/dd/yyyy and ISO 8601 (assume mockup widget)
         to convert, otherwise, parse the individual values for day, month,
         year from stock collective.z3cform.datetimewidget widget.
         """
-        name = field.__name__
-        if name in data:
-            convert = ColloquialDateConverter(field, mkwidget(getRequest()))
-            return convert.toFieldValue(unicode(data.get(name)))
-        # # fallback: assume collective.z3cform.datetimewidget widget, three
-        # # inputs for day, month, year respectively:
-        v_day = name + '-day'
-        v_month = name + '-month'
-        v_year = name + '-year'
-        year = data.get(v_year, None)
-        month = data.get(v_month, None)
-        day = data.get(v_day, None)
-        if not all((year, month, day)):
+        v = data.get(field.__name__, None)
+        if v is None:
             return None
-        return date(int(year), int(month), int(day))
+        v = v.strip()
+        # TODO: we may consider removing non-ISO support altogether TBD:
+        usadate = normalize_usa_date(data.get(field.__name__))
+        if usadate is not None:
+            return usadate
+        # assume ISO 8601, which should be the case with mockup2 widgets
+        parts = v[:10].split('-')
+        year = int(parts[0])
+        month = int(parts[1])
+        day = int(parts[2])
+        return date(year, month, day)
 
     def _populate_record(self, entry, data):
         changelog = []

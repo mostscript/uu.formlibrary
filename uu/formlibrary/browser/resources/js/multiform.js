@@ -14,6 +14,9 @@ if (!uu.formlibrary.multiform) {
 
 var $ = $ || jQuery;
 
+// graft mockup widget pattern registry:
+uu.hasReg = (window.require) ? window.require.defined('pat-registry') : false;
+uu.pReg = (uu.hasReg) ? window.require('pat-registry') : undefined;
 
 /* validator functions: */
 uu.formlibrary.multiform.val_int_req = function(input, value) {
@@ -52,68 +55,98 @@ uu.formlibrary.multiform.formids = function() {
 };
 
 uu.formlibrary.multiform.getform = function(id) {
-  var o = {};
-  var form = $("#"+id);
+  var o = {},
+      excludedInput = function (idx, el) {
+        var input = $(el),
+            classBlacklist = ['picker__input'];
+        return classBlacklist.some(function (e, i, arr) {
+          return input.hasClass(e);
+        });
+      },
+      excludedFieldname = function (fieldName) {
+        if (fieldName.split('empty-marker').length == 2) {
+          return true;
+        }
+        if (fieldName.split('-calendar').length > 1) {
+          return true;
+        }
+        return false;
+      },
+      form = $("#"+id),
+      inputs = $(
+        "input, textarea, select.choice-field, select.set-field",
+        form
+      );
+
+  // get UID for the row/record:
   o.record_uid = form[0].id;
-  var inputs = $("input, textarea, select.choice-field, select.date-field", form);
-  for (var i=0; i<inputs.length; i++) {
-    var multivalued = false;
-    var input = $(inputs[i]);
-    var fieldname = input.attr('name').split('~')[1].split(':')[0].split('.').pop();
-    if (fieldname.split('empty-marker').length == 2) {
-      continue;
-      }
-    if (fieldname.split('-calendar').length > 1) {
-      continue;
-      }
-    var element = input[0].tagName;
-    if (element == 'INPUT') {
+
+  // jQuery filter out excluded by class:
+  inputs = inputs.not(excludedInput);
+
+  inputs.each(function (idx, el) {
+    var input = $(el),
+        multivalued = false,
+        inputName = input.attr('name') || '',
+        tagName = input[0].tagName,
+        fieldName;
+    if (inputName.indexOf('~') === -1) {
+      return;  // not an input for a field
+    }
+    fieldName = inputName.split('~')[1].split(':')[0].split('.').pop();
+    // filter on non-sense field names:
+    if (excludedFieldname(fieldName)) {
+      return;
+    }
+    if (tagName == 'INPUT') {
       if (input.attr('type') == 'radio') {
         if (input[0].checked) {
-          o[fieldname] = input.attr('value');
-          }
-        continue;
+          o[fieldName] = input.val();
         }
+        return;
+      }
       if (input.attr('type') == 'checkbox') {
         multivalued = true;
         if (input.hasClass('bool-field')) {
-          o[fieldname] = false; //default...
+          o[fieldName] = false; //default...
           if (input[0].checked) {
-            o[fieldname] = true;
-            }
-          continue;
+            o[fieldName] = true;
           }
-        else {
+          return;
+        } else {
           if (!input[0].checked) {
-            if (Object.keys(o).indexOf(fieldname) === -1) {
-              o[fieldname] = [];  // at very least, support an empty set
+            if (Object.keys(o).indexOf(fieldName) === -1) {
+              o[fieldName] = [];  // at very least, support an empty set
             }
-            continue;
-            }
+            return;
           }
+        }
       }
       if (input.attr('type') == 'hidden') {
-        if (input.attr('name').split(':list').length == 2) {
+        if (inputName.split(':list').length == 2) {
           multivalued = true;
-          }
+        }
       }
     }
-    if (element == 'SELECT') {
+    if (tagName == 'SELECT') {
       if (input[0].multiple === true) {
+        // multi-valued select.set-field:
+        o[fieldName] = input.val();
         multivalued = true;
-        }
-    }
-    if ((input.attr('name').split(':list').length == 2) && (multivalued===true)) {
-      /* multi-choice field */
-      if (!o[fieldname]) {
-        o[fieldname] = [];
-        }
-      o[fieldname].push(input.attr('value'));
+      } else {
+        o[fieldName] = input.val();
       }
+    } else if ((inputName.split(':list').length == 2) && (multivalued===true)) {
+      /* multi-choice field: checkbox, one-by-one, we add checked values */
+      if (!o[fieldName]) {
+        o[fieldName] = [];
+      }
+      o[fieldName].push(input.val());
+    }
     else {
-      o[fieldname] = input.attr('value');
-      }
+      o[fieldName] = input.val();
     }
+  });
   return o;
 };
 
@@ -138,14 +171,14 @@ uu.formlibrary.multiform.formnotes = function() {
   return v;
 };
 
-/* field get/set helpers, given form/fieldname context */
+/* field get/set helpers, given form/fieldName context */
 
-uu.formlibrary.multiform.getValue = function (form, fieldname) {
+uu.formlibrary.multiform.getValue = function (form, fieldName) {
   /** TODO */
-  return uu.formlibrary.multiform.getform(form.attr('id'))[fieldname];
+  return uu.formlibrary.multiform.getform(form.attr('id'))[fieldName];
 };
 
-uu.formlibrary.multiform.setValue = function (form, fieldname, value) {
+uu.formlibrary.multiform.setValue = function (form, fieldName, value) {
   /** TODO */
 };
 
@@ -211,9 +244,7 @@ uu.formlibrary.multiform.validator_setup = function() {
     $('div.error').remove();
     $.tools.validator.fn('input.int-field', 'Value must be whole number', uu.formlibrary.multiform.val_int);
     $.tools.validator.fn('input.float-field', 'Value provided must be decimal number', uu.formlibrary.multiform.val_dec);
-    $.tools.validator.fn('input.smartdate-widget', 'Value must be correctly formatted date', uu.formlibrary.multiform.val_date);
     $('input.int-field').validator();
-    $('input.smartdate-widget').validator();
     $('input.float-field').validator();
   }
 };
@@ -238,7 +269,7 @@ uu.formlibrary.multiform.hookup_formevents = function () {
     handler = function () {
       var context = $(this),
         target = $(context.parents('.fielddiv')[0]),
-        fieldname = target.attr('id').split('~-')[1],
+        fieldName = target.attr('id').split('~-')[1],
         isInput = this.tagName.toLowerCase() === 'input',
         isMulti = isInput && $('input', target).length > 1,
         getMulti = function () {
@@ -248,7 +279,7 @@ uu.formlibrary.multiform.hookup_formevents = function () {
         eventInfo = {
           form: context.parents('form')[0],
           target: target[0],
-          field: fieldname,
+          field: fieldName,
           value: isMulti ? getMulti() : context.val(),
           event: 'change'
         };
@@ -259,39 +290,48 @@ uu.formlibrary.multiform.hookup_formevents = function () {
   notifyOnBlur.blur(handler);
 };
 
-uu.formlibrary.multiform.rowhandlers = function() {
-  // events:
+uu.formlibrary.multiform.rowhandlers = function(row) {
+  var form = $('form.formrow', row);
+  // row order and delete control events:
   $('a.rowup, a.rowdown, a.rowdelete').unbind('click');
   $('a.rowup').click(uu.formlibrary.multiform.rowup);
   $('a.rowdown').click(uu.formlibrary.multiform.rowdown);
   $('a.rowdelete').click(uu.formlibrary.multiform.rowdelete);
   uu.formlibrary.multiform.refreshbuttons();
-  /* order important: validator, smartdate both use keyboard events */
-  uu.formlibrary.multiform.validator_setup();
-  if (window.smartdate) {
-    smartdate.hookups();
+  // if we have mockup, scan for type-a-date pattern:
+  if (uu.pReg) {
+    uu.pReg.scan(row);
   }
+  // validator for numeric fields only, right now:
+  uu.formlibrary.multiform.validator_setup();
   // event notification hookups, using formevent.js, if available:
   if (window.formevents) {
     uu.formlibrary.multiform.hookup_formevents(); 
   }
 };
 
+uu.formlibrary.multiform._new_row = function (context) {
+
+};
+
 uu.formlibrary.multiform.handle_new_row = function() {
   var num_rows = parseInt($('input.numrows').val(), 10),
-    onSuccess = function (responseText) {
-      var row = $('<div />').append(responseText).find('ol.formrows li'),
-        form = $('form.formrow', row);
-      $('ol.formrows').append(row);
-      uu.formlibrary.multiform.rowhandlers(); /* hookup for new rows needed */
-      uu.formlibrary.multiform.clean_form_display(); /* stacked display fixups */
-      // finally notify form-level 'added' event:
-      window.formevents.notify({
-        form: form,
-        field: '@form',
-        event: 'added'
-      });
-    };
+      onSuccess = function (responseText) {
+        var row = $('<div />').append(responseText).find('ol.formrows li'),
+            form = $('form.formrow', row);
+        // add form row to existing list:
+        $('ol.formrows').append(row);
+        // handle this form row (div)'s events: 
+        uu.formlibrary.multiform.rowhandlers(row);
+        // display fixups for stacked boxes mode:
+        uu.formlibrary.multiform.clean_form_display();
+        // finally notify form-level 'added' event:
+        window.formevents.notify({
+          form: form,
+          field: '@form',
+          event: 'added'
+        });
+      };
   for (var i=0; i<num_rows; i++) {
     $.ajax({
       url: uu.formlibrary.multiform.new_row_url(),
@@ -315,9 +355,6 @@ uu.formlibrary.multiform.submit = function(event) {
   /* validate first, only submit if no errors */
   if ($('input.int-field').length>0) {
     int_validates = $('input.int-field').data('validator').checkValidity();
-  }
-  if ($('input.smartdate-widget').length>0) {
-    date_validates = $('input.smartdate-widget').data('validator').checkValidity();
   }
   if ($('input.float-field').length>0) {
     float_validates = $('input.float-field').data('validator').checkValidity();
@@ -361,6 +398,7 @@ uu.formlibrary.multiform.clean_form_display = function() {
     if (colCount > 3) {
       normalFields.css({'font-size': '90%'});
       $('label, input, select', normalFields).css({'max-width': '90%'});
+      forms.addClass('compact-columns');
     }
     fieldDivs.each(function (idx) {
       var fieldDiv = $(this),

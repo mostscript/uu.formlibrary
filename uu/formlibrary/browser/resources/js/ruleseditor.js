@@ -410,7 +410,6 @@ var ruleseditor = (function ($) {
     };
 
     this.initMetadata = function (options) {
-      console.log(options);
       if (options.data.title) {
         $('.rule-title', this.target).val(options.data.title).change();
       }

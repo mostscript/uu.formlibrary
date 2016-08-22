@@ -19,7 +19,9 @@ uu.queryschema = (function ($, ns, uu, core, global) {
   var c = {};
 
   ns.schemaURL = function () {
-    return ($('base').attr('href') || '') + '/@@searchapi/fields';
+    var viewPath = window.location.href.split('?')[0],
+        basePath = viewPath.split('@@')[0];
+    return basePath + '/@@searchapi/fields';
   };
 
   /**

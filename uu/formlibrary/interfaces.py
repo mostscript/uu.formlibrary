@@ -33,7 +33,6 @@ from uu.record.interfaces import IRecordContainer
 from uu.retrieval.interfaces import ISimpleCatalog
 
 from uu.formlibrary import _
-#from uu.formlibrary.browser.widget import CustomRootRelatedWidget
 from uu.formlibrary.utils import DOW
 
 
@@ -389,13 +388,6 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         defaultFactory=PersistentList,  # req. zope.schema >= 3.8.0
         )
 
-    #directives.widget(
-    #    'metadata_definition',
-    #    CustomRootRelatedWidget,
-    #    pattern_options=definition_pattern_options,
-    #    custom_root_query=formlibrary_root_query,
-    #    )
-    #metadata_definition = schema.BytesLine(
     metadata_definition = schema.Choice(
         title=u'Metadata definition',
         description=u'Select a form definition to provide metadata fields '
@@ -748,13 +740,6 @@ class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
     provides the basis for how self.schema is provided.
     """
 
-    #directives.widget(
-    #    'definition',
-    #    CustomRootRelatedWidget,
-    #    pattern_options=definition_pattern_options,
-    #    custom_root_query=formlibrary_root_query,
-    #)
-    #definition = schema.BytesLine(
     definition = schema.Choice(
         title=u'Bound form definition',
         description=u'Select a form definition to bind to this form. '
@@ -958,13 +943,6 @@ class IPopulateForms(form.Schema):
         default=SIMPLE_FORM_TYPE,
         )
 
-    #directives.widget(
-    #    'definition',
-    #    CustomRootRelatedWidget,
-    #    pattern_options=definition_pattern_options,
-    #    custom_root_query=formlibrary_root_query,
-    #)
-    #definition = schema.BytesLine(
     definition = schema.Choice(
         title=u'Choose form definition',
         description=u'Select a form definition to bind to these created '

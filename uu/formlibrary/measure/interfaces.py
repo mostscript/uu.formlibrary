@@ -4,24 +4,18 @@ from Acquisition import aq_parent, aq_inner
 from plone.app.layout.navigation.interfaces import INavigationRoot
 from plone.autoform import directives
 from plone.directives import form
-#from plone.formwidget.contenttree import UUIDSourceBinder
-#from plone.formwidget.contenttree import ContentTreeFieldWidget
-#from plone.formwidget.contenttree import MultiContentTreeFieldWidget
 from plone.uuid.interfaces import IAttributeUUID, IUUID
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
-#from zope.globalrequest import getRequest
 from zope.interface import Interface, Invalid, implements, invariant
 from zope.interface.common.mapping import IWriteMapping, IIterableMapping
 from zope import schema
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
-#from uu.formlibrary.interfaces import DEFINITION_TYPE
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import local_definitions
 
-#from uu.formlibrary.vocabulary import find_context
 from uu.formlibrary.vocabulary import definition_field_source
 from uu.formlibrary.vocabulary import definition_flex_datasource_fields
 from uu.formlibrary.browser.widget import CustomRootRelatedWidget
@@ -222,7 +216,6 @@ class IMeasureNaming(form.Schema):
 class IMeasureFormDefinition(form.Schema):
     """Bound form definition for a measure group"""
 
-    #form.widget(definition=ContentTreeFieldWidget)
     definition = schema.Choice(
         title=u'Select a form definition',
         description=u'Select a form definition to use for measure(s). '
@@ -543,7 +536,6 @@ class IFormDataSetSpecification(form.Schema):
         )
 
     # locations can be specific forms or series, or parent* folders
-    #form.widget(locations=MultiContentTreeFieldWidget)
     directives.widget(
         'locations',
         CustomRootRelatedWidget,

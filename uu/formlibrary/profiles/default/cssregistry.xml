@@ -2,14 +2,6 @@
 <object name="portal_css">
 
     <stylesheet
-        id="++resource++uu.formlibrary.css/plone.min.css"
-        cacheable="True"
-        compression="none"
-        cookable="True"
-        enabled="True"
-        applyPrefix="True"
-        />
-    <stylesheet
         id="++resource++uu.formlibrary.css/patterns.css"
         cacheable="True"
         compression="none"

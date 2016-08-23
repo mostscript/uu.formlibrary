@@ -48,7 +48,6 @@ setup(
         'uu.record',
         'uu.dynamicschema',
         'uu.retrieval',
-        'uu.smartdate',
         # -*- Extra requirements: -*-
     ],
     extras_require = {

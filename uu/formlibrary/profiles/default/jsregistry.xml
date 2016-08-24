@@ -20,6 +20,7 @@
     cookable="True"
     enabled="True"
     id="++resource++uu.formlibrary.js/moment.min.js"
+    insert-after="++resource++plone.app.widgets.js"
     inline="False"
     expression=""
     />

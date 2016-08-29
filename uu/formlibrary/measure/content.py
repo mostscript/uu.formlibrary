@@ -558,7 +558,7 @@ class FormDataSetSpecification(Item):
                 if spec is None:
                     return False
         spec = str(spec)
-        return spec in self.locations
+        return spec in (self.locations or ())
 
     def _path_query(self):
         form_type = self._source_type()

@@ -155,6 +155,12 @@ var formskip = (function ($) {
     },
     Le: function (query, actual) {
       return ns.normalizedActual(query, actual) <= query;
+    },
+    NotAll: function (query, actual) {
+      return !ns.compare.All(query, actual);
+    },
+    NotAny: function (query, actual) {
+      return !ns.compare.Any(query, actual);
     }
   };
 

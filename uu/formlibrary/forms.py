@@ -1124,6 +1124,8 @@ class MultiForm(Item, RecordContainer):
             return usadate
         # assume ISO 8601, which should be the case with mockup2 widgets
         parts = v[:10].split('-')
+        if not v or len(parts) != 3:
+            return None
         year = int(parts[0])
         month = int(parts[1])
         day = int(parts[2])

@@ -31,18 +31,20 @@ def multi_column_fields(fields, form):
             if ignore_value in selected[name]:
                 selected[name].remove(ignore_value)
     # return key, count of union of unique values (justifying column-per):
-    return dict([(k, len(v)) for k, v in selected.items() if len(v) > 1])
+    return dict([(k, v) for k, v in selected.items() if len(v) > 1])
 
 
 class CSVColumn(object):
     implements(ICSVColumn)
 
-    def __init__(self, field, index=None, dialect='csv'):
+    def __init__(self, field, index=None, dialect='csv', choices=None):
         self.field = field
         self.index = index
         self.multiple = self._is_multiple()
         if self.multiple:
             self.sortspec = [t.value for t in field.value_type.vocabulary]
+            if choices:
+                self.sortspec = sorted(choices, key=self.sortspec.index)
         self.name = self._name()
         self.title = self._title()
         self.dialect = dialect
@@ -100,8 +102,9 @@ def column_spec(form, schema, dialect='csv'):
     colspec = []
     for name, field in fields:
         if name in multi_fields:
-            for idx in range(multi_fields[name]):
-                col = CSVColumn(field, idx, dialect=dialect)
+            known = multi_fields[name]
+            for idx, value in enumerate(multi_fields[name]):
+                col = CSVColumn(field, idx, dialect=dialect, choices=known)
                 colspec.append((col.name, col))
         else:
             colspec.append((name, CSVColumn(field, dialect=dialect)))

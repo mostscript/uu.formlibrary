@@ -549,10 +549,6 @@ def _measure_composed_query(context, name):
     _attr = '_composed_queries'
     if name not in ('numerator', 'denominator'):
         raise ValueError('invalid composed query name')
-    if not hasattr(context, _attr):
-        # note: may write on otherwise read-txn for BBB
-        setattr(context, _attr, composed_storage())
-        transaction.get().note('Added composed query storage to measure')
     return getattr(context, _attr).get(name)
 
     

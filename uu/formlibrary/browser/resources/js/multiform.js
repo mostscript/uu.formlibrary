@@ -98,6 +98,9 @@ uu.formlibrary.multiform.getform = function(id) {
     if (excludedFieldname(fieldName)) {
       return;
     }
+    // exclude plone.protect token:
+    if (input.attr('name') === '_authenticator') return;   // plone.protect
+
     if (tagName == 'INPUT') {
       if (input.attr('type') == 'radio') {
         if (input[0].checked) {

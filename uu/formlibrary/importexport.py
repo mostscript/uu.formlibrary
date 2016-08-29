@@ -12,25 +12,26 @@ from uu.formlibrary.interfaces import IMultiForm, ICSVColumn, IMultiFormCSV
 _str = lambda v: v.encode('utf-8') if isinstance(v, unicode) else str(v)
 
 
-def multi_column_fields(names, form):
+def multi_column_fields(fields, form):
     """
     Return a dict with the number of columns per field...
     This is usually 1, but may, in the context of some record in the
     form, be more for a List (multiple choice) field.
     """
-    counts = {}
-    for name in names:
+    selected = {}
+    for name, field in fields:
+        selected[name] = set()
         for record in form.values():
             val = getattr(record, name, None)
             if type(val) in (list, tuple, set):
-                count = len(val)
-                if name not in counts:
-                    counts[name] = count
-                elif count > counts[name]:
-                    counts[name] = count
+                selected[name].update(val)
             else:
-                continue  # don't get multiple records for a non-sequence field
-    return dict([(k, v) for k, v in counts.items() if v > 1])
+                continue  # ignore non-sequence (e.g. None) valuea
+        for ignore_value in ['', None]:
+            if ignore_value in selected[name]:
+                selected[name].remove(ignore_value)
+    # return key, count of union of unique values (justifying column-per):
+    return dict([(k, len(v)) for k, v in selected.items() if len(v) > 1])
 
 
 class CSVColumn(object):
@@ -40,6 +41,8 @@ class CSVColumn(object):
         self.field = field
         self.index = index
         self.multiple = self._is_multiple()
+        if self.multiple:
+            self.sortspec = [t.value for t in field.value_type.vocabulary]
         self.name = self._name()
         self.title = self._title()
         self.dialect = dialect
@@ -80,20 +83,22 @@ class CSVColumn(object):
         # mutliple-valued field types - no one-to-one value :
         idx = self.index or 0  # if None
         try:
-            v = list(v) if v else []
-            element_value = v[idx]
-            return self.normalize(element_value)
+            possible = self.sortspec[idx]
+            if possible in v:
+                # possible choice was chosen:
+                return self.normalize(possible)
+            else:
+                return ''  # empty cell
         except IndexError:
             return ''
 
 
 def column_spec(form, schema, dialect='csv'):
     """Return list of (name, CSVColumn instance) tuples"""
-    names, fields = zip(*getFieldsInOrder(schema))
-    multi_fields = multi_column_fields(names, form)
+    fields = getFieldsInOrder(schema)
+    multi_fields = multi_column_fields(fields, form)
     colspec = []
-    for field in fields:
-        name = field.__name__
+    for name, field in fields:
         if name in multi_fields:
             for idx in range(multi_fields[name]):
                 col = CSVColumn(field, idx, dialect=dialect)

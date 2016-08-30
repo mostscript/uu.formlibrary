@@ -400,7 +400,9 @@ uu.formlibrary.multiform.clean_form_display = function() {
     normalFields.css({'width': colWidth});
     if (colCount > 3) {
       normalFields.css({'font-size': '90%'});
-      $('label, input, select', normalFields).css({'max-width': '90%'});
+      $('label, input, select', normalFields)
+        .not('.picker__input')
+        .css({'max-width': '90%'});
       forms.addClass('compact-columns');
     }
     fieldDivs.each(function (idx) {

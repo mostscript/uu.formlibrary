@@ -86,9 +86,9 @@ table.quickinfo td { font-weight:bold; vertical-align:top; padding:0.2em 0.4em; 
  <tal:block condition="python: not getattr(context, 'use_aggregate', False)">
  <div class="listing-wrapper" tal:define="global hasdirect python:False">
   <div class="listing">
-   <tal:define formtype="python: '(flex)' if context.__parent__.source_type == 'uu.formlibrary.simpleform' else '(multi-record)'">
+   <tal:block define="formtype python: '(flex)' if context.__parent__.source_type == 'uu.formlibrary.simpleform' else '(multi-record)'">
      <h4>Resulting <em tal:content="formtype">(FORMTYPE)</em> forms in this data set (<span class="result-count" tal:content="python: len(view.forms)">#</span>):</h4>
-   </tal:define>
+   </tal:block>
    <ul>
     <li tal:repeat="form view/forms">
      <img src="" tal:attributes="src form/getIcon" title="form" />

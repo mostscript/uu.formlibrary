@@ -1,5 +1,6 @@
-import math
 from datetime import date, datetime
+import math
+import re
 
 import xlwt
 from zope.component.hooks import getSite
@@ -16,6 +17,8 @@ from interfaces import IFormWorkbook, IFlexFormSheet, IFieldsetGrouping
 from interfaces import IBaseFormSheet
 
 _utf8 = lambda v: v if isinstance(v, str) else v.encode('utf-8')
+_illegal = re.compile('[\[\]\\\\/?:]')
+_safe_sheet_name = lambda v: _illegal.sub('-', v)
 
 
 # convenience functions for styles:
@@ -221,6 +224,7 @@ def sheet_name(context, already_used=()):
         if numparts >= 3:
             suffix = parts[-1]
             result = u', '.join((base, suffix))[:31]
+    result = _safe_sheet_name(result)
     # avoid duplication, if we have a sequence of already used titles:
     i = 1
     while result in already_used:

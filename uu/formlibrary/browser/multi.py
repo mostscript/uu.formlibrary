@@ -1,6 +1,9 @@
 import json
 import uuid
 
+from plone.autoform.form import AutoExtensibleForm
+from plone.autoform.interfaces import OMITTED_KEY
+from plone.autoform.utils import mergedTaggedValuesForForm
 from plone.memoize import ram
 from z3c.form import form, field
 from z3c.form.interfaces import IDataConverter
@@ -43,14 +46,16 @@ class MetadataForm(ComposedForm):
             )
 
 
-class RowForm(form.EditForm):
+class RowForm(AutoExtensibleForm, form.EditForm):
 
     template = ROW_TEMPLATE
+    schema = None  # override property so we can set attr below
 
     def __init__(self, record, schema, request):
         self._rowform_rec = record
-        self._rowform_schema = schema
-        self.fields = field.Fields(schema)
+        #self._rowform_schema = schema
+        self.schema = schema
+        #self.fields = field.Fields(schema)
         self.prefix = '%s~' % record.record_uid  # (js should split on '~')
         super(RowForm, self).__init__(record, request)
 
@@ -160,7 +165,12 @@ class MultiFormEntry(BaseFormView):
 
     def fields(self):
         if not self._fields:
-            self._fields = getFieldsInOrder(self.schema)
+            fields = getFieldsInOrder(self.schema)
+            omitted = mergedTaggedValuesForForm(
+                self.schema,
+                OMITTED_KEY,
+                self.baseform).keys()
+            self._fields = [(k, v) for (k, v) in fields if k not in omitted]
         return [v for k, v in self._fields]  # field objects
 
     def fieldnames(self):

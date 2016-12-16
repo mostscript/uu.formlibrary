@@ -9,6 +9,9 @@
   <!-- Include configuration for dependencies listed in setup.py -->
   <includeDependencies package="." />
 
+  <!-- Include computedfield support -->
+  <include package="collective.computedfield" />
+
   <!-- Grok package: initialise schema interfaces, content classes -->
   <grok:grok package="." />
 

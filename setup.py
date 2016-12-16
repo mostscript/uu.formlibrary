@@ -48,6 +48,7 @@ setup(
         'uu.record',
         'uu.dynamicschema',
         'uu.retrieval',
+        'collective.computedfield',
         # -*- Extra requirements: -*-
     ],
     extras_require = {

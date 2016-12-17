@@ -3,8 +3,8 @@ from zope.component import adapts
 from zope.interface import implements
 
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
-from interfaces import IMultiRecordMeasureFactory
-from interfaces import MEASURE_DEFINITION_TYPE, IMeasureGroup
+from interfaces import IMultiRecordMeasureFactory, IMeasureGroup
+from interfaces import MEASURE_DEFINITION_TYPE, MR_FORM_COMMON_FILTER_CHOICES
 
 
 class MeasureFactory(object):
@@ -22,10 +22,8 @@ class MeasureFactory(object):
             return bool(n) and bool(d)  # both defined
         d = saved_formdata.get('IMeasureWizardMRCriteria', {})
         nt, mt = d.get('numerator_type', None), d.get('denominator_type', None)
-        return (
-            nt in ('multi_filter', 'mutli_metadata') and
-            mt in ('multi_total', 'multi_filter', 'multi_metadata')
-            )
+        non_constant = [term.value for term in MR_FORM_COMMON_FILTER_CHOICES]
+        return nt in non_constant and mt in non_constant
 
     def _make_measure(self, data):
         kw = {}   # field values for new measure

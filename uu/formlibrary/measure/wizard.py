@@ -448,7 +448,14 @@ class MeasureWizardView(object):
                 'clicking on filters listed below.',
                 type='info',
                 )
-            url += '/@@measure_criteria'
+            config = data.get('IMeasureWizardMRCriteria')
+            _types = [
+                config.get(k) for k in ('numerator_type', 'denominator_type')
+                ]
+            if 'multi_summarize' in _types:
+                url += '/@@edit#autotoc-item-autotoc-2'
+            else:
+                url += '/@@measure_criteria'
         if self.context.source_type == SIMPLE_FORM_TYPE:
             status.addStatusMessage(
                 'Created new measure.',

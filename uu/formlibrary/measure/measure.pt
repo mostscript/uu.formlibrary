@@ -49,6 +49,10 @@
           <tal:block condition="python: context.numerator_type == 'multi_metadata'">
             (<em tal:replace="python: view.choice_label('numerator_field')" />)
           </tal:block>
+          <tal:block condition="python: context.numerator_type == 'multi_summarize'">
+            (<em tal:content="python: view.choice_label('summarization_numerator')" /> of 
+            <em tal:content="python: view.choice_label('numerator_field')" />)
+          </tal:block>
         </td>
         <td tal:condition="python:view.source_type() == 'uu.formlibrary.simpleform'"
             style="border-bottom:0.2em solid black;">
@@ -62,6 +66,10 @@
           <span tal:replace="python: view.choice_label('denominator_type')" />
           <tal:block condition="python: context.denominator_type == 'multi_metadata'">
             (<em tal:content="python: view.choice_label('denominator_field')" />)
+          </tal:block>
+          <tal:block condition="python: context.denominator_type == 'multi_summarize'">
+            (<em tal:content="python: view.choice_label('summarization_denominator')" /> of 
+            <em tal:content="python: view.choice_label('denominator_field')" />)
           </tal:block>
         </td>
         <td tal:condition="python:view.source_type() == 'uu.formlibrary.simpleform'">

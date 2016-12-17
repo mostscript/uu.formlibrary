@@ -46,6 +46,10 @@ MR_FORM_COMMON_FILTER_CHOICES = [
         title=u'Value computed by a filter of records',
         ),
     SimpleTerm('multi_metadata', title=u'Metadata field value'),
+    SimpleTerm(
+        'multi_summarize',
+        title=u'Summarize numeric values from within multiple records',
+        ),
 ]
 
 MR_FORM_NUMERATOR_CHOICES = SimpleVocabulary(MR_FORM_COMMON_FILTER_CHOICES)
@@ -110,8 +114,10 @@ def F_MEDIAN(l):
 
 AGGREGATE_FUNCTIONS = {
     'SUM': sum,
+    'DIFFERENCE': lambda s: reduce(lambda a, b: a - b, s),
     'AVG': F_MEAN,
     'PRODUCT': lambda l: reduce(operator.mul, l),
+    'RATIO': lambda s: reduce(lambda a, b: a / float(b), s),
     'MIN': min,
     'MAX': max,
     'MEDIAN': F_MEDIAN,
@@ -122,8 +128,10 @@ AGGREGATE_FUNCTIONS = {
 
 AGGREGATE_LABELS = [
     ('SUM', u'Sum'),
+    ('DIFFERENCE', u'Difference'),
     ('AVG', u'Average'),
     ('PRODUCT', u'Product'),
+    ('RATIO', u'Ratio'),
     ('MIN', u'Minimum'),
     ('MAX', u'Maximum'),
     ('MEDIAN', u'Median'),
@@ -331,8 +339,8 @@ class IMeasureUnits(form.Schema):
 class IMeasureFieldSpec(form.Schema):
     """
     Field specification for flex/simple form measures with values
-    sourced directly from form field values.  Not applicable to
-    multi-record forms.
+    sourced directly from form field values, or for values summarized from
+    multi-record forms via a function.
     """
 
     numerator_field = schema.Choice(
@@ -357,6 +365,22 @@ class IMeasureFieldSpec(form.Schema):
                     u'(optional)',
         source=definition_field_source,
         default='',
+        )
+
+    summarization_numerator = schema.Choice(
+        title=u'Summarization function (numerator)',
+        description=u'Function to summarize numeric values from records '
+                    u'of a multi-record form, if applicable: numerator.',
+        vocabulary=CUMULATIVE_FN_CHOICES,
+        default='AVG',
+        )
+
+    summarization_denominator = schema.Choice(
+        title=u'Summarization function (denominator)',
+        description=u'Function to summarize numeric values from records '
+                    u'of a multi-record form, if applicable: denominator.',
+        vocabulary=CUMULATIVE_FN_CHOICES,
+        default='AVG',
         )
 
 
@@ -410,7 +434,13 @@ class IMeasureDefinition(form.Schema,
     form.fieldset(
         'flex_calc',
         label=u'Field value calculation',
-        fields=['numerator_field', 'denominator_field', 'notes_field']
+        fields=[
+            'numerator_field',
+            'denominator_field',
+            'notes_field',
+            'summarization_numerator',
+            'summarization_denominator',
+            ]
         )
 
     form.fieldset(

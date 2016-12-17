@@ -126,6 +126,15 @@ class MeasureDefinition(Item):
             setattr(self, attr, q)  # cache success
         return q
 
+    def _summarized_field_value(self, context, fieldpath, fn):
+        """Return summarized value, for field, across all records in context"""
+        fn = AGGREGATE_FUNCTIONS.get(fn)
+        values = filter(
+            lambda v: v is not None,
+            [getattr(record, fieldpath, None) for record in context.values()]
+            )
+        return fn([float(v) for v in values])
+
     def _mr_get_value(self, context, name):
         """Get raw value for numerator or denominator"""
         assert name in ('numerator', 'denominator')
@@ -135,6 +144,11 @@ class MeasureDefinition(Item):
             specname = '%s_field' % name
             fieldpath = getattr(self, specname, None)
             return self._metadata_field_value(context, fieldpath)
+        if vtype == 'multi_summarize':
+            specname = '%s_field' % name
+            fieldpath = getattr(self, specname, None)
+            fn = getattr(self, 'summarization_%s' % name, None)
+            return self._summarized_field_value(context, fieldpath, fn)
         if vtype == 'multi_total':
             v = len(context)
         if vtype == 'multi_filter':
@@ -236,6 +250,8 @@ class MeasureDefinition(Item):
                 'floor': math.floor,
                 }.get(rrule, round)
             v = fn(v)
+        if self.numerator_type == 'multi_summarize':
+            return v
         if self.value_type == 'count':
             return int(v)  # count is always whole numbers
         return v  # floating point value, normalized
@@ -491,7 +507,8 @@ class MeasureDefinition(Item):
                 if self.denominator_type == 'multi_filter':
                     note += u' (filtered)'
                 if self.denominator_type != 'multi_metadata':
-                    note += u' records'
+                    if self.numerator_type != 'multi_summarize':
+                        note += u' records'
         user_notes = info.get('user_notes')
         if user_notes:
             note += ' -- %s' % user_notes

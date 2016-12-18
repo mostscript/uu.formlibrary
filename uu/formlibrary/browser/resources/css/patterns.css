@@ -8,3 +8,8 @@
     margin-bottom: 0.2em;
     text-align: center;
 }
+
+/* collective.computedfield: hide 'factory' argument from forms: */
+.overlay #formfield-form-widgets-factory {
+  display:none;
+}

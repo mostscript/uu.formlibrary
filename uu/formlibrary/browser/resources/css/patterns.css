@@ -13,3 +13,7 @@
 .overlay #formfield-form-widgets-factory {
   display:none;
 }
+
+.overlay #add-field-form #formfield-form-widgets-factory {
+  display:block;
+}

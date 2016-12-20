@@ -376,11 +376,13 @@ var ruleseditor = (function ($) {
       this.critEditor.operator = operator.toUpperCase();
       (data.query || []).forEach(function (query) {
           var field = ns.normalizeField(query.field);
-          this.critEditor.newQuery({
-            field: field,
-            comparator: query.comparator,
-            value: ns.normalizeValue(query.value, field)
-          });
+          if (field) {
+            this.critEditor.newQuery({
+              field: field,
+              comparator: query.comparator,
+              value: ns.normalizeValue(query.value, field)
+            });
+          }
         },
         this
       );

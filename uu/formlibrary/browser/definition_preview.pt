@@ -30,10 +30,6 @@
   .configuration-summary div.fieldgroups,
   .configuration-summary div.filters,
   .configuration-summary div.formsets { float:left; width:31%; margin-right:0.2em; }
-  #content fieldset { border-top:none !Important; background-color:#e9edfa !Important; border-bottom:1px solid #bbb; padding 0 1em 0 0; }
-  #content fieldset legend {width: 100%; display: block; background-color:#ddd; color:#444; font-size:110% !Important; font-weight:bold; line-height:120%; margin-left:-1em; }
-  #content #fieldset-default legend { display:none; } /* hide the heading for default fieldset */
-  table.datagridwidget-table-view input { margin-bottom:0.4em; width:95% !Important; }
 </style>
 <style tal:condition="python:view.definition.form_css and view.definition.form_css.strip()"
        tal:content="structure view/definition/form_css">

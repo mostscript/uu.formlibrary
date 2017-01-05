@@ -239,3 +239,44 @@ ol.formrows div.singlerowform div.fielddiv.divider label {
   max-width:11em;
   font-size:90%;
 }
+
+/* Fieldset (Flex form) and data-grid style tweaks: */
+
+
+body.template-form_view #content fieldset,
+body.template-form_entry #content fieldset {
+  border-top:none !Important;
+  background-color:#e9edfa !Important;
+  border-bottom:1px solid #bbb;
+  padding 0 1em 0 0;
+}
+
+body.template-form_view #content fieldset legend,
+body.template-form_entry #content fieldset legend {
+  width: 100%;
+  display: block;
+  background-color:#ddd;
+  color:#444;
+  font-size:110% !Important;
+  font-weight:bold; line-height:120%;
+  margin-left:-1em;
+}
+
+body.template-form_view #content #fieldset-default legend,
+body.template-form_entry #content #fieldset-default legend {
+  /* hide the heading for default fieldset: */
+  display:none;
+}
+
+body.template-form_view table.datagridwidget-table-view input,
+body.template-form_entry table.datagridwidget-table-view input {
+  margin-bottom:0.4em;
+  width:95% !Important;
+}
+
+body.template-form_view table.datagridwidget-table-view input[type="radio"],
+body.template-form_entry table.datagridwidget-table-view input[type="radio"] {
+  margin:0.4em;
+  width:auto !important;
+}
+

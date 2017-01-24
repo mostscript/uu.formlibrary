@@ -280,3 +280,7 @@ body.template-form_entry table.datagridwidget-table-view input[type="radio"] {
   width:auto !important;
 }
 
+body.template-form_view table.datagridwidget-table-view, 
+body.template-form_entry table.datagridwidget-table-view {
+  table-layout:fixed;
+}

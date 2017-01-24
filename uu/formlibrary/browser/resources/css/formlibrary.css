@@ -1,3 +1,23 @@
+#formcore {
+  /* padding for date widget expansion */
+  padding-bottom: 10em;
+}
+
+body.template-form_view #content ol.formrows li form table.singlerowform {
+  margin:0em 0.2em;
+}
+
+#content #formcore table.formheadings,
+#content #formcore table.singlerowform {
+  table-layout: fixed;
+}
+
+#content #formcore table.singlerowform > tbody > tr > td > input,
+#content #formcore table.singlerowform > tbody > tr > td > select
+ {
+  max-width:95%;
+}
+
 #btn-saveform { font-size:125%; }
 
 ol.formrows li { list-style-position:inside;}
@@ -22,9 +42,11 @@ table.formheadings, table.singlerowform { margin-top:-0.1em; border-collapse:col
 table.singlerowform tr.headings th div { height:0px; overflow-y:hidden; }
 table.singlerowform tr { padding:0;}
 
-table.singlerowform th,
-table.formheadings th { margin:0; border:0.1em solid #999; border-top:0.1em solid #d9d9d9;  padding:0 0.4em; max-width:14em; font-size:120%; color:#057; width:14em; }
-table.singlerowform td { margin:0; border:0.1em solid #999; padding:0.5em 0.2em 0 0.2em; font-size:85%; padding-bottom:0.4em; }
+table.singlerowform > tbody > tr > th,
+table.formheadings > tbody > tr > th {
+  margin:0; border:0.1em solid #bbb; border-top:0.1em solid #d9d9d9;  padding:0 0.4em; max-width:14em; font-size:120%; color:#057;
+}
+table.singlerowform > tbody > tr > td { margin:0; border:0.1em dotted #ddd; padding:0.5em 0.2em 0 0.2em; font-size:85%; padding-bottom:0.4em; }
 
 table.singlerowform td input { font-size:120%; }
 

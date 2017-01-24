@@ -30,6 +30,11 @@ ol.formrows { margin-top:0.8em !important; }
 
 table.formheadings { margin-left:3.8em !important; width:91.43% !important; }
 
+table.formheadings .field_title {
+  float:left;
+  margin-right:0.3em;
+}
+
 
 ol.formrows { margin:0; margin-left:-1em; padding-left:0; display:block; width:auto;}
 ol.formrows li { margin-left:-1.5em; margin-top:-0.8em; }
@@ -88,13 +93,17 @@ div.form-meta div.instructions { border-top:0.1em dotted #bbb; }
 div.form-meta div.periodinfo { color:#789; font-style:italic; padding-left:2em; }
 div.form-meta div.periodinfo span { color:#666; font-weight:bold; }
 
+div.field_desc {
+  height:0px;
+}
+
 div.field_desc a {
     display:block;
     position:relative;
     z-index:24;
     padding: 16px 0 0 0;
     overflow: hidden;
-    background-image: url("./info_icon.png");
+    background-image: url("../info_icon.png");
     background-repeat: no-repeat;
     height: 0px !important;
     height /**/:16px;
@@ -112,7 +121,7 @@ div.field_desc a:hover {
 
 div.field_desc a span { display:none; padding:0.3em; }
 
-div.field_desc a:hover span { display:block; height:auto; background-color:#445; border:1px solid #666; color:#ffd; }
+div.field_desc a:hover span { clear:both; display:block; height:auto; background-color:#445; border:1px solid #666; color:#ffd; }
 
 /* validation styles */
 

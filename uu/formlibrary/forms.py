@@ -1118,7 +1118,8 @@ class MultiForm(Item, RecordContainer):
         if v is None:
             return None
         v = v.strip()
-        # TODO: we may consider removing non-ISO support altogether TBD:
+        # BBB: handle possibility of USA middle-endian date, in case of
+        # javascript issues in entry widget re: pasted dates.
         usadate = normalize_usa_date(data.get(field.__name__))
         if usadate is not None:
             return usadate

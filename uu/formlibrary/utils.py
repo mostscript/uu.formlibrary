@@ -18,7 +18,7 @@ def getDateFieldSchema(field):
 
 WIDGET = 'collective.z3cform.datagridfield.datagridfield.DataGridFieldFactory'
 
-USA_DATE = re.compile('^([01]?[0-9])/([0123]?[0-9])/([0-9]+)$')
+USA_DATE = re.compile('^([01]?[0-9])[/-]([0123]?[0-9])[/-]([0-9]+)$')
 
 
 def grid_wrapper_schema(schema, title=u'', description=u''):

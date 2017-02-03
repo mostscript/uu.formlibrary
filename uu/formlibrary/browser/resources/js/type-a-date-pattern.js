@@ -497,6 +497,17 @@ define(
           }
         });
 
+        // paste from clipboard:
+        self.$date.on('paste', function(event) {
+            var _this = this;
+            // Short pause to wait for paste to complete
+                           setTimeout( function() {
+                var text = $(_this).val();
+                self.addDateKey(text);
+                self.sync();
+            }, 100);
+        });         
+
         // set hook callback:
         self.datePicker.on('set', function (event) {
           if (event.select) {

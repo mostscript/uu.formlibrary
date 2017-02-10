@@ -100,7 +100,7 @@ def common_widget_updates(context):
 
     for formfield in choicefields:
         vocab = formfield.field.vocabulary
-        if use_vocab(vocab) and len(vocab) <= 3:
+        if use_vocab(vocab) and len(vocab) <= 6:
             formfield.widgetFactory = RadioFieldWidget
 
     for formfield in multifields:

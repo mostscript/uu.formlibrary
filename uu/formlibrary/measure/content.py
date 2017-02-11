@@ -623,6 +623,8 @@ class FormDataSetSpecification(Item):
         for name in idxmap:
             idx = idxmap[name]
             v = getattr(self, name, None)
+            if name == 'query_state' and v is None:
+                v = {'not': 'private'}  # if not otherwise spec, excl private
             if isinstance(v, datetime.date):
                 v = datetime.datetime(*v.timetuple()[:7])  # internal convert
             if isinstance(v, datetime.datetime):

@@ -34,6 +34,13 @@ def multi_column_fields(fields, form):
     return dict([(k, v) for k, v in selected.items() if len(v) > 1])
 
 
+def safeindex(v, s):
+    """Safe index for v in s, returns -1 if v is not in s"""
+    if v not in s:
+        return -1
+    return s.index(v)
+
+
 class CSVColumn(object):
     implements(ICSVColumn)
 
@@ -44,7 +51,10 @@ class CSVColumn(object):
         if self.multiple:
             self.sortspec = [t.value for t in field.value_type.vocabulary]
             if choices:
-                self.sortspec = sorted(choices, key=self.sortspec.index)
+                self.sortspec = sorted(
+                    choices,
+                    key=lambda v: safeindex(v, self.sortspec)
+                    )
         self.name = self._name()
         self.title = self._title()
         self.dialect = dialect

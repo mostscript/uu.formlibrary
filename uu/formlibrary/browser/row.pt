@@ -1,6 +1,10 @@
 <tr>
- <td tal:repeat="widget view/widgets/values">
-  <span tal:replace="structure widget/render" />
- </td>
+  <td tal:repeat="widget view/widgets/values">
+    <div class="fielddiv"
+         tal:attributes="id string:${view/prefix}-${widget/field/__name__};
+                         class string:fielddiv field-${widget/field/__name__}">
+      <span tal:replace="structure widget/render" />
+    </div>
+  </td>
 </tr>
 

@@ -50,6 +50,9 @@ var formskip = (function ($) {
 
   var ns = {};
 
+  // post-load callbacks array:
+  ns.postLoad = [];
+
   // utility functions:
   ns.uuid4_tmpl = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
   ns.uuid4 = function () {
@@ -190,6 +193,9 @@ var formskip = (function ($) {
   ns.loadRules = function (data) {
     data = data || {};
     (data.rules || []).forEach(ns.loadRule);
+    ns.postLoad.forEach(function (callback) {
+      callback();
+    });
   };
 
   ns.fieldDiv = function (form, fieldname) {

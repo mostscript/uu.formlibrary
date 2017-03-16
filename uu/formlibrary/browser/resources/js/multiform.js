@@ -308,6 +308,17 @@ uu.formlibrary.multiform.hookup_formevents = function () {
   // hookup notification on changes to field values:
   notifyOnChange.change(handler);
   notifyOnBlur.blur(handler);
+  // Finally, apply rules to existing forms, as postLoad callback:
+  window.formskip.postLoad.push(function () {
+    forms.each(function () {
+      var form = $(this);
+      window.formevents.notify({
+        form: form,
+        field: '@form',
+        event: 'added'
+      });
+    });
+  });
 };
 
 uu.formlibrary.multiform.rowhandlers = function(row) {

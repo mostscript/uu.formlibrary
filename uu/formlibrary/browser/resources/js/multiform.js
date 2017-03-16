@@ -254,27 +254,33 @@ uu.formlibrary.multiform.validator_setup = function() {
 
 uu.formlibrary.multiform.hookup_formevents = function () {
   var formevents = window.formevents,
-    isDiscrete = function (e) {
+    _useChange = function (e) {
+      /* is discrete choice or date widget's style-hidden input */
       var el = $(e),
         t = el.attr('type'),
         controlledTypes = ['radio', 'checkbox'],
         isSel = (e.tagName || '').toLowerCase() === 'select';
       if (!e.tagName) { console.log(e); }
+      if (el.hasClass('pat-type-a-date')) {
+        return true; 
+      }
       return isSel || controlledTypes.indexOf(t) !== -1;
     },
     core = $('#formcore ol.formrows'),
+    forms = $('#formcore form'),
     inputs = $(
       'input, textarea, select.choice-field, select.date-field',
       core
       ).filter(function () { return $(this).attr('type') !== 'hidden'; }),
-    notifyOnChange = inputs.filter(function () {return isDiscrete(this);}),
-    notifyOnBlur = inputs.filter(function () { return !isDiscrete(this); }),
+    notifyOnChange = inputs.filter(function () {return _useChange(this);}),
+    notifyOnBlur = inputs.filter(function () { return !_useChange(this); }),
     handler = function () {
       var context = $(this),
         target = $(context.parents('.fielddiv')[0]),
         fieldName = target.attr('id').split('~-')[1],
         isInput = this.tagName.toLowerCase() === 'input',
-        isMulti = isInput && $('input', target).length > 1,
+        inputs = $('input', target).is(':visible'),
+        isMulti = isInput && inputs.length > 1,
         getMulti = function () {
           var selected = $('input:checked', target).toArray();
           return selected.map(function (e) { return $(e).val(); });
@@ -285,8 +291,19 @@ uu.formlibrary.multiform.hookup_formevents = function () {
           field: fieldName,
           value: isMulti ? getMulti() : context.val(),
           event: 'change'
-        };
-      window.formevents.notify(eventInfo);
+        },
+        blacklist = ['picker__input'],
+        ignored = false;
+        blacklist.forEach(function (v) {
+            if ($(this).hasClass(v)) {
+              ignored = true;
+            }
+          },
+          this
+        );
+      if (!ignored) {
+        window.formevents.notify(eventInfo);
+      }
     };
   // hookup notification on changes to field values:
   notifyOnChange.change(handler);

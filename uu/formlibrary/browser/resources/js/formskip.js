@@ -161,6 +161,13 @@ var formskip = (function ($) {
     },
     NotAny: function (query, actual) {
       return !ns.compare.Any(query, actual);
+    },
+    HASVALUE: function (query, actual) {
+      var isEmpty = function (v) {
+            return v === '' || v === undefined || v === null;
+          },
+          empty = isEmpty(actual);
+      return (query === 'Yes') ? !empty : empty;
     }
   };
 

@@ -421,6 +421,8 @@ define(
         if (self.$el && self.$el.length === 1) {
           self.$el.val(self.toString());
         }
+        // event notification for form events
+        self.$el.change();
       };
 
       self.sync = function (event) {
@@ -519,6 +521,7 @@ define(
             setTimeout(function () {
                 self.$date.focus();
                 self.datePicker.close();
+                self.$el.change();
               },
               100
             );

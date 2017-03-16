@@ -267,7 +267,7 @@ uu.formlibrary.multiform.hookup_formevents = function () {
       return isSel || controlledTypes.indexOf(t) !== -1;
     },
     core = $('#formcore ol.formrows'),
-    forms = $('#formcore form'),
+    forms = $('#formcore form.formrow'),
     inputs = $(
       'input, textarea, select.choice-field, select.date-field',
       core

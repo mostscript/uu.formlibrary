@@ -751,7 +751,7 @@ var ruleseditor = (function ($) {
   ns.ready = function (resources) {
     ns.schema = new uu.queryschema.Schema(resources.schema.entries);
     ns.rulesJSON = resources.rules;
-    ns.comparators = new uu.queryschema.Comparators(ns.schema);
+    ns.comparators = new uu.queryschema.Comparators(ns.schema, true);
     ns.rules = new ns.FieldRules({
       rules: resources.rules.rules,  // array of rule data objects
       target: $('#fieldrules')

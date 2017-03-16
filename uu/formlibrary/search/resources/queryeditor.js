@@ -147,6 +147,7 @@ uu.queryschema = (function ($, ns, uu, core, global) {
   c.NOTEQ = new ns.TermInfo('NotEq', 'is not', '\u2260');
   c.NOTANY = new ns.TermInfo('NotAny', 'does not contain any of', '\u2212');
   c.NOTALL = new ns.TermInfo('NotAll', 'does not contain all of', '\u2288');
+  c.HASVALUE = new ns.TermInfo('HASVALUE', 'has value');
 
   ns.COMPARATORS_BY_INDEX = {
     'field': [
@@ -162,9 +163,10 @@ uu.queryschema = (function ($, ns, uu, core, global) {
    * Comparators: global adapts schema, can apply comparator choices
    *        to a callback for a field via applyComparators.
    */
-  ns.Comparators = function Comparators(schema) {
+  ns.Comparators = function Comparators(schema, allowEmpty) {
 
-    this.init = function (schema) {
+    this.init = function (schema, allowEmpty) {
+      this.allowEmpty = allowEmpty || false;
       this.schema = schema;
       this._cache = {};
     };
@@ -190,10 +192,13 @@ uu.queryschema = (function ($, ns, uu, core, global) {
             return (omit.indexOf(info) === -1);
           }
         );
+      if (this.allowEmpty) {
+        comparators.push(ns.comparators.HASVALUE);
+      }
       return comparators;
     };
 
-    this.init(schema);
+    this.init(schema, allowEmpty);
   };
   return ns;
 
@@ -543,7 +548,10 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
       var field = this.field,
         comparator = this.comparator,
         choice = (!!field) ? field.isChoice() : false,
-        chooseOnlyOne = (['Any', 'All', 'NotAny', 'NotAll'].indexOf(comparator) === -1),
+        chooseOnlyOne = (
+          ['Any', 'All', 'NotAny', 'NotAll'].indexOf(comparator) === -1
+          ),
+        chooseHasValue = ('HASVALUE' === comparator),
         select;
       if (!field || !comparator) {
         return null;
@@ -551,6 +559,9 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
       if (choice) {
         select = (field.vocabulary().length <= 3) ? 'radio' : 'select';
         return (chooseOnlyOne) ? select : 'multi';
+      }
+      if (chooseHasValue) {
+        return 'truefalse';
       }
       return 'input';  // fallback/default
     };
@@ -638,9 +649,21 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
       });
     };
 
-    this.initRadioValueWidget = function () {
+    this.initTrueFalseValueWidget = function () {
+      var field = new uu.queryschema.Field(
+            this.field.name,
+            {
+              title: 'True/False radio choice',
+              fieldtype: 'Choice',
+              vocabulary: ['Yes', 'No']
+            }
+          );
+      this.initRadioValueWidget(field);
+    };
+
+    this.initRadioValueWidget = function (overrideField) {
       var self = this,
-        field = this.field,
+        field = overrideField || this.field,
         vocab = field.vocabulary(),
         valueCell = $('td.value', this.target),
         inputName = this.targetId + '-' + field.name + '-value';
@@ -740,7 +763,8 @@ uu.queryeditor = (function ($, ns, uu, core, global) {
           radio: this.initRadioValueWidget,
           select: this.initSelectValueWidget,
           multi: this.initMultiValueWidget,
-          input: this.initInputValueWidget
+          input: this.initInputValueWidget,
+          truefalse: this.initTrueFalseValueWidget
         };
       valueCell.empty();
       if (!inputType) {

@@ -11,10 +11,10 @@
         tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/coremodel.js?api=20140515"></script>
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/queryeditor.js?api=20160324"></script>
+        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.search/queryeditor.js?api=20170316"></script>
 <script type="text/javascript"
         src=""
-        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.js/ruleseditor.js?api=20161220"></script>
+        tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.js/ruleseditor.js?api=20170316"></script>
 <script type="text/html" id="rule-snippet">
     <!-- each rule needs uuid-based id prefixed with rule-UID -->
     <div id="PLACEHOLDER" class="fieldrule">

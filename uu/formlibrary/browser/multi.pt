@@ -11,7 +11,7 @@
 <tal:block condition="python: view.VIEWNAME == 'edit'">
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20150804"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formevents.js?api=20170316"></script>
 
   <script type="text/javascript"
           src=""
@@ -19,7 +19,7 @@
 
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20160830"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20170316"></script>
 
   <script type="text/javascript"
           src=""
@@ -27,7 +27,7 @@
 
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20160324"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/formskip.js?api=20170316"></script>
 
   <script id="field-json" type="application/json" tal:content="view/fields_json"></script>
 

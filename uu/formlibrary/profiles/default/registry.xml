@@ -1,0 +1,26 @@
+<registry>
+  <!-- js/css bundle -->
+  <records prefix="plone.bundles/uu-formlibrary"
+           interface='Products.CMFPlone.interfaces.IBundleRegistry'>
+    <value key="enabled">True</value>
+    <value key="jscompilation">++resource++uu.formlibrary.js/formlibrary.js</value>
+    <value key="csscompilation">++resource++uu.formlibrary.css/formlibrary.css</value>
+    <value key="last_compilation">2017-05-11 15:00:00</value>
+    <value key="compile">False</value>
+    <value key="depends">plone</value>
+  </records>
+  <!-- include this add-on's types in nav-displayed types -->
+  <record name="plone.displayed_types">
+    <value purge="False">
+      <element>uu.formlibrary.library</element>
+      <element>uu.formlibrary.definition</element>
+      <element>uu.formlibrary.fieldgroup</element>
+      <element>uu.formlibrary.simpleform</element>
+      <element>uu.formlibrary.multiform</element>
+      <element>uu.formlibrary.series</element>
+      <element>uu.formlibrary.measuregroup</element>
+      <element>uu.formlibrary.setspecifier</element>  <!-- data set -->
+      <element>uu.formlibrary.measure</element>
+    </value>
+  </record>
+</registry>

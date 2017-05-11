@@ -69,9 +69,7 @@ Features
 Requirements
 ------------
 
-* Plone 4.3 (may work on earlier Plone 4 versions).
-
-* Dexterity content types
+* Plone 5.0.x+
 
 * uu.dynamicschema: provides a global registry of persistent
   schemas for use in form definitions and forms bound to them.
@@ -93,6 +91,8 @@ Requirements
   used by this package.
 
     https://github.com/upiq/uu.workflows
+
+* uu.retrieval, repoze.catalog (for indexing multi record form data)
 
 --
 

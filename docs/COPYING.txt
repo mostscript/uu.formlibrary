@@ -2,7 +2,7 @@ This package (uu.formlibrary) is free software, with most works licensed
 under GPL v2; some assets described below are licensed under an MIT-style
 license.
 
-Copyright, 2012-2016 The University of Utah.
+Copyright, 2012-2017 The University of Utah.
 
 Licenses to works within this distribution:
 
@@ -12,7 +12,7 @@ GNU General Public License, Version 2.  See gpl-2.0.txt for full terms.
 JavaScript and CSS code assets within this package are licensed under
 the following (MIT-style) license:
 
-Copyright (c) 2012-2016 The University of Utah
+Copyright (c) 2012-2017 The University of Utah
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

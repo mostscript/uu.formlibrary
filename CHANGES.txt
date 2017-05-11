@@ -4,10 +4,7 @@ Changelog
 0.9 (unreleased)
 ----------------
 
-- Initial package release: uu.formlibrary implements general
-  purpose form library for single-record and multi-record forms tied
-  to a form definition maintained inside a form library, as well
-  as a framework for measures based on forms.
+- Port to Plone 5 compatibility 
 
 - Historical changes (on github): http://goo.gl/XwGahc
 

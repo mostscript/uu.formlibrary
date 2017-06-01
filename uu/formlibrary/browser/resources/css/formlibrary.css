@@ -315,3 +315,50 @@ body.template-form_view table.datagridwidget-table-view,
 body.template-form_entry table.datagridwidget-table-view {
   table-layout:fixed;
 }
+
+/* patterns CSS */
+
+.pattern-pickadate-wrapper .pattern-pickadate-date-wrapper .pattern-type-a-date-text-entry {
+    width: 300px;
+    margin-bottom: 0.2em;
+    text-align: center;
+}
+.pattern-pickadate-wrapper .pattern-pickadate-time-wrapper .pattern-type-a-time-text-entry {
+    width: 180px;
+    margin-bottom: 0.2em;
+    text-align: center;
+}
+
+/* collective.computedfield: hide 'factory' argument from forms: */
+.overlay #formfield-form-widgets-factory {
+  display:none;
+}
+
+.overlay #add-field-form #formfield-form-widgets-factory {
+  display:block;
+}
+
+/* MSIE 11 tweaks */
+
+.pattern-pickadate-wrapper .picker__select--year {
+  font-size:12px;
+  font-family: Arial;
+  min-width:5.5em !important;
+}
+
+
+/* MSIE 11 tweaks */
+
+.pattern-pickadate-wrapper .picker__select--year {
+  font-size:12px;
+  font-family: Arial;
+  min-width:5.5em !important;
+}
+
+
+.pattern-pickadate-wrapper .picker__select--month {
+  font-size:12px;
+  font-family: Arial;
+  min-width:9em !important;
+}
+

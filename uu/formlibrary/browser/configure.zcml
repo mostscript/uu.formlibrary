@@ -225,13 +225,5 @@
   <adapter factory=".widget_overrides.ExpirationDateFieldWidget" />
 
   <adapter factory=".widget.UIDRelatedItemsConverter" />
-  <configure zcml:condition="installed Products.ATContentTypes">
-    <adapter
-      name="uu.formlibrary.widgets"
-      factory=".widget_overrides.MetadataExtender"
-      for="Products.ATContentTypes.interface.IATContentType"
-      provides="archetypes.schemaextender.interfaces.ISchemaModifier"
-      />
-  </configure>
 
 </configure>

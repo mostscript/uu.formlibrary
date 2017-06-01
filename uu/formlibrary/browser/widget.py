@@ -1,21 +1,9 @@
-from Products.Archetypes.Registry import registerWidget
 from plone.app.layout.navigation.root import getNavigationRootObject
-try:
-    from plone.app.widgets.dx import IRelatedItemsWidget
-    from plone.app.widgets.dx import RelatedItemsWidget
-    from plone.app.widgets.dx import RelationChoiceRelatedItemsWidgetConverter
-    from plone.app.widgets.dx import DateWidget
-    from plone.app.widgets.dx import DatetimeWidget
-    from plone.app.widgets.at import DateWidget as ATDateWidget
-    from plone.app.widgets.at import DatetimeWidget as ATDatetimeWidget
-except ImportError:
-    from plone.app.z3cform.widget import IRelatedItemsWidget
-    from plone.app.z3cform.widget import RelatedItemsWidget
-    from plone.app.z3cform.widget import RelationChoiceRelatedItemsWidgetConverter  # noqa
-    from plone.app.z3cform.widget import DateWidget
-    from plone.app.z3cform.widget import DatetimeWidget
-    from Products.Archetypes.Widgets import DateWidget as ATDateWidget
-    from Products.Archetypes.Widgets import DatetimeWidget as ATDatetimeWidget
+from plone.app.z3cform.converters import RelationChoiceRelatedItemsWidgetConverter  # noqa
+from plone.app.z3cform.widget import IRelatedItemsWidget
+from plone.app.z3cform.widget import RelatedItemsWidget
+from plone.app.z3cform.widget import DateWidget
+from plone.app.z3cform.widget import DatetimeWidget
 
 from plone.app.widgets.utils import get_portal
 
@@ -148,31 +136,3 @@ class TypeADatetimeWidget(DatetimeWidget):
     pattern = 'type-a-date'
 
 
-class ATTypeADateWidget(ATDateWidget):
-    _properties = ATDateWidget._properties.copy()
-    _properties.update({
-        'pattern': 'type-a-date',
-        'pattern_options': {},
-    })
-
-registerWidget(
-    ATTypeADateWidget,
-    title='Date widget',
-    description=('Date widget'),
-    used_for=('Products.Archetypes.Field.DateTimeField',)
-)
-
-
-class ATTypeADatetimeWidget(ATDatetimeWidget):
-    _properties = ATDatetimeWidget._properties.copy()
-    _properties.update({
-        'pattern': 'type-a-date',
-        'pattern_options': {},
-    })
-
-registerWidget(
-    ATTypeADatetimeWidget,
-    title='Date widget',
-    description=('Date widget'),
-    used_for=('Products.Archetypes.Field.DateTimeField',)
-)

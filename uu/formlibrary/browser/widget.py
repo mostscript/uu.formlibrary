@@ -9,11 +9,11 @@ try:
     from plone.app.widgets.at import DateWidget as ATDateWidget
     from plone.app.widgets.at import DatetimeWidget as ATDatetimeWidget
 except ImportError:
-    from plone.app.z3cform.widgets import IRelatedItemsWidget
-    from plone.app.z3cform.widgets import RelatedItemsWidget
-    from plone.app.z3cform.widgets import RelationChoiceRelatedItemsWidgetConverter  # noqa
-    from plone.app.z3cform.widgets import DateWidget
-    from plone.app.z3cform.widgets import DatetimeWidget
+    from plone.app.z3cform.widget import IRelatedItemsWidget
+    from plone.app.z3cform.widget import RelatedItemsWidget
+    from plone.app.z3cform.widget import RelationChoiceRelatedItemsWidgetConverter  # noqa
+    from plone.app.z3cform.widget import DateWidget
+    from plone.app.z3cform.widget import DatetimeWidget
     from Products.Archetypes.Widgets import DateWidget as ATDateWidget
     from Products.Archetypes.Widgets import DatetimeWidget as ATDatetimeWidget
 

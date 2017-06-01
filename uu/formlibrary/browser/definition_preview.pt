@@ -53,7 +53,8 @@
              tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/multiform.png" />
           <img src="" 
              tal:condition="python:group.group_usage==u'group'"
-             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/form_icon.png" />
+             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/formdef.png" />
+          &nbsp;
           <span tal:content="group/Title">FIELD GROUP</span>
         </a>
         <em tal:condition="python:group.group_usage==u'grid'">(grid)</em>
@@ -66,47 +67,6 @@
          tal:attributes="href python:view.more_contents_url('fieldgroups')">More</a>
      </div>
     </div>
-    
-    <!-- form sets -->
-    <div class="formsets" tal:condition="view/formsets">
-     <h5>Form sets</h5>
-     <ul>
-       <li tal:repeat="brain view/formsets">
-        <a href="" tal:attributes="href brain/getId">
-          <img src="" 
-             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/${brain/getIcon}" />
-          <span tal:content="brain/Title">FORM SET</span>
-        </a>
-       </li>
-     </ul>     
-     <div class="more-contents" tal:condition="python: 'formsets' in view.showmore">
-      <a href="" 
-         alt="More formsets"
-         target="_blank"
-         tal:attributes="href python:view.more_contents_url('formsets')">More</a>
-     </div>
-    </div>
-    
-    <!-- record filters -->
-    <div class="filters" tal:condition="view/filters">
-     <h5>Record filters</h5>
-     <ul>
-       <li tal:repeat="brain view/filters">
-        <a href="" tal:attributes="href brain/getId">
-          <img src="" 
-             tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/${brain/getIcon}" />
-          <span tal:content="brain/Title">FILTER TITLE</span>
-        </a>
-       </li>
-     </ul>     
-     <div class="more-contents" tal:condition="python: 'filters' in view.showmore">
-      <a href="" 
-         alt="More filters"
-         target="_blank"
-         tal:attributes="href python:view.more_contents_url('filters')">More</a>
-     </div>
-    </div>
-     
   </div>
   <hr style="clear:both" />
     <form tal:replace="structure view/render_form">DATA FORM HERE</form>

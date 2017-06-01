@@ -1,3 +1,41 @@
+/* Plone 5 content type icons */
+
+/* styles common to all the png icons: */
+
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-definition::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-definition::after,
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-library::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-library::after {
+  background-repeat: no-repeat !important;
+  width:20px !important;
+  content:' ' !important;
+  margin-left: 0.2em !important;
+}
+
+/* per-style icon image resources: */
+
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-library::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-library::after {
+  background-image: url(../++resource++uu.formlibrary.icons/formlib.png);
+}
+
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-definition::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-definition::after {
+  background-image: url(../++resource++uu.formlibrary.icons/formdef.png);
+}
+
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-definition::after {
+  filter:invert(100%) brightness(200%);
+}
+
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-series::after,
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-series::before {
+  content: '\e81b' !important;
+  color:#7cceee !important;
+  font-size:125% !important;
+}
+
+
 #formcore {
   /* padding for date widget expansion */
   padding-bottom: 10em;

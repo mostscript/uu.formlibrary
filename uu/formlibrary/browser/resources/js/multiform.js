@@ -1,5 +1,133 @@
 /*jshint browser: true, nomen: false, eqnull: true, es5:true, trailing:true */
 
+// validation shim uses HTML5 number inputs:
+var validationShim = (function () {
+  "use strict";
+
+  /* error queue: list of invalid elements */
+  var errorQueue = [],
+      ns = {};
+
+  function find(selector, context) {
+    context = context || window.document;
+    return context.querySelector(selector);
+  }
+
+  function findAll(selector, context) {
+    context = context || window.document;
+    return [].slice.call(context.querySelectorAll(selector));
+  }
+
+  function isInt(input) {
+    return input.classList.contains('int-field');
+  }
+
+  function isFloat(input) {
+    return input.classList.contains('float-field');
+  }
+
+  function isNumber(input) {
+    return isInt(input) || isFloat(input);
+  }
+
+  function isRequired(input) {
+    return input.classList.contains('required');
+  }
+
+  function validateInput(input, showError) {
+    var valid = input.checkValidity();
+    if (showError && !valid) {
+      queueError(input);
+    }
+    return valid;
+  }
+
+  function validateForm(form) {
+    /** attempts validation, affects interactive validation state;
+ *       * returns true if entire form validates; false otherwise.
+ *             */
+    var numericInputs = findAll('input[type="number"]', form),
+        inputValid = function (input) {
+          return validateInput(input, true);
+        },
+        validity = numericInputs.every(inputValid);
+    if (!validity) {
+      form.classList.add('validation-failed');
+    } else {
+      form.classList.remove('validation-failed');
+    }
+    return validity;
+  }
+
+  function queueError(input) {
+    /** queue an invalid input */
+    errorQueue.push(input);
+  }
+
+  function clearErrors () {
+    errorQueue = [];
+  }
+
+  ns.adaptForm = function adaptForm(form, enforceRequired) {
+    var unmodifiedInputs = findAll(
+          'input[type="text"],input:not([type])',
+          form
+        ).filter(isNumber);
+    unmodifiedInputs.forEach(function (input) {
+      var required = (!!enforceRequired) && isRequired(input),
+          step = (isInt(input)) ? '1' : 'any';
+      input.setAttribute('type', 'number');
+      input.setAttribute('step', step);
+      if (required) {
+        input.setAttribute('required', 'required');
+      }
+    });
+  };
+
+
+  ns.interactiveValidation = function interactiveValidation(forms) {
+    /** returns true if all forms validate, otherwise false;
+ *       * incidentally focuses erroring inputs.
+ *             */
+    var results, firstError;
+    clearErrors();
+    results = forms.map(validateForm);
+    if (results.length && errorQueue.length) {
+      firstError = errorQueue[0];
+      if (firstError.reportValidity) {
+        firstError.reportValidity();
+      }
+      firstError.focus();
+    }
+    return (!errorQueue.length);
+  };
+
+  ns.main = function main() {
+    /** example main / document how to adapt, validate, on submit */
+    var forms = findAll('form.multi'),
+        globalForm = find('form.global');
+    forms.forEach(function (form) {
+      // for now, we adapt but hard-code the ignoring of required fields:
+               ns.adaptForm(form, false);
+    });
+    globalForm.addEventListener(
+      'submit',
+      function (event) {
+        var validates = ns.interactiveValidation(forms);
+        if (!validates) {
+          event.preventDefault();
+          return false;
+        }
+      }
+    );
+  };
+
+  return ns;
+  //document.addEventListener('DOMContentLoaded', main, false);
+
+}());
+
+
 
 //nested namespaces for script functions and objects:
 if (!window.uu) {
@@ -17,34 +145,6 @@ var $ = $ || jQuery;
 // graft mockup widget pattern registry:
 uu.hasReg = (window.require) ? window.require.defined('pat-registry') : false;
 uu.pReg = (uu.hasReg) ? window.require('pat-registry') : undefined;
-
-/* validator functions: */
-uu.formlibrary.multiform.val_int_req = function(input, value) {
-  return (/^[\-]?(\d+|(\d{1,2},)?((\d{3}),)*(\d{3}))$/).test(value); /* required integer */
-};
-
-uu.formlibrary.multiform.val_int = function(input, value) {
-  return (/^([\-]?(\d+|(\d{1,2},)?((\d{3}),)*(\d{3})))?$/).test(value); /* optional integer */
-};
-
-uu.formlibrary.multiform.val_dec_req = function(input, value) {
-  return (/^(\d+([.]\d+)?|([.]\d+))$/).test(value); /* required float */
-};
-
-uu.formlibrary.multiform.val_dec = function(input, value) {
-  return (/^([\-]?(\d+([.]\d+)?|([.]\d+)))*$/).test(value); /*optional float */
-};
-
-uu.formlibrary.multiform.val_date_req = function(input, value) {
-  return (Date.parse(value) != null); /* is date parsable? */
-};
-
-uu.formlibrary.multiform.val_date = function(input, value) {
-  if (value === '') {
-    return true; /*optional field*/
-  }
-  return uu.formlibrary.multiform.val_date_req(input, value);
-};
 
 uu.formlibrary.multiform.formids = function() {
   var ids = [];
@@ -243,13 +343,10 @@ uu.formlibrary.multiform.refreshbuttons = function() {
 
 
 uu.formlibrary.multiform.validator_setup = function() {
-  if ($.tools.validator) {
-    $('div.error').remove();
-    $.tools.validator.fn('input.int-field', 'Value must be whole number', uu.formlibrary.multiform.val_int);
-    $.tools.validator.fn('input.float-field', 'Value provided must be decimal number', uu.formlibrary.multiform.val_dec);
-    $('input.int-field').validator();
-    $('input.float-field').validator();
-  }
+  $("form.formrow").each(function (idx) {
+    // numeric fields to HTML5 number inputs, appropriately configured
+    validationShim.adapt(this, false);
+  });
 };
 
 uu.formlibrary.multiform.hookup_formevents = function () {
@@ -377,27 +474,16 @@ uu.formlibrary.multiform.new_row_url = function() {
 };
 
 uu.formlibrary.multiform.submit = function(event) {
-  var int_validates = true,
-    date_validates = true,
-    float_validates = true,
-    saveManager = multiform.save,
-    isSubmit = uu.formlibrary.multiform.last_action === 'save_submit',
-    note = $("#coredata input[type=submit][clicked=true]").val() || 'Saved data';
-  /* validate first, only submit if no errors */
-  if ($('input.int-field').length>0) {
-    int_validates = $('input.int-field').data('validator').checkValidity();
-  }
-  if ($('input.float-field').length>0) {
-    float_validates = $('input.float-field').data('validator').checkValidity();
-  }
-  if (int_validates && float_validates && date_validates) {
-    uu.formlibrary.multiform.copybundle(); /* serialize JSON to hidden 'payload' input */
-    // Create a application/x-www-form-urlencoded encoded serialization,
-    // save locally, attempt sync to server over AJAX using SaveManager:
-    saveManager.save($('#coredata').serialize(), isSubmit, note);
+  var forms = $('form.formrow').toArray(),
+      validates = validationShim.interactiveValidation(forms),
+      saveManager = multiform.save,
+      isSubmit = uu.formlibrary.multiform.last_action === 'save_submit',
+      note = $('#coredata input[type=submit][clicked=true]').val() || 'Saved data';
+  if (!validates) {
+    event.preventDefault();
     return false;
   } else {
-    alert('Please correct input errors and then try saving again.');
+    saveManager.save($('#coredata').serialize(), isSubmit, note);
     return false;
   }
 };

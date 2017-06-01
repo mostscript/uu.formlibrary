@@ -7,14 +7,14 @@ from zope.lifecycleevent import ObjectModifiedEvent, Attributes
 from Acquisition import aq_base
 from OFS.interfaces import IObjectManager
 from Products.CMFCore.utils import getToolByName
-from plone.app.linkintegrity.exceptions import (
-    LinkIntegrityNotificationException)
-from plone.app.linkintegrity.interfaces import ILinkIntegrityInfo
+#from plone.app.linkintegrity.exceptions import (
+#    LinkIntegrityNotificationException)
+#from plone.app.linkintegrity.interfaces import ILinkIntegrityInfo
 
 from uu.dynamicschema.interfaces import ISchemaSaver
 from uu.dynamicschema.interfaces import DEFAULT_MODEL_XML, DEFAULT_SIGNATURE
 from uu.dynamicschema.schema import parse_schema
-from uu.formlibrary.browser.usedby import InUseBy
+#from uu.formlibrary.browser.usedby import InUseBy
 from uu.formlibrary.interfaces import IDefinitionBase, IFormSet, ISimpleForm
 from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup, IBaseForm
 from uu.formlibrary.interfaces import IFormComponents, IMultiForm
@@ -57,6 +57,7 @@ def copyroles(source, dest):
 
 
 def delete_integrity(context, event):
+    """
     request = getRequest()
     if request is not None:
         path = context.getPhysicalPath()
@@ -70,6 +71,8 @@ def delete_integrity(context, event):
             for brain in used_by._brainmap.values():
                 info.addBreach(brain._unrestrictedGetObject(), context)
             raise LinkIntegrityNotificationException(context)
+    """
+    pass
 
 
 def handle_copypaste_local_roles(context, event):

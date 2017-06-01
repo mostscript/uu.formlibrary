@@ -63,7 +63,7 @@
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
             <li tal:repeat="brain recent">
               <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">
-                <img src="" tal:attributes="src brain/getIcon" alt="(form definition)" />
+                <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/formdef.png" alt="(form definition)" />&nbsp;
                 <span tal:content="brain/Title">TITLE</span>
               </a>
               <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>

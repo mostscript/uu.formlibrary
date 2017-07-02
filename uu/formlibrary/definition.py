@@ -8,17 +8,35 @@ from Products.CMFCore.utils import getToolByName
 from zope.component import adapts
 from zope.component.hooks import getSite
 from zope.interface import implements
+from zope.publisher.interfaces import IPublishTraverse
+from ZPublisher.BaseRequest import DefaultPublishTraverse
 
 from uu.dynamicschema.schema import SignatureSchemaContext
 from uu.dynamicschema.schema import copy_schema
 
-from uu.formlibrary.interfaces import IFormDefinition, IFieldGroup
+from interfaces import IFormDefinition, IFieldGroup, IDefinitionSchemaContext
 from uu.formlibrary.interfaces import DEFINITION_TYPE, FIELD_GROUP_TYPE
 from uu.formlibrary.interfaces import IDefinitionHistory, IFormComponents
 
 
 itemkeys = lambda seq: zip(*seq)[0] if seq else []  # unzip items tuple
 is_field_group = lambda o: o.portal_type == FIELD_GROUP_TYPE
+
+
+ALLOWED_FIELDS = [
+    u'plone.app.textfield.RichText',
+    u'plone.schema.email.Email',
+    u'zope.schema._bootstrapfields.Bool',
+    u'zope.schema._bootstrapfields.Int',
+    u'zope.schema._bootstrapfields.Text',
+    u'zope.schema._bootstrapfields.TextLine',
+    u'zope.schema._field.Choice',
+    u'zope.schema._field.Date',
+    u'zope.schema._field.Datetime',
+    u'zope.schema._field.Float',
+    u'zope.schema._field.Set',
+    u'zope.schema._field.URI'
+]
 
 
 def form_definition(context, attr='definition'):
@@ -73,8 +91,28 @@ class FormComponents(object):
         return dict(self._items)
 
 
+class DefinitionSchemaContext(SchemaContext):
+    
+    implements(IDefinitionSchemaContext)
+
+    enableFieldsets = False
+    allowedFields = ALLOWED_FIELDS
+    fieldsWhichCannotBeDeleted = ()
+
+    def __init__(self, schema, request, name=u'schema', title=None):
+        cloned_schema = copy_schema(schema)
+        super(DefinitionSchemaContext, self).__init__(
+            cloned_schema,
+            request,
+            name,
+            title
+            )
+
+
 class DefinitionBase(SignatureSchemaContext):
     """Base implementation class for form definitions, groups"""
+
+    implements(IPublishTraverse)
 
     def __init__(self, content_base):
         self.content_base = content_base
@@ -94,15 +132,20 @@ class DefinitionBase(SignatureSchemaContext):
         # fall back to base class(es) __getattr__ from DexterityContent
         return self.content_base.__getattr__(self, name)
 
-    def __getitem__(self, name):
-        """low-tech traversal hook"""
+    def publishTraverse(self, request, name):
+        """Hook to publish schema (proxy) context"""
         if name == 'edit_schema':
             title = u'Form schema: %s' % self.title
-            temp_schema = copy_schema(self.schema)  # edit copy, not in-place!
-            schema_context = SchemaContext(
-                temp_schema, self.REQUEST, name, title).__of__(self)
-            return schema_context
-        return self.content_base.__getitem__(self, name)
+            return DefinitionSchemaContext(
+                self.schema,
+                self.REQUEST,
+                name,
+                title,
+                ).__of__(self)
+        return DefaultPublishTraverse(self, request).publishTraverse(
+            request,
+            name
+            )
 
 
 class FormDefinition(Container, DefinitionBase):

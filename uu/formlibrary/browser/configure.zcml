@@ -12,7 +12,15 @@
     name="form_view"
     for="uu.formlibrary.interfaces.IFormDefinition"
     class=".definition.DefinitionPreview"
-    template="definition_preview.pt"
+    template="definition.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="fields"
+    for="uu.formlibrary.interfaces.IDefinitionSchemaContext"
+    class=".fields.FieldSchemaEditor"
+    template="schema_edit.pt"
     permission="zope2.View"
     />
 
@@ -68,6 +76,20 @@
     for="uu.formlibrary.interfaces.IFormSeries"
     class=".listseries.FormSeriesListing"
     template="listseries.pt"
+    permission="zope2.View"
+    />
+
+ <browser:page
+    name="formcommon"
+    for="..interfaces.IFormDefinition"
+    template="common.pt"
+    permission="zope2.View"
+    />
+
+ <browser:page
+    name="formcommon"
+    for="..interfaces.IDefinitionSchemaContext"
+    template="common.pt"
     permission="zope2.View"
     />
 
@@ -201,19 +223,16 @@
   <browser:resourceDirectory
     name="uu.formlibrary.icons"
     directory="resources/icons"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
   <browser:resourceDirectory
     name="uu.formlibrary.js"
     directory="resources/js"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
   <browser:resourceDirectory
     name="uu.formlibrary.css"
     directory="resources/css"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
   <adapter factory=".widget_overrides.TypeADateFieldWidget" />

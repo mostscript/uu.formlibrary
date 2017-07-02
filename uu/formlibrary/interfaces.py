@@ -9,7 +9,7 @@ from plone.app.layout.navigation.root import getNavigationRootObject
 from plone.app.textfield import RichText
 from plone.app.widgets.interfaces import IWidgetsLayer
 from plone.directives import form, dexterity
-#from plone.autoform import directives
+from plone.schemaeditor.interfaces import ISchemaContext
 from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
 from zope.component.hooks import getSite
@@ -227,6 +227,12 @@ class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
         plus one (version numbers are one-indexed, not zero-indexed).  If
         signature passed is not found in history, return -1.
         """
+
+
+class IDefinitionSchemaContext(ISchemaContext):
+    """
+    Marker for plone.schemaeditor schema context specific to form definition.
+    """
 
 
 class IDefinitionHistory(Interface):

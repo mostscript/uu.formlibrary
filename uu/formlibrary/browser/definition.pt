@@ -1,0 +1,66 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+  <metal:block fill-slot="javascript_head_slot">
+  </metal:block>
+  <metal:block fill-slot="style_slot">
+  </metal:block>
+</head>
+<body>
+ <div metal:fill-slot="main">
+
+  <div class="definition-meta">
+    <h1 class="documentFirstHeading" tal:content="context/Title">TITLE</h1>
+  </div>
+  
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
+
+      <h3 class="tabheading-inside">Form overview / preview</h3>
+
+      <div class="about" tal:condition="context/Description">
+        <p tal:content="context/Description">Description</p>
+      </div>
+
+      <div class="configuration-summary">
+
+        <!-- fieldgroups -->
+        <div class="fieldgroups" tal:condition="view/fieldgroups">
+        <h5>Field groups</h5>
+        <ul>
+          <li tal:repeat="group python:[b.getObject() for b in view.fieldgroups()]">
+            <a href="" tal:attributes="href group/getId">
+              <img src="" 
+                tal:condition="python:group.group_usage==u'grid'"
+                tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/multiform.png" />
+              <img src="" 
+                tal:condition="python:group.group_usage==u'group'"
+                tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/formdef.png" />
+              &nbsp;
+              <span tal:content="group/Title">FIELD GROUP</span>
+            </a>
+            <em tal:condition="python:group.group_usage==u'grid'">(grid)</em>
+          </li>
+        </ul>
+        <div class="more-contents" tal:condition="python: 'fieldgroups' in view.showmore">
+          <a href="" 
+            alt="More field groups"
+            target="_blank"
+            tal:attributes="href python:view.more_contents_url('fieldgroups')">More</a>
+        </div>
+        </div>
+      </div>
+
+      <div class="form-preview-core">
+        <form tal:replace="structure view/render_form">DATA FORM HERE</form>
+      </div>
+
+    </div>
+  </div>
+ </div>
+</body>
+</html>

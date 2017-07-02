@@ -71,7 +71,6 @@
   <browser:resourceDirectory
     name="uu.formlibrary.search"
     directory="resources"
-    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
     />
 
 </configure>

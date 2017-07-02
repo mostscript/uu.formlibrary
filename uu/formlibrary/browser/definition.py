@@ -12,6 +12,13 @@ from uu.formlibrary.utils import local_query
 from common import BaseFormView
 
 
+DEFINITION_TABS = (
+    ('Overview', '@@form_view'),
+    ('Field schema', 'edit_schema/@@fields'),
+    ('Field rules', '@@fieldrules'),
+    )
+
+
 class FormInputView(BaseFormView):
 
     def __init__(self, context, request):
@@ -53,6 +60,10 @@ class DefinitionPreview(FormInputView):
     BATCHSIZE = 8
 
     _fieldgroups = _formsets = _filters = None  # default, uncached
+
+    label = 'Overview'
+
+    tabs = DEFINITION_TABS
 
     def __init__(self, context, request):
         super(DefinitionPreview, self).__init__(context, request)

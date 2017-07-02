@@ -9,6 +9,24 @@
 <body>
   <div metal:fill-slot="main">
 
+ <!-- definition macros -->
+
+  <div metal:define-macro="formdefinition_tabs">
+   <div class="autotabs">
+      <nav class="autotoc-nav">
+        <a tal:repeat="tab view/tabs"
+           tal:attributes="href python:context.absolute_url() + '/' + tab[1];
+                           class python:'active' if tab[0] == view.label else ''"
+           tal:content="python:tab[0]">
+        </a>
+      </nav>
+
+      <div class="hello" metal:define-slot="tab_content"></div>
+    </div>
+  </div>
+
+ <!-- series macros -->
+
  <tal:globals define="series view/seriesinfo">
   <div metal:define-macro="formseries_headmeta"
        tal:define="is_series python:getattr(view, 'SERIES', False)">

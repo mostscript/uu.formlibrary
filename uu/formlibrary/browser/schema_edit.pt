@@ -1,0 +1,42 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="uu.formlibrary">
+<head>
+<metal:block fill-slot="javascript_head_slot">
+  <script type="text/javascript">
+    $(document).ready(function () {
+      window.setTimeout(function () {
+        require('pat-registry').patterns.autotoc.init($('<div>').appendTo('body').hide());
+      }, 500);
+    });
+  </script>
+</metal:block>
+<metal:block fill-slot="style_slot">
+<style>
+#formfield-form-widgets-vocabularyName {
+  display:None;
+}
+</style>
+</metal:block>
+</head>
+<body>
+<div metal:fill-slot="main">
+
+  <div class="definition-meta">
+    <h1 class="documentFirstHeading" tal:content="context/Title">TITLE</h1>
+  </div>
+
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
+      <h3 class="tabheading-inside">Form overview / preview</h3>
+
+      <tal:block tal:replace="structure view/contents|view/render"/>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

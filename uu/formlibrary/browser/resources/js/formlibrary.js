@@ -2,7 +2,7 @@
 
 (function ($) {
   $(document).ready(function () {
-    console.log('Talkflow ready');
+    console.log('Form Library System ready');
   });
 }(jQuery));
 

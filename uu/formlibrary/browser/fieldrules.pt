@@ -78,24 +78,35 @@
 </head>
 <body>
 <div metal:fill-slot="main">
-  <h2 class="fieldrules-title">Field rules for <span tal:content="context/Title">TITLE</span></h2>
 
-  <div class="rulesmanager">
-    <div class="rules-meta">
-      <h4>Rules table of contents</h4>
-      <div class="rules-toc"></div>
-    </div>
-    <ol id="fieldrules">
-    </ol> 
-    <div class="below-rules">
-      <a class="addrule" href="javascript:void(0)">+ Add a rule</a>
-      <hr />
-      <form id="coredata" method="POST">
-        <input type="hidden" class="rules_json" name="rules_json" value="" />
-        <input type="submit" class="saverules" name="saverules" value="Save rules" />
-      </form>
+  <div class="definition-meta">
+    <h1 class="fieldrules-title">Field rules for <span tal:content="context/Title">TITLE</span></h1>
+  </div>
+
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
+      <p class="formHelp tabFYI">Edit field rules and actions here.</p>
+
+      <div class="rulesmanager">
+        <a class="addrule" href="javascript:void(0)">Add a rule</a>
+        <div class="rules-meta">
+          <h4>Rules table of contents</h4>
+          <div class="rules-toc"></div>
+          <h4>Rule definition</h4>
+        </div>
+        <ol id="fieldrules">
+        </ol> 
+        <div class="below-rules">
+          <hr />
+          <form id="coredata" method="POST">
+            <input type="hidden" class="rules_json" name="rules_json" value="" />
+            <input type="submit" class="saverules" name="saverules" value="Save rules" />
+          </form>
+        </div>
+      </div>
     </div>
   </div>
+
 </div>
 </body>
 </html>

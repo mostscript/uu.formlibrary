@@ -41,10 +41,14 @@ a#add-field {
   border-bottom:1px solid #090;
 }
 a#add-field button {
-  background-color:#efe;
+  background-color:#dfe;
   width:12em;
-  border-radius:0.2em;
+  border-radius:0.3em;
+  border:1px solid #789;
   margin:0.3em;
+  margin-right:1em;
+  color:#007bb1;
+  text-shadow:none;
 }
 
 </style>

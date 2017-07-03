@@ -1,10 +1,15 @@
 import json
 
 from Products.statusmessages.interfaces import IStatusMessage
+from uu.formlibrary.browser.definition import DEFINITION_TABS
 
 
 class FieldRulesView(object):
     """View for managing field rules on a form definition"""
+
+    label = 'Field rules'
+
+    tabs = DEFINITION_TABS
 
     def __init__(self, context, request):
         self.context = context

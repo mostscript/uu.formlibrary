@@ -17,8 +17,36 @@
 <metal:block fill-slot="style_slot">
 <style>
 #formfield-form-widgets-vocabularyName {
-  display:None;
+  display:none;
 }
+#fieldset-0 {
+  width:100%;
+}
+#fieldset-0 legend {
+  display:none;
+}
+.fieldPreview .fieldLabel {
+  max-width:98%;
+}
+.tabFYI {
+  padding-top:0.6em !important;
+}
+
+a#add-field {
+  display:block;
+  margin-top:-2.2em;
+  margin-left:-1em;
+  margin-right:-1em;
+  height:3em;
+  border-bottom:1px solid #090;
+}
+a#add-field button {
+  background-color:#efe;
+  width:12em;
+  border-radius:0.2em;
+  margin:0.3em;
+}
+
 </style>
 </metal:block>
 </head>
@@ -31,7 +59,7 @@
 
   <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
     <div metal:fill-slot="tab_content">
-      <h3 class="tabheading-inside">Form overview / preview</h3>
+      <p class="formHelp tabFYI">Edit field schema for this form here.</p>
 
       <tal:block tal:replace="structure view/contents|view/render"/>
     </div>

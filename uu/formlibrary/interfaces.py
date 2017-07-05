@@ -8,8 +8,9 @@ from persistent.list import PersistentList
 from plone.app.layout.navigation.root import getNavigationRootObject
 from plone.app.textfield import RichText
 from plone.app.widgets.interfaces import IWidgetsLayer
-from plone.directives import form, dexterity
+from plone.autoform import directives
 from plone.schemaeditor.interfaces import ISchemaContext
+from plone.supermodel import model
 from plone.uuid.interfaces import IAttributeUUID
 from z3c.form.browser.textarea import TextAreaFieldWidget
 from zope.component.hooks import getSite
@@ -165,10 +166,10 @@ class ISchemaProvider(Interface):
         )
 
 
-class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
+class IDefinitionBase(model.Schema, ISchemaProvider, IAttributeUUID):
     """Base for form, form-group definitions"""
 
-    form.omitted('signature')  # instance attribute, not editable form field
+    directives.omitted('signature')  # instance attr, not editable form field
     signature = schema.BytesLine(
         title=_(u'Schema signature'),
         description=_(u'MD5 hexidecimal digest hash of entry_schema XML.'),
@@ -176,7 +177,7 @@ class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
         required=False,
         )
 
-    form.omitted('signature_history')  # attribute, not editable form field
+    directives.omitted('signature_history')  # attr, not editable form field
     signature_history = schema.List(
         title=_(u'Signature history stack'),
         description=_(u'Chronologically-ordered list of MD5 hexidecimal '
@@ -200,7 +201,7 @@ class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
         required=False,
         )
 
-    form.widget(entry_schema=TextAreaFieldWidget)
+    directives.widget(entry_schema=TextAreaFieldWidget)
     entry_schema = schema.Bytes(
         title=_(u'Form schema XML'),
         description=_(u'Serialized form schema XML.'),
@@ -210,7 +211,7 @@ class IDefinitionBase(form.Schema, ISchemaProvider, IAttributeUUID):
         )
 
     # NOTE: this field must be last in interface code: identifier collision
-    form.omitted('schema')  # instance attribute, but not editable form field
+    directives.omitted('schema')  # instance attr, but not editable form field
     schema = schema.Object(
         title=_(u'Form schema'),
         description=_(u'Form schema based upon entry_schema XML, usually '
@@ -293,7 +294,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
     configuration items.
     """
 
-    form.fieldset(
+    model.fieldset(
         'Configuration',
         label=u"Form configuration",
         fields=[
@@ -305,7 +306,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             ]
         )
 
-    form.fieldset(
+    model.fieldset(
         'Display',
         label=u"Form display metadata",
         fields=[
@@ -317,7 +318,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
             ]
         )
 
-    form.widget(form_css=TextAreaFieldWidget)
+    directives.widget(form_css=TextAreaFieldWidget)
     form_css = schema.Bytes(
         title=_(u'Form styles'),
         description=_(u'CSS stylesheet rules for form (optional).'),
@@ -384,7 +385,7 @@ class IFormDefinition(IDefinitionBase, IOrderedContainer):
         required=False,
         )
 
-    form.omitted('definition_history')
+    directives.omitted('definition_history')
     definition_history = schema.List(
         title=u'Definition history',
         description=u'Modificaton history metadata log: chronological '
@@ -422,7 +423,7 @@ class IFieldGroup(IDefinitionBase):
     a grid field (nested in a fieldset-like setup).
     """
 
-    form.fieldset(
+    model.fieldset(
         'Configuration',
         label=u"Form configuration",
         fields=[
@@ -430,7 +431,7 @@ class IFieldGroup(IDefinitionBase):
             ]
         )
 
-    form.omitted('id')  # generated from title, not edited generally
+    directives.omitted('id')  # generated from title, not edited generally
     id = schema.BytesLine()
 
     title = schema.TextLine(
@@ -495,7 +496,7 @@ class IFormComponents(Interface):
         )
 
 
-class IFormLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
+class IFormLibrary(model.Schema, IOrderedContainer, IAttributeUUID):
     """
     Container/folder interface for library of form definitions.
     Keys are ids, values provided IFormDefinition.
@@ -691,10 +692,10 @@ class IFormSet(Interface):
         """Create a copy of this set wrapper and contained set"""
 
 
-class IPeriodicFormInstance(form.Schema, IAttributeUUID):
+class IPeriodicFormInstance(model.Schema, IAttributeUUID):
     """Base form instance interface"""
 
-    form.fieldset(
+    model.fieldset(
         'Review',
         label=u"Review information",
         fields=['notes']
@@ -726,8 +727,8 @@ class IPeriodicFormInstance(form.Schema, IAttributeUUID):
         required=False,
         )
 
-    dexterity.read_permission(notes='cmf.ReviewPortalContent')
-    dexterity.write_permission(notes='cmf.ReviewPortalContent')
+    directives.read_permission(notes='cmf.ReviewPortalContent')
+    directives.write_permission(notes='cmf.ReviewPortalContent')
     notes = schema.Text(
         title=_(u'Notes'),
         description=_(u'Administrative, review notes about form instance.'),
@@ -740,7 +741,7 @@ class IPeriodicFormInstance(form.Schema, IAttributeUUID):
             raise Invalid(_(u"Start date cannot be after end date."))
 
 
-class IBaseForm(form.Schema, ISchemaProvider, IPeriodicFormInstance):
+class IBaseForm(model.Schema, ISchemaProvider, IPeriodicFormInstance):
     """
     Base form interface: form instances are bound to a definition which
     provides the basis for how self.schema is provided.
@@ -762,7 +763,7 @@ class ISimpleForm(IBaseForm):
     providing IFormEntry.
     """
 
-    form.omitted('data')
+    directives.omitted('data')
     data = schema.Dict(
         title=u'Data mapping',
         description=u'Map data from fieldset name to record.',
@@ -780,9 +781,9 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
     """
 
     # omit IRecordContainer['factory'] from generated form
-    form.omitted('factory')
+    directives.omitted('factory')
 
-    form.omitted('catalog')
+    directives.omitted('catalog')
     catalog = schema.Object(
         title=u'Catalog',
         description=u'Catalog indexes multi-record form data',
@@ -797,7 +798,7 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
         )
 
 
-class IPeriodicSeries(form.Schema):
+class IPeriodicSeries(model.Schema):
     """Definition of a sequence of periods of time"""
 
     frequency = schema.Choice(
@@ -854,19 +855,19 @@ class IPeriodicSeries(form.Schema):
         )
 
 
-class IFormSeries(form.Schema, IPeriodicSeries):
+class IFormSeries(model.Schema, IPeriodicSeries):
     """
     A time-series container of related periodic forms, may contain
     shared metadata about that group of forms.
     """
 
-    form.fieldset(
+    model.fieldset(
         'Display',
         label=u"Form display metadata",
         fields=['contact', 'logo', 'form_css']
         )
 
-    form.fieldset(
+    model.fieldset(
         'Review',
         label=u"Review information",
         fields=['notes']
@@ -912,7 +913,7 @@ class IFormSeries(form.Schema, IPeriodicSeries):
         required=False,
         )
 
-    form.widget(form_css=TextAreaFieldWidget)
+    directives.widget(form_css=TextAreaFieldWidget)
     form_css = schema.Bytes(
         title=_(u'Form styles'),
         description=_(u'Additional CSS stylesheet rules for forms contained '
@@ -920,18 +921,18 @@ class IFormSeries(form.Schema, IPeriodicSeries):
         required=False,
         )
 
-    dexterity.read_permission(notes='cmf.ReviewPortalContent')
-    dexterity.write_permission(notes='cmf.ReviewPortalContent')
+    directives.read_permission(notes='cmf.ReviewPortalContent')
+    directives.write_permission(notes='cmf.ReviewPortalContent')
     notes = schema.Text(
         title=_(u'Notes'),
         description=_(u'Administrative, review notes about series.'),
         required=False,
         )
 
-    form.order_after(frequency='description')
-    form.order_after(start='frequency')
-    form.order_after(end='start')
-    form.order_after(active_weekdays='end')
+    directives.order_after(frequency='description')
+    directives.order_after(start='frequency')
+    directives.order_after(end='start')
+    directives.order_after(active_weekdays='end')
 
     @invariant
     def validate_start_end(obj):
@@ -939,7 +940,7 @@ class IFormSeries(form.Schema, IPeriodicSeries):
             raise Invalid(_(u"Start date cannot be after end date."))
 
 
-class IPopulateForms(form.Schema):
+class IPopulateForms(model.Schema):
     """Interface/schema for wizard form view for populating forms"""
 
     form_type = schema.Choice(

@@ -3,7 +3,7 @@ import operator
 from Acquisition import aq_parent, aq_inner
 from plone.app.layout.navigation.interfaces import INavigationRoot
 from plone.autoform import directives
-from plone.directives import form
+from plone.supermodel import model
 from plone.uuid.interfaces import IAttributeUUID, IUUID
 from z3c.form.browser.radio import RadioFieldWidget
 from zope.container.interfaces import IOrderedContainer
@@ -151,7 +151,7 @@ class PermissiveVocabulary(SimpleVocabulary):
 
     def getTermByToken(self, token):
         """
-        this works around z3c.form.widget.SequenceWidget.extract()
+        this works around z3c.directives.widget.SequenceWidget.extract()
         pseudo-validation (which is broken for a permissive vocabulary).
         """
         try:
@@ -207,7 +207,7 @@ class MeasureGroupContentSourceBinder(object):
 
 ## core interfaces (shared by content types and/or forms):
 
-class IMeasureNaming(form.Schema):
+class IMeasureNaming(model.Schema):
     """Title, description naming for measure."""
 
     title = schema.TextLine(
@@ -221,7 +221,7 @@ class IMeasureNaming(form.Schema):
         )
 
 
-class IMeasureFormDefinition(form.Schema):
+class IMeasureFormDefinition(model.Schema):
     """Bound form definition for a measure group"""
 
     definition = schema.Choice(
@@ -234,10 +234,10 @@ class IMeasureFormDefinition(form.Schema):
         )
 
 
-class IMeasureSourceType(form.Schema):
+class IMeasureSourceType(model.Schema):
     """Choose form data-source type"""
 
-    form.widget(source_type=RadioFieldWidget)
+    directives.widget(source_type=RadioFieldWidget)
     source_type = schema.Choice(
         title=u'Data source type',
         description=u'What kind of form data will provide a data source '
@@ -248,10 +248,10 @@ class IMeasureSourceType(form.Schema):
         )
 
 
-class IMeasureCalculation(form.Schema):
+class IMeasureCalculation(model.Schema):
     """Numerator/denominator selection for measure via multi-record form"""
 
-    form.widget(numerator_type=RadioFieldWidget)
+    directives.widget(numerator_type=RadioFieldWidget)
     numerator_type = schema.Choice(
         title=u'Computed value: numerator',
         description=u'Choose how the core computed value is obtained.',
@@ -260,7 +260,7 @@ class IMeasureCalculation(form.Schema):
         required=True,
         )
 
-    form.widget(denominator_type=RadioFieldWidget)
+    directives.widget(denominator_type=RadioFieldWidget)
     denominator_type = schema.Choice(
         title=u'(Optional) denominator',
         description=u'You may choose if and how an optional denominator is '
@@ -285,7 +285,7 @@ class IMeasureCalculation(form.Schema):
             raise Invalid(m)
 
 
-class IMeasureRounding(form.Schema):
+class IMeasureRounding(model.Schema):
 
     display_precision = schema.Int(
         title=u'Digits after decimal point (display precision)?',
@@ -295,7 +295,7 @@ class IMeasureRounding(form.Schema):
         default=1,
         )
 
-    form.widget(rounding=RadioFieldWidget)
+    directives.widget(rounding=RadioFieldWidget)
     rounding = schema.Choice(
         title=u'How should number be optionally rounded?',
         description=u'You may choose to round decimal values to integer '
@@ -309,10 +309,10 @@ class IMeasureRounding(form.Schema):
         )
 
 
-class IMeasureUnits(form.Schema):
+class IMeasureUnits(model.Schema):
     """Modifiers for computed value: units, multiplier, rounding rules"""
 
-    form.widget(value_type=RadioFieldWidget)
+    directives.widget(value_type=RadioFieldWidget)
     value_type = schema.Choice(
         title=u'Kind of value',
         description=u'What are the basic units of measure?',
@@ -336,7 +336,7 @@ class IMeasureUnits(form.Schema):
         )
 
 
-class IMeasureFieldSpec(form.Schema):
+class IMeasureFieldSpec(model.Schema):
     """
     Field specification for flex/simple form measures with values
     sourced directly from form field values, or for values summarized from
@@ -384,7 +384,7 @@ class IMeasureFieldSpec(form.Schema):
         )
 
 
-class IMeasureCumulative(form.Schema):
+class IMeasureCumulative(model.Schema):
     """
     Cumulative calculation configuration options applicable
     to time-series.
@@ -407,7 +407,7 @@ class IMeasureCumulative(form.Schema):
 
 ## content type interfaces:
 
-class IMeasureDefinition(form.Schema,
+class IMeasureDefinition(model.Schema,
                          IAttributeUUID,
                          IMeasureNaming,
                          IMeasureCalculation,
@@ -425,13 +425,13 @@ class IMeasureDefinition(form.Schema,
     be a floating point number.
     """
 
-    form.fieldset(
+    model.fieldset(
         'multi_record',
         label=u'Multi-record form calculation',
         fields=['numerator_type', 'denominator_type'],
         )
 
-    form.fieldset(
+    model.fieldset(
         'flex_calc',
         label=u'Field value calculation',
         fields=[
@@ -443,7 +443,7 @@ class IMeasureDefinition(form.Schema,
             ]
         )
 
-    form.fieldset(
+    model.fieldset(
         'advanced',
         label=u'Advanced',
         fields=['cumulative', 'cumulative_fn'],
@@ -502,7 +502,7 @@ class IMeasureDefinition(form.Schema,
         """
 
 
-class IMeasureGroup(form.Schema,
+class IMeasureGroup(model.Schema,
                     IAttributeUUID,
                     IMeasureFormDefinition,
                     IMeasureSourceType,
@@ -514,7 +514,7 @@ class IMeasureGroup(form.Schema,
     """
 
 
-class IMeasureLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
+class IMeasureLibrary(model.Schema, IOrderedContainer, IAttributeUUID):
     """
     Marker interface for library folder containing measure groups, which
     contain measure definitions (and topic/collections as data sets).
@@ -523,14 +523,14 @@ class IMeasureLibrary(form.Schema, IOrderedContainer, IAttributeUUID):
 
 ## data set interfaces:
 
-class IFormDataSetSpecification(form.Schema):
+class IFormDataSetSpecification(model.Schema):
     """
     Query specification for filtering a set of forms, and methods
     to obtain iterable of forms or brains for forms matching the
     specification.
     """
 
-    form.fieldset(
+    model.fieldset(
         'filters',
         label=u'Query filters',
         fields=[
@@ -542,7 +542,7 @@ class IFormDataSetSpecification(form.Schema):
             ]
         )
 
-    form.fieldset(
+    model.fieldset(
         'aggregation',
         label=u'Aggregation',
         fields=[

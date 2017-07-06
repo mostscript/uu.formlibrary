@@ -8,6 +8,7 @@ from persistent.list import PersistentList
 from plone.app.layout.navigation.root import getNavigationRootObject
 from plone.app.textfield import RichText
 from plone.app.widgets.interfaces import IWidgetsLayer
+from plone.app.z3cform.widget import DateFieldWidget
 from plone.autoform import directives
 from plone.schemaeditor.interfaces import ISchemaContext
 from plone.supermodel import model
@@ -860,6 +861,9 @@ class IFormSeries(model.Schema, IPeriodicSeries):
     A time-series container of related periodic forms, may contain
     shared metadata about that group of forms.
     """
+
+    directives.widget(start=DateFieldWidget)
+    directives.widget(end=DateFieldWidget)
 
     model.fieldset(
         'Display',

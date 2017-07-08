@@ -2,6 +2,10 @@
 
 /* styles common to all the png icons: */
 
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-multiform::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-multiform::after,
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-simpleform::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-simpleform::after,
 body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-definition::before,
 body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-definition::after,
 body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-library::before,
@@ -12,7 +16,7 @@ body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-libr
   margin-left: 0.2em !important;
 }
 
-/* per-style icon image resources: */
+/* per-type icon image resources: */
 
 body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-library::before,
 body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-library::after {
@@ -26,6 +30,16 @@ body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-defi
 
 body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-definition::after {
   filter:invert(100%) brightness(200%);
+}
+
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-multiform::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-multiform::after {
+  background-image: url(../++resource++uu.formlibrary.icons/multiform.png);
+}
+
+body#visual-portal-wrapper.pat-plone .outer-wrapper .contenttype-uu-formlibrary-simpleform::before,
+body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-simpleform::after {
+  background-image: url(../++resource++uu.formlibrary.icons/simpleform.png);
 }
 
 body#visual-portal-wrapper.pat-plone #edit-zone .contenttype-uu-formlibrary-series::after,

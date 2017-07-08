@@ -30,11 +30,12 @@
             <h4 tal:content="group/label">GROUP TITLE/LABEL</h4>
             <dl>
               <tal:block repeat="item group/result">
-                <dt>
-                  <span class="summary">
+                <dt tal:define="icondir string:${view/portalurl}/++resource++uu.formlibrary.icons/">
+                  <span class="summary"
+                        tal:define="icon python: '/'.join((icondir, 'simpleform.png')) if item.portal_type == 'uu.formlibrary.simpleform' else '/'.join((icondir, 'multiform.png'))">
                       <img src="" width="16" height="16"
                           alt=""
-                          tal:attributes="src item/getIcon;
+                          tal:attributes="src icon;
                                           alt item/Type"
                           />
                       <a href=""

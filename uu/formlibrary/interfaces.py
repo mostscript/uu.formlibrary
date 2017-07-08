@@ -696,6 +696,9 @@ class IFormSet(Interface):
 class IPeriodicFormInstance(model.Schema, IAttributeUUID):
     """Base form instance interface"""
 
+    directives.widget(start=DateFieldWidget)
+    directives.widget(end=DateFieldWidget)
+
     model.fieldset(
         'Review',
         label=u"Review information",
@@ -801,6 +804,9 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
 
 class IPeriodicSeries(model.Schema):
     """Definition of a sequence of periods of time"""
+
+    directives.widget(start=DateFieldWidget)
+    directives.widget(end=DateFieldWidget)
 
     frequency = schema.Choice(
         title=_(u'Frequency'),

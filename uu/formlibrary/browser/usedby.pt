@@ -15,14 +15,22 @@
 </head>
 <body>
 <div metal:fill-slot="main">
-  <h1>Items referencing this content</h1>
-  <h3 tal:content="context/Title">TITLE</h3>
-  <p>This <span tal:content="context/Type" /> item is in use by the following <strong tal:content="view/count">#</strong> content items:</p>
-  <ul>
-   <li tal:repeat="uid view/uuids">
-    <a href="" tal:attributes="href python:view.url_for(uid)" tal:content="python:view.title_for(uid)"></a>
-   </li>
-  </ul>
+
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
+
+      <h3>Items referencing this content</h3>
+      <h3 tal:content="context/Title">TITLE</h3>
+      <p>This <span tal:content="context/Type" /> item is in use by the following <strong tal:content="view/count">#</strong> content items:</p>
+      <ul>
+      <li tal:repeat="uid view/uuids">
+        <a href="" tal:attributes="href python:view.url_for(uid)" tal:content="python:view.title_for(uid)"></a>
+      </li>
+      </ul>
+
+    </div>
+  </div>
+
 </div>
 </body>
 </html>

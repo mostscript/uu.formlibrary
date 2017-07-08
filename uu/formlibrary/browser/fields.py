@@ -1,13 +1,9 @@
 from plone.schemaeditor.browser.schema.listing import SchemaListing
 from plone.z3cform.layout import FormWrapper
+from Products.CMFCore.utils import getToolByName
+from zope.component.hooks import getSite
 
-
-# definition tabs relative to schema context
-DEFINITION_TABS = (
-    ('Overview', '../@@form_view'),
-    ('Field schema', '@@fields'),
-    ('Field rules', '../@@fieldrules'),
-    )
+from definition import DefinitionCommon
 
 
 class ContextSchemaListing(SchemaListing):
@@ -22,12 +18,20 @@ class ContextSchemaListing(SchemaListing):
         super(ContextSchemaListing, self).__init__(context, request)
 
 
-class FieldSchemaEditor(FormWrapper):
+class FieldSchemaEditor(FormWrapper, DefinitionCommon):
     """View wrapping schema editor from plone.schemaeditor"""
 
     form = ContextSchemaListing
 
+    # definition tabs relative to schema context
+    DEFINITION_TABS = (
+        ('Overview', '../@@form_view'),
+        ('Field schema', '@@fields'),
+        ('Field rules', '../@@fieldrules'),
+        )
+
     label = 'Field schema'
 
-    tabs = DEFINITION_TABS
-
+    @property
+    def catalog(self):
+        return getToolByName(getSite(), 'portal_catalog')

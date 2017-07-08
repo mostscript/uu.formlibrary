@@ -1,22 +1,17 @@
 import urllib
 
 from plone.z3cform.interfaces import IWrappedForm
+from plone.uuid.interfaces import IUUID
 from zope.component.hooks import getSite
 from zope.interface import alsoProvides
 from zope.schema import getFieldNamesInOrder
 from Products.CMFCore.utils import getToolByName
+from Products.CMFCore.interfaces import IContentish
 
 from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.forms import ComposedForm
 from uu.formlibrary.utils import local_query
 from common import BaseFormView
-
-
-DEFINITION_TABS = (
-    ('Overview', '@@form_view'),
-    ('Field schema', 'edit_schema/@@fields'),
-    ('Field rules', '@@fieldrules'),
-    )
 
 
 class FormInputView(BaseFormView):
@@ -51,7 +46,36 @@ class FormInputView(BaseFormView):
         self._form.update(*args, **kwargs)
 
 
-class DefinitionPreview(FormInputView):
+class DefinitionCommon(object):
+    """Common tabs and counts"""
+
+    DEFINITION_TABS = (
+        ('Overview', '@@form_view'),
+        ('Field schema', 'edit_schema/@@fields'),
+        ('Field rules', '@@fieldrules'),
+        )
+
+    def instance_count(self, context=None):
+        """How many form instances consume this definition?"""
+        context = context or self.context
+        q = {'references': IUUID(context)}
+        return len(self.catalog.unrestrictedSearchResults(q))
+
+    def tabs(self):
+        useby = '@@in_use_by'
+        context = self.context
+        if not IContentish.providedBy(context):
+            context = self.request.PARENTS[1]
+            useby = '../@@in_use_by'
+        result = self.DEFINITION_TABS
+        count = self.instance_count(context)
+        if count:
+            result = list(result)
+            result.append(('In use by (%s)' % count, useby))
+        return result
+
+
+class DefinitionPreview(FormInputView, DefinitionCommon):
     """
     Definition preview view, mocks what a form looks/acts like,
     and provides links to contained items.
@@ -62,8 +86,6 @@ class DefinitionPreview(FormInputView):
     _fieldgroups = _formsets = _filters = None  # default, uncached
 
     label = 'Overview'
-
-    tabs = DEFINITION_TABS
 
     def __init__(self, context, request):
         super(DefinitionPreview, self).__init__(context, request)

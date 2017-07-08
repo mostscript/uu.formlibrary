@@ -1,11 +1,17 @@
 from plone.uuid.interfaces import IUUID
 from Products.CMFCore.utils import getToolByName
 
+from uu.formlibrary.browser.definition import DefinitionCommon
 
-class InUseBy(object):
+
+class InUseBy(DefinitionCommon):
     """View of objects referencing the context"""
 
     INDEX = 'references'
+
+    @property
+    def label(self):
+        return 'In use by (%s)' % self.instance_count()
 
     def __init__(self, context, request):
         self.context = context
@@ -21,7 +27,7 @@ class InUseBy(object):
         return self._brainmap.keys()
 
     def count(self):
-        return len(self._brainmap)
+        return self.instance_count()
 
     def in_use(self):
         return self.count() > 0

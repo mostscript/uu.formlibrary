@@ -31,6 +31,7 @@ setup(
         'zope.schema>=3.8.0',
         'collective.z3cform.datagridfield>=0.9',
         'collective.z3cform.datetimewidget',
+        'plone.api',
         'plone.app.dexterity',
         'plone.app.widgets>=2.0',
         'plone.uuid',

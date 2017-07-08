@@ -13,43 +13,53 @@
 </head>
 <body>
  <div metal:fill-slot="main">
-  <tal:globals define="series view/seriesinfo">
-    <h2 style="border-bottom:1px dotted #999" tal:content="context/Title">TITLE</h2>
-    <div style="color:#009"><strong>&nbsp;&nbsp;Quick links to individual forms can be found below.</strong></div>
-    <div metal:use-macro="context/@@formcommon/macros/formseries_info"></div>
-    <hr />
-    <div class="summary-groups">
-      <div tal:repeat="group view/groups">
-        <h4 tal:content="group/label">GROUP TITLE/LABEL</h4>
-        <dl>
-          <tal:block repeat="item group/result">
-            <dt>
-              <span class="summary">
-                  <img src="" width="16" height="16"
-                       alt=""
-                       tal:attributes="src item/getIcon;
-                                       alt item/Type"
-                       />
-                  <a href=""
-                     tal:attributes="href item/getURL;
-                                     class string:state-${item/review_state}"
-                     tal:content="python: item.Title.split(' - %s' % context.Title())[0]">
-                  </a>
-                  <em tal:condition="python: item.review_state=='archived'">(archived)</em>
-              </span>
-            </dt>
-            <dd tal:condition="item/Description">
-              <span class="description" tal:content="item/Description"></span>
-            </dd>
-          </tal:block>
-        </dl>
-      </div>
+
+  <div class="series-meta">
+    <h1 class="documentFirstHeading" tal:content="context/Title">TITLE</h1>
+  </div>
+
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
+      
+      <tal:globals define="series view/seriesinfo">
+        <div style="color:#009"><strong>Quick links to recently applicable forms can be found below.</strong></div>
+        <div metal:use-macro="context/@@formcommon/macros/formseries_info"></div>
+        <hr />
+        <div class="summary-groups">
+          <div tal:repeat="group view/groups">
+            <h4 tal:content="group/label">GROUP TITLE/LABEL</h4>
+            <dl>
+              <tal:block repeat="item group/result">
+                <dt>
+                  <span class="summary">
+                      <img src="" width="16" height="16"
+                          alt=""
+                          tal:attributes="src item/getIcon;
+                                          alt item/Type"
+                          />
+                      <a href=""
+                        tal:attributes="href item/getURL;
+                                        class string:state-${item/review_state}"
+                        tal:content="python: item.Title.split(' - %s' % context.Title())[0]">
+                      </a>
+                      <em tal:condition="python: item.review_state=='archived'">(archived)</em>
+                  </span>
+                </dt>
+                <dd tal:condition="item/Description">
+                  <span class="description" tal:content="item/Description"></span>
+                </dd>
+              </tal:block>
+            </dl>
+          </div>
+        </div>
+        <hr />
+        <div style="color:#009"><strong>Other information about this form series:</strong></div>
+        <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
+        
+      </tal:globals>
     </div>
-    <hr />
-    <div style="color:#009"><strong>&nbsp;&nbsp;Other information about this form series:</strong></div>
-    <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
-    
-  </tal:globals>
+  </div>
+
  </div>
 </body>
 </html>

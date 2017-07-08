@@ -1,7 +1,47 @@
+from plone import api
 from zope.component.hooks import getSite
 from zope.schema import getFieldNamesInOrder
 
 from uu.formlibrary.interfaces import IFormDefinition, IFormSeries
+
+
+def action_visible(action, context):
+    p = action.get('permission', 'View')
+    return api.user.has_permission(p, obj=context)
+
+
+class TabbedViewMixin(object):
+    """Mixin for views with tabs, used by commmon macro"""
+
+    # to be overridden by views or context-specific mixin subclass
+    # should be sequence of tab actions, which will be mapping/dict
+    # with keys of: id, title, url, permission
+    APP_TABS = ()
+
+    def tabs(self):
+        result = []
+        for action in self.APP_TABS:
+            if action_visible(action, self.context):
+                result.append((action.get('title'), action.get('url')))
+        return result
+
+
+class BaseSeriesView(TabbedViewMixin):
+    
+    APP_TABS = (
+        {
+            'id': 'summary',
+            'title': u'Overview',
+            'url': '@@series_summary',
+            'permission': 'View',
+        },
+        {
+            'id': 'populate',
+            'title': 'Populate forms',
+            'url': '@@populate_series',
+            'permission': 'Add portal content',
+        }
+        )
 
 
 class BaseFormView(object):

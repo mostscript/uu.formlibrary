@@ -49,9 +49,21 @@ legend.override-panel {
 </head>
 <body>
  <div metal:fill-slot="main">
-    <h2>Populate forms for this series</h2>
-    <p class="help">Use this form to specify the characteristics of forms you wish to create; submitting this form will create forms for you.</p>
-    <span tal:replace="structure view/contents" />
+
+  <div class="series-meta">
+    <h2 class="documentFirstHeading">
+      <span tal:content="context/Title">TITLE</span>:
+      <em>Populate forms into this series</em>
+    </h2>
+  </div>
+
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
+      <p class="help">Use this form to specify the characteristics of forms you wish to create; submitting this form will create forms for you.</p>
+      <span tal:replace="structure view/contents" />
+    </div>
+  </div>
+
  </div>
 </body>
 </html>

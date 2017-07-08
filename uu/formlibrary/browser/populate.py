@@ -13,6 +13,8 @@ from uu.formlibrary.interfaces import IPopulateForms, IPeriodicSeries
 from uu.formlibrary.interfaces import FORM_TYPE_NAMES
 from uu.formlibrary import utils
 
+from common import BaseSeriesView
+
 
 strip = lambda v: v.strip()
 
@@ -186,8 +188,10 @@ class PopulateForms(AutoExtensibleForm, form.Form):
             )
 
 
-class PopulateFormsView(FormWrapper):
+class PopulateFormsView(FormWrapper, BaseSeriesView):
     """A wrapper view for PopulateForms"""
+
+    label = 'Populate forms'
 
     form = PopulateForms
     index = ViewPageTemplateFile('populate.pt')

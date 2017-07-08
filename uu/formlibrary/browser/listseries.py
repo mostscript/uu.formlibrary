@@ -6,12 +6,16 @@ from zope.schema import getFieldsInOrder
 from uu.formlibrary.interfaces import IFormSeries, FORM_TYPES
 from uu.formlibrary.utils import local_query
 
+from common import BaseSeriesView
 
-class FormSeriesListing(object):
+
+class FormSeriesListing(BaseSeriesView):
     """ default view for series listing """
 
     VIEWNAME = 'view'   # here to satisfy common macros
     SERIES = True       # avoids call from template to portal_interface tool
+
+    label = 'Overview'
 
     def __init__(self, context, request):
         self.context = context

@@ -483,6 +483,9 @@ uu.formlibrary.multiform.submit = function(event) {
     event.preventDefault();
     return false;
   } else {
+    // serialize JSON into hidden 'payload' input in form#coredata:
+    uu.formlibrary.multiform.copybundle();
+    // save manager: serialized form#coredata data to save locally, to server
     saveManager.save($('#coredata').serialize(), isSubmit, note);
     return false;
   }

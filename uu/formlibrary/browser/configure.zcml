@@ -4,10 +4,6 @@
   xmlns:zcml="http://namespaces.zope.org/zcml"
   i18n_domain="uu.formlibrary">
 
-  <!-- FormInputView can adapt either ISimpleForm or
-       IFormDefinition, so it is defined as a view
-       for both contexts. -->
-  
   <browser:page
     name="form_view"
     for="uu.formlibrary.interfaces.IFormDefinition"

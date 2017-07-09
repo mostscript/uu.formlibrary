@@ -30,16 +30,24 @@
 </head>
 <body>
   <div id="formcore" metal:fill-slot="main" tal:attributes="data-viewname view/VIEWNAME">
-  <tal:globals define="series view/seriesinfo">
-  <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
 
-  <div tal:condition="python: view.VIEWNAME == 'view'" tal:replace="structure provider:plone.belowcontenttitle" />
+  <div metal:use-macro="context/@@formcommon/macros/formdefinition_tabs">
+    <div metal:fill-slot="tab_content">
 
-  <div tal:content="context/Description">Description</div>
-  <hr />
-    <form tal:replace="structure view/render_form">DATA FORM HERE</form>
+      <tal:globals define="series view/seriesinfo">
+      <div metal:use-macro="context/@@formcommon/macros/formseries_headmeta"></div>
 
-  </tal:globals>
+      <div tal:condition="python: view.VIEWNAME == 'view'" tal:replace="structure provider:plone.belowcontenttitle" />
+
+      <div tal:content="context/Description">Description</div>
+      <hr />
+        <form tal:replace="structure view/render_form">DATA FORM HERE</form>
+
+      </tal:globals>
+
+    </div>
+  </div>
+
   </div>
 </body>
 </html>

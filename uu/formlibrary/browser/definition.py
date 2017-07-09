@@ -16,6 +16,8 @@ from common import BaseFormView
 
 class FormInputView(BaseFormView):
 
+    label = 'Form entry'
+
     def __init__(self, context, request):
         super(FormInputView, self).__init__(context, request)
         self._form = ComposedForm(self.context, request)
@@ -178,6 +180,8 @@ class FormDisplayView(FormInputView):
     """ Display form: Form view in display mode without buttons """
 
     VIEWNAME = 'view'
+
+    label = 'View'
 
     def __init__(self, context, request):
         super(FormDisplayView, self).__init__(context, request)

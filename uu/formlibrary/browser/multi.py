@@ -87,6 +87,8 @@ class DivRowDisplayForm(RowDisplayForm):
 
 class MultiFormEntry(BaseFormView):
 
+    label = 'Form entry'
+
     def __init__(self, context, request):
         super(MultiFormEntry, self).__init__(context, request)
         self._fields = []
@@ -344,6 +346,8 @@ class MultiFormEntry(BaseFormView):
 
 class MultiFormDisplay(MultiFormEntry):
     VIEWNAME = 'view'
+
+    label = 'View'
 
 
 class MultiFormSave(MultiFormEntry):

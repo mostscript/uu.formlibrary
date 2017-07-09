@@ -44,9 +44,26 @@ class BaseSeriesView(TabbedViewMixin):
         )
 
 
-class BaseFormView(object):
-  
+class BaseFormView(TabbedViewMixin):
+
+    APP_TABS = (
+        {
+            'id': 'view',
+            'title': u'View',
+            'url': '@@form_view',
+            'permission': 'View',
+        },
+        {
+            'id': 'form_entry',
+            'title': 'Form entry',
+            'url': '@@form_entry',
+            'permission': 'Enter Data',
+        }
+        )
+
     VIEWNAME = 'edit'
+
+    label = 'View'
 
     def __init__(self, context, request):
         self.context = context

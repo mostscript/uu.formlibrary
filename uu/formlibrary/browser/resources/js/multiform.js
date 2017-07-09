@@ -345,7 +345,7 @@ uu.formlibrary.multiform.refreshbuttons = function() {
 uu.formlibrary.multiform.validator_setup = function() {
   $("form.formrow").each(function (idx) {
     // numeric fields to HTML5 number inputs, appropriately configured
-    validationShim.adapt(this, false);
+    validationShim.adaptForm(this, false);
   });
 };
 

@@ -51,11 +51,6 @@
           url_expr="string:${object_url}/edit" visible="True">
     <permission value="Modify portal content"/>
   </action>
-  <action title="Form entry" action_id="form_entry" category="object"
-          condition_expr="" url_expr="string:${object_url}/@@form_entry"
-          visible="True">
-    <permission value="Enter Data"/>
-  </action>
   <action title="Download CSV" action_id="download_csv"
     category="object_buttons" condition_expr="python:len(context.keys())&gt;0"
     icon_expr="" link_target="" url_expr="string:${object_url}/@@multicsv"

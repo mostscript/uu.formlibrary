@@ -19,7 +19,7 @@
 
   <script type="text/javascript"
           src=""
-          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20170316a"></script>
+          tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/multiform.js?api=20170708"></script>
 
   <script type="text/javascript"
           src=""
@@ -162,6 +162,8 @@
           <br />
         <form tal:condition="python: view.VIEWNAME=='edit'" id="coredata" method="POST">
           <form tal:replace="structure view/metadata_form" />  <!-- form widgets embedded into the core data form -->
+
+          <span tal:replace="structure context/@@authenticator/authenticator"/>
 
           <div class="form-notes">
             <h4>Process changes or notes</h4>

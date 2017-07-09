@@ -413,4 +413,45 @@ body.template-form_entry table.datagridwidget-table-view {
   font-family: Arial;
   min-width:9em !important;
 }
+/* series listing styles */
 
+.summary-groups .summary a {
+  margin-left:0.4em;
+}
+
+.summary-groups div dl:empty:after {
+  content:"No forms match this criteria.";
+  color:#aaa;
+  font-weight:normal;
+  font-size:90%;
+  padding-left:1em;
+}
+
+.portaltype-uu-formlibrary-series #form-metadata h2 {
+  font-size:115%;
+}
+
+.portaltype-uu-formlibrary-series #form-metadata h2:before {
+  content:"Series title: ";
+  color:#aaa;
+  font-size:90%;
+}
+
+.portaltype-uu-formlibrary-series #form-metadata p.description:before {
+  content:"Series description: ";
+  color:#aaa;
+  font-size:90%;
+}
+
+.portaltype-uu-formlibrary-series #form-metadata p.description:empty:before {
+  content:'';
+}
+
+.portaltype-uu-formlibrary-series #form-metadata .periodinfo {
+  clear:both;
+}
+
+
+.portaltype-uu-formlibrary-series #form-metadata {
+  padding:1em;
+}

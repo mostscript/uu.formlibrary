@@ -89,6 +89,8 @@ class DefinitionPreview(FormInputView, DefinitionCommon):
 
     label = 'Overview'
 
+    tabs = DefinitionCommon.tabs
+
     def __init__(self, context, request):
         super(DefinitionPreview, self).__init__(context, request)
         self.path = '/'.join(context.getPhysicalPath())

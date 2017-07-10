@@ -53,17 +53,6 @@
     url_expr="string:${object_url}/edit" visible="True">
   <permission value="Modify portal content"/>
  </action>
- <action title="Data View" action_id="data_view" category="object"
-         condition_expr="" url_expr="string:${object_url}/@@data_view"
-         visible="True">
-    <permission value="View"/>
- </action>
- <action title="Criteria" action_id="measure_criteria" category="object"
-         condition_expr="python:context.restrictedTraverse('@@criteria_actions/show_criteria')()"
-         url_expr="string:${object_url}/@@measure_criteria"
-         visible="True" insert-before="data_view">
-  <permission value="Modify portal content"/>
- </action>
  <action title="In Use (by)" action_id="in_use" category="object"
     condition_expr="context/@@in_use_by/in_use" icon_expr=""
     link_target="" url_expr="string:${object_url}/@@in_use_by"

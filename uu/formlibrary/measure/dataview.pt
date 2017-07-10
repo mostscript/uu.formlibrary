@@ -38,53 +38,69 @@ table.formcounts td.form_identity div.form_where {
 </head>
 <body>
 <div metal:fill-slot="content-core">
-  <h4>Measure data, for each data set</h4>
-  <p>Below are tables containing data for this measure applied to each data set in the measure group containing this measure.</p>
-  <hr />
 
-  <!-- data tables -->
-  <div tal:repeat="dataset view/datasets">
-   <tal:block define="dsid dataset/getId;
-                      result python:view.datapoints.get(dsid);">
-    <div tal:condition="python: result is not None">
-        <h3>For: <span tal:content="dataset/Title">DATASET SPECIFICATION TITLE</span></h3>
-        <table class="formcounts">
-          <thead>
-            <tr>
-                <th>Form</th>
-                <th>Start date</th>
-                <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr tal:repeat="form_info result">      <tal:comment replace="nothing">form info is dict of title, url, start, value</tal:comment>
-                <td class="form_identity">
-                    <h5>
-                        <a href=""
-                           target="_blank"
-                           tal:attributes="href form_info/url"
-                           tal:content="form_info/title">FORM TITLE</a>
-                    </h5>
-                    <div class="form_where">
-                        In: <span tal:content="form_info/path">FORM PATH TEXT like: team_a/here/there/everywhere</span>  <!-- TODO: enhanced path -->
-                    </div>
-                </td>
-                <td class="form_start">
-                    <span tal:content="python:form_info.get('start').isoformat()">FORM START DATE</span>
-                </td>
-                <td class="form_value">
-                    <span tal:content="form_info/display_value">VALUE (Eq Y-Axis value for Plot)</span>
-                    <div class="value_detail">
-                        <div class="value_note" tal:content="python: context.value_note(form_info)" />
-                    </div>
-                </td>
-            </tr>
-          </tbody>
-        </table>
+  <div class="autotabs">
+    <nav class="autotoc-nav">
+      <a tal:repeat="tab view/tabs"
+         tal:attributes="href python:context.absolute_url() + '/' + tab[1];
+                         class python:'active' if tab[0] == view.label else ''"
+         tal:content="python:tab[0]">
+      </a>
+    </nav>
+  <div class="tabcontent">
+
+    <h4>Measure data, for each data set</h4>
+    <p>Below are tables containing data for this measure applied to each data set in the measure group containing this measure.</p>
+    <hr />
+
+    <!-- data tables -->
+    <div tal:repeat="dataset view/datasets">
+    <tal:block define="dsid dataset/getId;
+                        result python:view.datapoints.get(dsid);">
+      <div tal:condition="python: result is not None">
+          <h3>For: <span tal:content="dataset/Title">DATASET SPECIFICATION TITLE</span></h3>
+          <table class="formcounts">
+            <thead>
+              <tr>
+                  <th>Form</th>
+                  <th>Start date</th>
+                  <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr tal:repeat="form_info result">      <tal:comment replace="nothing">form info is dict of title, url, start, value</tal:comment>
+                  <td class="form_identity">
+                      <h5>
+                          <a href=""
+                            target="_blank"
+                            tal:attributes="href form_info/url"
+                            tal:content="form_info/title">FORM TITLE</a>
+                      </h5>
+                      <div class="form_where">
+                          In: <span tal:content="form_info/path">FORM PATH TEXT like: team_a/here/there/everywhere</span>  <!-- TODO: enhanced path -->
+                      </div>
+                  </td>
+                  <td class="form_start">
+                      <span tal:content="python:form_info.get('start').isoformat()">FORM START DATE</span>
+                  </td>
+                  <td class="form_value">
+                      <span tal:content="form_info/display_value">VALUE (Eq Y-Axis value for Plot)</span>
+                      <div class="value_detail">
+                          <div class="value_note" tal:content="python: context.value_note(form_info)" />
+                      </div>
+                  </td>
+              </tr>
+            </tbody>
+          </table>
+      </div>
+    </tal:block>
     </div>
-   </tal:block>
-  </div>
- </div>
 
+    </div>
+
+  </div>
+
+
+</div>
 </body>
 </html>

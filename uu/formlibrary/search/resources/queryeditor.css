@@ -1,3 +1,11 @@
+#filter-manager {
+  font-size:90%;
+}
+
+#filter-manager input, #filter-manager select {
+  font-size:90%;
+  height:3em;
+}
 
 form.record-queries {
     display:block;
@@ -213,7 +221,10 @@ table.queries a.removefilter {
 
 table.queries a.removefilter span.icon, table.queries a.removerow span.icon {
   color:#666;
-  font-size:2.3em;
+  display: block;
+  margin-top: -0.45em;
+  margin-left: -0.05em;
+  font-size: 1.8em;
   cursor:pointer;
 }
 

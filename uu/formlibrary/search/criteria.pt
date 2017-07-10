@@ -27,29 +27,43 @@
 </head>
 <body>
  <div metal:fill-slot="content-core">
-  <h3>Define the query criteria for your measure below:</h3>
-  <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.</p>
 
-  <div id="filter-manager">
-   <!-- placeholder for critiera forms managed and populated via AJAX -->
+  <div class="autotabs">
+    <nav class="autotoc-nav">
+      <a tal:repeat="tab view/tabs"
+         tal:attributes="href python:context.absolute_url() + '/' + tab[1];
+                         class python:'active' if tab[0] == view.label else ''"
+         tal:content="python:tab[0]">
+      </a>
+    </nav>
+    <div class="tabcontent">
+
+      <h3>Define the query criteria for your measure below:</h3>
+      <p class="helptext">Add filters, choose fields, and select a comparison and value for each query.</p>
+
+      <div id="filter-manager">
+      <!-- placeholder for critiera forms managed and populated via AJAX -->
+      </div>
+
+      <div style="clear:both"></div>
+      <form id="payloads" method="POST" data-editor="advanced">
+      <div class="payload-container" style="display:none">
+        <tal:block repeat="composed view/composed_queries">
+            <input type="hidden"
+                  id="payload-"
+                  name="payload-"
+                  value=""
+                  tal:attributes="id string:payload-query-${composed/name};
+                                  name string:payload-query-${composed/name};
+                                  value python:view.json(composed.name);" />
+                                    
+        </tal:block>
+      </div>
+      <input type="submit" name="save.payloads" class="savequery" value="&#x2713; Save criteria for all filters" />
+      </form>
+
+    </div>
   </div>
-
-  <div style="clear:both"></div>
-  <form id="payloads" method="POST" data-editor="advanced">
-   <div class="payload-container" style="display:none">
-     <tal:block repeat="composed view/composed_queries">
-        <input type="hidden"
-               id="payload-"
-               name="payload-"
-               value=""
-               tal:attributes="id string:payload-query-${composed/name};
-                               name string:payload-query-${composed/name};
-                               value python:view.json(composed.name);" />
-                                
-     </tal:block>
-   </div>
-   <input type="submit" name="save.payloads" class="savequery" value="&#x2713; Save criteria for all filters" />
-  </form>
  </div>
 </body>
 </html>

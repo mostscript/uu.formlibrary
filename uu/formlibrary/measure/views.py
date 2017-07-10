@@ -10,6 +10,10 @@ from zope.lifecycleevent import ObjectCopiedEvent
 from zope.schema import getFieldNamesInOrder
 
 from uu.formlibrary.interfaces import IFormDefinition
+
+from uu.formlibrary.browser.common import TabbedViewMixin
+
+
 from interfaces import IMeasureDefinition
 from interfaces import MEASURE_DEFINITION_TYPE, GROUP_TYPE, DATASET_TYPE
 from interfaces import AGGREGATE_LABELS
@@ -141,10 +145,36 @@ class FormDataSetCloningView(object):
         return self.index(*args, **kwargs)  # via framework magic
 
 
-class MeasureBaseView(object):
+class MeasureViewTabs(TabbedViewMixin):
+
+    APP_TABS = (
+        {
+            'id': 'summary',
+            'title': u'Overview',
+            'url': '@@measure_view',
+            'permission': 'View',
+        },
+        {
+            'id': 'criteria',
+            'title': u'Criteria',
+            'url': '@@measure_criteria',
+            'permission': 'Modify portal content',
+        },
+        {
+            'id': 'dataview',
+            'title': u'Data view',
+            'url': '@@data_view',
+            'permission': 'View',
+        },
+        )
+
+
+class MeasureBaseView(MeasureViewTabs):
     """Shared view capabilities for data view and core view of measure"""
 
     index = None  # overridden by Five magic
+
+    label = 'Overview'
 
     def __init__(self, context, request=None):
         self.context = context
@@ -208,6 +238,8 @@ class MeasureDataView(MeasureBaseView):
     data sources for reports or for use by templates outputting HTML tables
     in a browser view.
     """
+
+    label = 'Data view'
 
     def update(self, *args, **kwargs):
         self.datasets = self._datasets()

@@ -7,6 +7,7 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
 from uu.workflows.utils import history_log
+from uu.formlibrary.measure.views import MeasureViewTabs
 from uu.formlibrary.interfaces import IFormDefinition
 from uu.formlibrary.interfaces import MULTI_FORM_TYPE
 from uu.formlibrary.search.interfaces import IComposedQuery
@@ -37,7 +38,9 @@ class MeasureCriteriaActions(object):
         return 'Actions helper'
 
 
-class MeasureCriteriaView(object):
+class MeasureCriteriaView(MeasureViewTabs):
+
+    label = 'Criteria'
 
     def __init__(self, context, request):
         self.context = context

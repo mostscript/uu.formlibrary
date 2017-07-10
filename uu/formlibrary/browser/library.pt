@@ -51,7 +51,7 @@
           <form action="" tal:attributes="action string:${context/@@plone_portal_state/navigation_root_url}/search" method="GET">
             <input type="hidden" name="path" value="" tal:attributes="value view/searchpath" />
             <input name="SearchableText">
-            <button type="submit"><img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/search_icon.png" /> Search definitions in this library</button>
+            <button class="icon-search" type="submit">Search definitions in this library</button>
           </form>
         </li>
       </ul>

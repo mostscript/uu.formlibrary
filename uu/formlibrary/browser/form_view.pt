@@ -45,6 +45,10 @@
 
       </tal:globals>
 
+
+      <script type="text/javascript"
+              src=""
+              tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/type-a-date-pattern.js?api=20170710"></script>
     </div>
   </div>
 

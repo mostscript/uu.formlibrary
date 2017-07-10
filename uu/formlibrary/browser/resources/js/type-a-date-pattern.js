@@ -14,12 +14,6 @@
 
 var define, require;
 
-// shim moment from globals (for Plone 4):
-if (window.moment) {
-  define('moment', function () {
-    return window.moment;
-  });
-}
 
 define('parsedate', ['moment'], function (moment) {
   /** sensible date-parsing of human-entered date strings, using moment
@@ -162,9 +156,10 @@ define(
     'jquery',
     'pat-base',
     'mockup-patterns-pickadate',
-    'parsedate'
+    'parsedate',
+    'moment'
   ],
-  function ($, base, PickADate, parsedate) {
+  function ($, base, PickADate, parsedate, moment) {
     'use strict';
   
     var EnhancedPickerAdapter = function EnahncedPickerAdapter(context) {

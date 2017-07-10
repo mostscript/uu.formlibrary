@@ -184,6 +184,11 @@
         </div>
 
         <div metal:use-macro="context/@@formcommon/macros/formseries_footer"></div>
+
+        <script type="text/javascript"
+                src=""
+                tal:attributes="src string:${view/portalurl}/++resource++uu.formlibrary.js/type-a-date-pattern.js?api=20170316"></script>
+
       </tal:globals>
     </div>
   </div>

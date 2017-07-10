@@ -484,3 +484,17 @@ body.template-form_entry table.datagridwidget-table-view {
 .portaltype-uu-formlibrary-series #form-metadata {
   padding:1em;
 }
+
+/* measure library related styles */
+
+.recent ul li a img {
+  margin-right:0.5em;
+}
+
+#library-actions ul {
+  padding-left:0.8em;
+}
+
+#library-actions ul li {
+  margin-bottom:0.3em;
+}

@@ -22,11 +22,12 @@
   #measure-library-dashboard #library-actions ul li a:hover { color:white !Important; }
   #measure-library-dashboard #library-actions ul li:hover { background-color:#444 !Important; }
   #measure-library-dashboard #library-actions li.search form { display:block; width:98%; text-align:center; }
-  #measure-library-dashboard #library-actions li.search form button, #measure-library-dashboard #library-actions li.search form input { width:80%; }
+  #measure-library-dashboard #library-actions li.search form button, #measure-library-dashboard #library-actions li.search form input { width:98%; }
   #measure-library-dashboard #library-actions p.help { margin-left:1em; font-style:italic; font-size:85%; line-height:115%; color:#389;}
   #measure-library-dashboard #library-info div.recent { margin-bottom:0.7em; }
   span.plusicon { color:white; }
-  
+ 
+ 
 </style>
   
   </metal:block>
@@ -67,7 +68,7 @@
           <form action="" tal:attributes="action string:${context/@@plone_portal_state/navigation_root_url}/search" method="GET">
             <input type="hidden" name="path" value="" tal:attributes="value view/searchpath" />
             <input name="SearchableText">
-            <button type="submit"><img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/search_icon.png" /> Search definitions in this group</button>
+            <button class="icon-search" type="submit">Search definitions in this group</button>
           </form>
         </li>
       </ul>
@@ -80,7 +81,7 @@
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
             <li tal:repeat="brain recent">
               <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">
-                <img src="" tal:attributes="src brain/getIcon" alt="(measure definition)" />
+                <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/ruler1.png" alt="(measure definition)" />
                 <span tal:content="brain/Title">TITLE</span>
               </a>
               <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>
@@ -101,7 +102,7 @@
         <ul tal:condition="python: count>0" tal:define="base string:string:${context/absolute_url}">
             <li tal:repeat="brain recent">
               <a href="" title="" tal:attributes="href brain/getURL; title brain/Title">
-                <img src="" tal:attributes="src brain/getIcon" alt="(data set)" />
+                <img src="" tal:attributes="src string:${context/@@plone_portal_state/navigation_root_url}/++resource++uu.formlibrary.icons/formset.png" alt="(data set)" />
                 <span tal:content="brain/Title">TITLE</span>
               </a>
               <div class="documentByLine">Modified <span tal:replace="brain/modified"></span></div>

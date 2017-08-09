@@ -152,7 +152,7 @@
 <form tal:condition="python: view.VIEWNAME=='edit'" class="add-control" name="add-control">
   <input tal:condition="python: view.displaymode=='Stacked'" id="new_row_url" type="hidden" value="" tal:attributes="value string:${view/new_row_url}?stacked=1" />
   <input tal:condition="python: view.displaymode!='Stacked'" id="new_row_url" type="hidden" value="" tal:attributes="value view/new_row_url" />
-  <input class="numrows" style="width:2em;" value="1"><input id="btn-addrow" name="addrow" type="button" value="&#x271a; Add row(s)" />
+  <input class="numrows" style="width:2em;" value="1"><input id="btn-addrow" name="addrow" type="button" value="&#x271a; Add record(s)" />
 </form>
 
 

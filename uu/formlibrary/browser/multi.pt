@@ -46,6 +46,22 @@
 
  <style tal:condition="python: view.VIEWNAME == 'edit'">
   div#portal-column-one { display:none; }
+
+.emptyRecordsPlaceholder {
+  display:none !important;
+  padding:1em 3em;
+  font-size: 120%;
+}
+
+li.emptyRecordsPlaceholder:only-child {
+  display:block !important;
+}
+
+.emptyRecordsPlaceholder .portalMessage dt {
+}
+
+.emptyRecordsPlaceholder .portalMessage dd {
+}
  </style>
 
  <style tal:condition="python: view.VIEWNAME == 'view'">
@@ -104,6 +120,16 @@
             </table>
 
         <ol class="formrows">
+          <li class="emptyRecordsPlaceholder" tal:condition="python: view.VIEWNAME == 'edit'">
+            <dl class="portalMessage info">
+              <dt>Empty form</dt>
+              <dd class="formHelp">
+                Your multi-record form does not yet have any records added to it.
+                To add a record, click the "Add record(s)" button below.
+              </dd>
+            </dl>
+          </li>
+
         <tal:block repeat="uid view/entry_uids">
           <li tal:define="rowform python:view.rowform(uid)">
             <form class="formrow" id="" tal:attributes="id view/last_row_uid">
@@ -131,6 +157,16 @@
         </ol>
         </tal:block>
         <ol class="formrows" tal:condition="python: view.displaymode=='Stacked'">
+          <li class="emptyRecordsPlaceholder" tal:condition="python: view.VIEWNAME == 'edit'">
+            <dl class="portalMessage info">
+              <dt>Empty form</dt>
+              <dd class="formHelp">
+                Your multi-record form does not yet have any records added to it.
+                To add a record, click the "Add record(s)" button below.
+              </dd>
+            </dl>
+          </li>
+
         <tal:block repeat="uid view/entry_uids">
           <li tal:define="rowform python:view.rowform(uid)">
             <form class="formrow"

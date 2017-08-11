@@ -35,7 +35,8 @@ ALLOWED_FIELDS = [
     u'zope.schema._field.Datetime',
     u'zope.schema._field.Float',
     u'zope.schema._field.Set',
-    u'zope.schema._field.URI'
+    u'zope.schema._field.URI',
+    u'collective.computedfield.field.ComputedField',
 ]
 
 

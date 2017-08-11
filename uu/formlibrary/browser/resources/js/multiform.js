@@ -142,10 +142,6 @@ if (!uu.formlibrary.multiform) {
 
 var $ = $ || jQuery;
 
-// graft mockup widget pattern registry:
-uu.hasReg = (window.require) ? window.require.defined('pat-registry') : false;
-uu.pReg = (uu.hasReg) ? window.require('pat-registry') : undefined;
-
 uu.formlibrary.multiform.formids = function() {
   var ids = [];
   $("form.formrow").each(function(idx){
@@ -419,7 +415,8 @@ uu.formlibrary.multiform.hookup_formevents = function () {
 };
 
 uu.formlibrary.multiform.rowhandlers = function(row) {
-  var form = $('form.formrow', row);
+  var form = $('form.formrow', row),
+      pRegistry = window.require('pat-registry');
   // row order and delete control events:
   $('a.rowup, a.rowdown, a.rowdelete').unbind('click');
   $('a.rowup').click(uu.formlibrary.multiform.rowup);
@@ -427,8 +424,8 @@ uu.formlibrary.multiform.rowhandlers = function(row) {
   $('a.rowdelete').click(uu.formlibrary.multiform.rowdelete);
   uu.formlibrary.multiform.refreshbuttons();
   // if we have mockup, scan for type-a-date pattern:
-  if (uu.pReg) {
-    uu.pReg.scan(row);
+  if (pRegistry) {
+    pRegistry.scan(row);
   }
   // validator for numeric fields only, right now:
   uu.formlibrary.multiform.validator_setup();

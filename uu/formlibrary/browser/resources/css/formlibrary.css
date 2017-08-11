@@ -498,3 +498,9 @@ body.template-form_entry table.datagridwidget-table-view {
 #library-actions ul li {
   margin-bottom:0.3em;
 }
+
+/* multi-record form misc */
+
+.singlerowform .pattern-pickadate-wrapper > button {
+  display:none;
+}

@@ -18,6 +18,7 @@
       <element>uu.formlibrary.simpleform</element>
       <element>uu.formlibrary.multiform</element>
       <element>uu.formlibrary.series</element>
+      <element>uu.formlibrary.measurelibrary</element>
       <element>uu.formlibrary.measuregroup</element>
       <element>uu.formlibrary.setspecifier</element>  <!-- data set -->
       <element>uu.formlibrary.measure</element>

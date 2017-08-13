@@ -118,8 +118,9 @@ class CustomRootRelatedWidget(RelatedItemsWidget):
         args = super(CustomRootRelatedWidget, self)._base_args()
         if self.custom_root_query is not None:
             new_root = self.custom_root()
+            key = 'basePath' if getattr(self, 'use_base', 0) else 'rootPath'
             if new_root:
-                args.setdefault('pattern_options', {})['rootPath'] = new_root
+                args.setdefault('pattern_options', {})[key] = new_root
         return args
 
 

@@ -21,13 +21,13 @@ from uu.formlibrary.vocabulary import definition_flex_datasource_fields
 from uu.formlibrary.browser.widget import CustomRootRelatedWidget
 
 
-## global constants:
+# global constants:
 
 MEASURE_DEFINITION_TYPE = 'uu.formlibrary.measure'
 GROUP_TYPE = 'uu.formlibrary.measuregroup'
 DATASET_TYPE = 'uu.formlibrary.setspecifier'
 
-## vocabularies:
+# vocabularies:
 
 FLEX_LABEL = u'Flex form (each form instance is a single record)'
 
@@ -87,12 +87,12 @@ ROUNDING_CHOICES = SimpleVocabulary([
 CUMULATIVE_CHOICES = SimpleVocabulary([
     SimpleTerm('', title=u'Not cumulative'),
     SimpleTerm('numerator', title=u'Apply to computed numerator'),
-    #SimpleTerm('denominator', title=u'Apply to computed denominator.'),
-    #SimpleTerm(
-    #    'both',
-    #    title=u'Apply to both numerator, denominator respectively.',
-    #    ),
-    #SimpleTerm('final', title=u'Apply to final value for each period.'),
+    # SimpleTerm('denominator', title=u'Apply to computed denominator.'),
+    # SimpleTerm(
+    #     'both',
+    #     title=u'Apply to both numerator, denominator respectively.',
+    #     ),
+    # SimpleTerm('final', title=u'Apply to final value for each period.'),
 ])
 
 
@@ -205,7 +205,7 @@ class MeasureGroupContentSourceBinder(object):
         return PermissiveVocabulary(terms)
 
 
-## core interfaces (shared by content types and/or forms):
+# core interfaces (shared by content types and/or forms):
 
 class IMeasureNaming(model.Schema):
     """Title, description naming for measure."""
@@ -405,7 +405,7 @@ class IMeasureCumulative(model.Schema):
         )
 
 
-## content type interfaces:
+# content type interfaces:
 
 class IMeasureDefinition(model.Schema,
                          IAttributeUUID,
@@ -521,7 +521,7 @@ class IMeasureLibrary(model.Schema, IOrderedContainer, IAttributeUUID):
     """
 
 
-## data set interfaces:
+# data set interfaces:
 
 class IFormDataSetSpecification(model.Schema):
     """
@@ -569,7 +569,15 @@ class IFormDataSetSpecification(model.Schema):
     directives.widget(
         'locations',
         CustomRootRelatedWidget,
-        pattern_options={'basePath': '/', 'mode': 'browse'},
+        pattern_options={'mode': 'auto'},
+        # use found root as root, not base, which means browsing won't
+        # escape a nav root or project:
+        use_base=False,
+        # custom root query kicks widget to use nav-root as basePath
+        custom_root_query={
+            'object_provides':
+                'plone.app.layout.navigation.interfaces.INavigationRoot'
+            }
         )
     locations = schema.List(
         title=u'Included locations',
@@ -673,7 +681,7 @@ class IFormDataSetSpecification(model.Schema):
         """
 
 
-## adapter interfaces
+# adapter interfaces
 
 class IMultiRecordMeasureFactory(Interface):
     """Adapter interface for content creation"""
@@ -686,7 +694,7 @@ class IDataPointCache(IIterableMapping, IWriteMapping):
     """
     A global component that acts as a mapping of
     tuple keys to datapoint mapping values, such that:
-    
+
         * Keys are four-item tuples, with:
             - Measure UID
             - Measure modified date (ISO 8601 string date stamp)
@@ -694,35 +702,35 @@ class IDataPointCache(IIterableMapping, IWriteMapping):
             - Form modified date (ISO 8601 string date stamp)
         * Values are datapoint mappings, such as a dict or
           PersistentMapping.
-    
+
     Assume that this component has access to local site, whether
     as a utility component using zope.component.hooks.getSite()
     or as an adapter of the site.
-    
+
     All writes to this cache are done by the cache component itself,
     via reload() or invalidate() -- or explicitly by callers using
     the equivalent store() or __setitem__() methods documented below.
     """
-    
+
     def select(uid):
         """
         Given UID of form or measure content items, return sequence
         of all cache keys that match the UID of content items.
         """
-    
+
     def invalidate(uid):
         """
         Given the UID of either a measure or form, invalidate all
         keys using those UIDs.
         """
-    
+
     def reload(uid):
         """
         Given UID of either a measure or a form, invalidate any
         existing keys for that UID, then load/cache summarized
         datapoints in the cache
         """
-    
+
     def store(key, value):
         """
         Given a four item tuple as a key, such that keys match
@@ -734,7 +742,7 @@ class IDataPointCache(IIterableMapping, IWriteMapping):
 
     def __setitem__(key, value):
         """Alterate spelling for store(); validates accordingly."""
-    
+
     def __delitem__(key):
         """
         Explicitly remove a four-item tuple key; validates key

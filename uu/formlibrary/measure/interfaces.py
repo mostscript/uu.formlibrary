@@ -570,9 +570,12 @@ class IFormDataSetSpecification(model.Schema):
         'locations',
         CustomRootRelatedWidget,
         pattern_options={'mode': 'auto'},
-        # use found root as root, not base, which means browsing won't
-        # escape a nav root or project:
-        use_base=False,
+        # ideally, we would use found navigation root as rootPath,
+        # not basePath, so that browsing cannot escape nav root;
+        # However, this bug must be fixed first:
+        #   https://github.com/plone/mockup/issues/795
+        #   -- if this gets fixed, we would want to set below to False...
+        use_base=True,
         # custom root query kicks widget to use nav-root as basePath
         custom_root_query={
             'object_provides':

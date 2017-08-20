@@ -1,6 +1,7 @@
 import operator
 
 from Acquisition import aq_parent, aq_inner
+from five import grok
 from plone.app.layout.navigation.interfaces import INavigationRoot
 from plone.autoform import directives
 from plone.supermodel import model
@@ -15,7 +16,9 @@ from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import local_definitions
+from uu.formlibrary.interfaces import navroot_for
 
+from uu.formlibrary.utils import local_query
 from uu.formlibrary.vocabulary import definition_field_source
 from uu.formlibrary.vocabulary import definition_flex_datasource_fields
 from uu.formlibrary.browser.widget import CustomRootRelatedWidget
@@ -203,6 +206,24 @@ class MeasureGroupContentSourceBinder(object):
             contained,
             )
         return PermissiveVocabulary(terms)
+
+
+# Sources: all content in navroot, respectively (via catalog)...
+#  -- note: used by uu.chart
+
+def find_in_navroot(context, portal_type):
+    site, navroot = navroot_for(context)
+    return local_query(navroot, {}, types=(portal_type,), depth=-1)
+
+
+@grok.provider(IContextSourceBinder)
+def all_measures_in_navroot(context):
+    return find_in_navroot(context, MEASURE_DEFINITION_TYPE)
+
+
+@grok.provider(IContextSourceBinder)
+def all_datasets_in_navroot(context):
+    return find_in_navroot(context, DATASET_TYPE)
 
 
 # core interfaces (shared by content types and/or forms):

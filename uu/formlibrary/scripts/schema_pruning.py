@@ -49,7 +49,7 @@ def all_forms_signatures(definition):
 
 def verify(site):
     """Verify that nothing we need is gone!"""
-    actively_used = set()
+    actively_used = set([DEFAULT_SIGNATURE])
     saver = queryUtility(ISchemaSaver)
     schema_contexts = map(get, search(site, TYPEQUERY))
     definitions = filter(IFormDefinition.providedBy, schema_contexts)

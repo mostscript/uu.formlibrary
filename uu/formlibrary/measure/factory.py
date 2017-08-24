@@ -25,13 +25,22 @@ class MeasureFactory(object):
         non_constant = [term.value for term in MR_FORM_COMMON_FILTER_CHOICES]
         return nt in non_constant and mt in non_constant
 
+    def data_summarized(self, saved_formdata, key='multi_summarize'):
+        """Is numerically summarized data implied?"""
+        info = saved_formdata.get('IMeasureWizardMRCriteria', {})
+        return (
+            info.get('numerator_type', None) == key or
+            info.get('denominator_type', None) == key
+            )
+
     def _make_measure(self, data):
         kw = {}   # field values for new measure
         # use defaults for rounding, display_precision, infer if percentage
         use_pct = self.data_implies_percentage(data)
+        use_decimal = self.data_summarized(data)
         kw.update({
             'rounding': '',
-            'display_precision': 1 if use_pct else 0,
+            'display_precision': 1 if use_pct or use_decimal else 0,
             'express_as_percentage': use_pct,
             })
         if self.context.source_type == MULTI_FORM_TYPE:

@@ -9,6 +9,14 @@
     <value key="compile">False</value>
     <value key="depends">plone</value>
   </records>
+  <records prefix="plone.bundles/uu-formlibrary-typeadate"
+           interface='Products.CMFPlone.interfaces.IBundleRegistry'>
+    <value key="enabled">True</value>
+    <value key="jscompilation">++resource++uu.formlibrary.js/type-a-date-pattern.js</value>
+    <value key="last_compilation">2017-08-25 15:00:00</value>
+    <value key="compile">False</value>
+    <value key="depends">plone</value>
+  </records>
   <!-- include this add-on's types in nav-displayed types -->
   <record name="plone.displayed_types">
     <value purge="False">

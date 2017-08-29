@@ -7,6 +7,7 @@ from plone.autoform import directives
 from plone.supermodel import model
 from plone.uuid.interfaces import IAttributeUUID, IUUID
 from z3c.form.browser.radio import RadioFieldWidget
+from zope.component.hooks import getSite
 from zope.container.interfaces import IOrderedContainer
 from zope.interface import Interface, Invalid, implements, invariant
 from zope.interface.common.mapping import IWriteMapping, IIterableMapping
@@ -211,19 +212,46 @@ class MeasureGroupContentSourceBinder(object):
 # Sources: all content in navroot, respectively (via catalog)...
 #  -- note: used by uu.chart
 
+def _search(query):
+    return getSite().portal_catalog.unrestrictedSearchResults(query)
+
+
 def find_in_navroot(context, portal_type):
     site, navroot = navroot_for(context)
-    return local_query(navroot, {}, types=(portal_type,), depth=-1)
+    query = local_query(navroot, {}, types=(portal_type,), depth=-1)
+    return _search(query)
+
+
+def brain_title(brain, parent_suffix=False):
+    if not parent_suffix:
+        return brain.Title
+    parent_name = brain.getPath().split('/')[-2]
+    return u'%s \u2003(%s)' % (brain.Title, parent_name)
+
+
+def content_vocab(result, parent_suffix=False):
+    return SimpleVocabulary([
+        SimpleTerm(
+            brain.UID,
+            title=brain_title(brain, parent_suffix)
+            ) for brain in result
+        ])
 
 
 @grok.provider(IContextSourceBinder)
 def all_measures_in_navroot(context):
-    return find_in_navroot(context, MEASURE_DEFINITION_TYPE)
+    return content_vocab(
+        find_in_navroot(context, MEASURE_DEFINITION_TYPE),
+        True
+        )
 
 
 @grok.provider(IContextSourceBinder)
 def all_datasets_in_navroot(context):
-    return find_in_navroot(context, DATASET_TYPE)
+    return content_vocab(
+        find_in_navroot(context, DATASET_TYPE),
+        True
+        )
 
 
 # core interfaces (shared by content types and/or forms):

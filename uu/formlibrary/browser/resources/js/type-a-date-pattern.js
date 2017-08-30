@@ -271,6 +271,8 @@ define(
       self.addDateKey = function (key) {
         dateBuffer += key;
         self.datePicker.close();
+        // hack to hide placeholder, becuase pickadate does something funky
+        self.$date.attr('placeholder', '');
         self.$date.val(dateBuffer);
         // return false, or key appears appended dupe after buffer value
         return false;

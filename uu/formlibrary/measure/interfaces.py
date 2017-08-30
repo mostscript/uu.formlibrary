@@ -15,6 +15,8 @@ from zope import schema
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
+from uu.formlibrary.browser.widget import CustomRootRelatedWidget
+from uu.formlibrary.browser.widget_overrides import TypeADateFieldWidget
 from uu.formlibrary.interfaces import SIMPLE_FORM_TYPE, MULTI_FORM_TYPE
 from uu.formlibrary.interfaces import local_definitions
 from uu.formlibrary.interfaces import navroot_for
@@ -22,7 +24,6 @@ from uu.formlibrary.interfaces import navroot_for
 from uu.formlibrary.utils import local_query
 from uu.formlibrary.vocabulary import definition_field_source
 from uu.formlibrary.vocabulary import definition_flex_datasource_fields
-from uu.formlibrary.browser.widget import CustomRootRelatedWidget
 
 
 # global constants:
@@ -600,6 +601,9 @@ class IFormDataSetSpecification(model.Schema):
             'aggregate_function',
             ]
         )
+
+    directives.widget(query_start=TypeADateFieldWidget)
+    directives.widget(query_end=TypeADateFieldWidget)
 
     title = schema.TextLine(
         title=u'Title',

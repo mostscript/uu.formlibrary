@@ -705,6 +705,12 @@ class IPeriodicFormInstance(model.Schema, IAttributeUUID):
         fields=['notes']
         )
 
+    # type-a-date widget, use dotted name to avoid circular import...
+    directives.widget(
+        start='uu.formlibrary.browser.widget_overrides.TypeADateFieldWidget')
+    directives.widget(
+        end='uu.formlibrary.browser.widget_overrides.TypeADateFieldWidget')
+
     title = schema.TextLine(
         title=_(u'Title'),
         description=_(u'Title for form instance; usually contains the '
@@ -805,8 +811,11 @@ class IMultiForm(IBaseForm, IRecordContainer, ISchemaProvider):
 class IPeriodicSeries(model.Schema):
     """Definition of a sequence of periods of time"""
 
-    directives.widget(start=DateFieldWidget)
-    directives.widget(end=DateFieldWidget)
+    # type-a-date widget, use dotted name to avoid circular import...
+    directives.widget(
+        start='uu.formlibrary.browser.widget_overrides.TypeADateFieldWidget')
+    directives.widget(
+        end='uu.formlibrary.browser.widget_overrides.TypeADateFieldWidget')
 
     frequency = schema.Choice(
         title=_(u'Frequency'),
@@ -867,9 +876,6 @@ class IFormSeries(model.Schema, IPeriodicSeries):
     A time-series container of related periodic forms, may contain
     shared metadata about that group of forms.
     """
-
-    directives.widget(start=DateFieldWidget)
-    directives.widget(end=DateFieldWidget)
 
     model.fieldset(
         'Display',

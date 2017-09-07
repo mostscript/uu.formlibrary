@@ -94,11 +94,11 @@ class JSONListing(object):
     Base JSON listing, lists items immediately in contents of folder
     that are marked as visible to the current user/security context.
     """
-    
+
     RECURSIVE = False
-    
+
     PERMISSION = ListFolderContents
-    
+
     def __init__(self, context, request):
         self.context = context
         self.request = request
@@ -133,16 +133,16 @@ class JSONListing(object):
         if not self.sm.checkPermission(self.PERMISSION, container):
             raise Unauthorized('Permission denied')
         self.message = json.dumps(
-            self._result(container, **self.request),
+            self._result(container, **self.request.form),
             default=self.serializer,
             )
-    
+
     def index(self, *args, **kwargs):
         setHeader = self.request.response.setHeader
         setHeader('Content-type', 'application/json')
         setHeader('Content-length', len(self.message))
         return self.message
-    
+
     def __call__(self, *args, **kwargs):
         self.update(*args, **kwargs)
         return self.index(*args, **kwargs)
@@ -150,7 +150,7 @@ class JSONListing(object):
 
 class JSONFinder(JSONListing):
     """Recursive JSON listing, finds content in subfolders"""
-    
+
     RECURSIVE = True
 
 

@@ -508,3 +508,9 @@ body.template-form_entry table.datagridwidget-table-view {
 ol.formrows {
   margin-left:1.75em;
 }
+
+/* multi-record form styles */
+
+#formcore span.option {
+  display:block;
+}

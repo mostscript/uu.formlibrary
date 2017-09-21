@@ -63,18 +63,39 @@ class DefinitionCommon(object):
         q = {'references': IUUID(context)}
         return len(self.catalog.unrestrictedSearchResults(q))
 
-    def tabs(self):
-        useby = '@@in_use_by'
-        context = self.context
-        if not IContentish.providedBy(context):
-            context = self.request.PARENTS[1]
-            useby = '../@@in_use_by'
+    def tabs(self, check_usage=True):
         result = self.DEFINITION_TABS
-        count = self.instance_count(context)
-        if count:
-            result = list(result)
-            result.append(('In use by (%s)' % count, useby))
+        if check_usage:
+            context = self.context
+            useby = '@@in_use_by'
+            if not IContentish.providedBy(context):
+                context = self.request.PARENTS[1]
+                useby = '../@@in_use_by'
+            count = self.instance_count(context)
+            if count:
+                result = list(result)
+                result.append(('In use by (%s)' % count, useby))
         return result
+
+
+class FieldGroupPreview(FormInputView, DefinitionCommon):
+
+    label = 'Group Preview'
+
+    # Do not show child content listings, unlike definition:
+    fieldgroups = ()
+    showmore = ()
+
+    DEFINITION_TABS = (
+        ('Group Preview', '@@group_preview'),
+        ('Field schema', 'edit_schema/@@fields'),
+        )
+
+    def fieldnames(self):
+        getFieldNamesInOrder(self.context.schema)
+
+    def tabs(self):
+        return DefinitionCommon.tabs(self, check_usage=False)
 
 
 class DefinitionPreview(FormInputView, DefinitionCommon):
@@ -120,7 +141,8 @@ class DefinitionPreview(FormInputView, DefinitionCommon):
         return self.catalog.unrestrictedSearchResults(q)
 
     def more_contents_url(self, spec):
-        portal_state = self.context.unrestrictedTraverse('@@plone_portal_state')
+        context = self.context
+        portal_state = context.unrestrictedTraverse('@@plone_portal_state')
         search_url = '%s/search' % (portal_state.navigation_root_url(),)
         pathq = 'path=%s' % (urllib.quote_plus(self.path),)
         spec_types = {
@@ -132,7 +154,7 @@ class DefinitionPreview(FormInputView, DefinitionCommon):
             'formsets': ('uu.formlibrary.setspecifier',),
             }
         if spec not in spec_types:
-            return '/'.join(self.context.absolute_url(), 'folder_contents')
+            return '/'.join(context.absolute_url(), 'folder_contents')
         ftis = spec_types.get(spec)
         typekey = 'portal_type:list'
         typeq = urllib.urlencode(zip((typekey,) * len(ftis), ftis))

@@ -164,6 +164,8 @@ class ComposedForm(AutoExtensibleForm, form.Form):
 
     @property
     def additionalSchemata(self):
+        if self.definition is None:
+            return ()
         return self._additionalSchemata
 
     def __init__(self, context, request, name=None):
@@ -174,30 +176,38 @@ class ComposedForm(AutoExtensibleForm, form.Form):
         """
         self.context = context
         self.request = request
-        # form definition will either be context, or adaptation of context.
+        # form definition will be one of:
+        #  1. context (a form definition)
+        #  2. adaptation of context from form instance;
+        #  3. None: in case context is a field group (for preview)
         # see uu.formlibrary.definition.form_definition for adapter example.
-        if name is None:
-            self.definition = IFormDefinition(self.context)
+        if IFormDefinition.providedBy(context):
+            self.definition = context
+        elif name is None:
+            self.definition = queryAdapter(self.context, IFormDefinition)
         else:
             self.definition = queryAdapter(
                 self.context,
                 IFormDefinition,
                 name=name,
                 )
-        self._schema = self.definition.schema
-        self.groups = []  # modified by updateFieldsFromSchemata()
+        if self.definition:
+            self._schema = self.definition.schema
+            self.groups = []  # modified by updateFieldsFromSchemata()
 
-        self.components = IFormComponents(self.definition)
-        self.group_schemas = self._group_schemas()
-        self.group_titles = self._group_titles()
+            self.components = IFormComponents(self.definition)
+            self.group_schemas = self._group_schemas()
+            self.group_titles = self._group_titles()
 
-        # mapping: schema to names:
-        self.schema_names = dict(invert(self.group_schemas))
+            # mapping: schema to names:
+            self.schema_names = dict(invert(self.group_schemas))
 
-        # ordered list of additional schema for AutoExtensibleForm:
-        self._additionalSchemata = tuple(
-            [t[1] for t in self.group_schemas if t[0]]
-            )
+            # ordered list of additional schema for AutoExtensibleForm:
+            self._additionalSchemata = tuple(
+                [t[1] for t in self.group_schemas if t[0]]
+                )
+        else:
+            self._schema = self.context.schema
         # super(ComposedForm, self).__init__(self, context, request)
         form.Form.__init__(self, context, request)
         self.saved = False  # initial value: no duplication of save...
@@ -222,16 +232,19 @@ class ComposedForm(AutoExtensibleForm, form.Form):
 
     def updateFieldsFromSchemata(self):
         self.groups = []
-        for name, schema in self.group_schemas:
-            if name == '':
-                continue  # default, we don't need another group
-            title = self.group_titles.get(name, name)
-            fieldset_group = GroupFactory(name, field.Fields(), title)
-            self.groups.append(fieldset_group)
+        if self.definition:
+            for name, schema in self.group_schemas:
+                if name == '':
+                    continue  # default, we don't need another group
+                title = self.group_titles.get(name, name)
+                fieldset_group = GroupFactory(name, field.Fields(), title)
+                self.groups.append(fieldset_group)
         super(ComposedForm, self).updateFieldsFromSchemata()
 
     def _load_widget_data(self):
         _marker = object()
+        if self.definition is None:
+            return
         data = aq_base(self.context).data
         groups = dict((g.__name__, g) for g in self.groups)
         groupnames = [''] + groups.keys()

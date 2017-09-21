@@ -3,8 +3,9 @@ from plone.z3cform.layout import FormWrapper
 from Products.CMFCore.utils import getToolByName
 from zope.component.hooks import getSite
 
+from uu.formlibrary.interfaces import IFieldGroup
+from uu.formlibrary.browser.definition import DefinitionCommon
 from uu.formlibrary.forms import common_widget_updates
-from definition import DefinitionCommon
 
 
 class ContextSchemaListing(SchemaListing):
@@ -35,8 +36,19 @@ class FieldSchemaEditor(FormWrapper, DefinitionCommon):
         ('Field rules', '../@@fieldrules'),
         )
 
+    # tabs for field group relative to schema editor url:
+    GROUP_TABS = (
+        ('Group preview', '../@@group_preview'),
+        ('Field schema', '@@fields'),
+        )
+
     label = 'Field schema'
 
     @property
     def catalog(self):
         return getToolByName(getSite(), 'portal_catalog')
+
+    def tabs(self):
+        if IFieldGroup.providedBy(self.context.__parent__):
+            return self.GROUP_TABS
+        return self.DEFINITION_TABS

@@ -13,6 +13,14 @@
     />
 
   <browser:page
+    name="group_preview"
+    for="uu.formlibrary.interfaces.IFieldGroup"
+    class=".definition.FieldGroupPreview"
+    template="definition.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
     name="fields"
     for="uu.formlibrary.interfaces.IDefinitionSchemaContext"
     class=".fields.FieldSchemaEditor"
@@ -85,6 +93,13 @@
  <browser:page
     name="formcommon"
     for="..interfaces.IDefinitionSchemaContext"
+    template="common.pt"
+    permission="zope2.View"
+    />
+
+ <browser:page
+    name="formcommon"
+    for="..interfaces.IFieldGroup"
     template="common.pt"
     permission="zope2.View"
     />

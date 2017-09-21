@@ -1,4 +1,5 @@
 from plone import api
+from zope.component import queryAdapter
 from zope.component.hooks import getSite
 from zope.schema import getFieldNamesInOrder
 
@@ -27,7 +28,7 @@ class TabbedViewMixin(object):
 
 
 class BaseSeriesView(TabbedViewMixin):
-    
+
     APP_TABS = (
         {
             'id': 'summary',
@@ -69,7 +70,10 @@ class BaseFormView(TabbedViewMixin):
         self.context = context
         self.request = request
         self.portal = getSite()
-        self.definition = IFormDefinition(self.context)
+        if IFormDefinition.providedBy(self.context):
+            self.definition = self.context
+        else:
+            self.definition = queryAdapter(self.context, IFormDefinition)
         self.series = context.__parent__  # assumes series <>--- form
         self.title = '%s: %s' % (self.series.Title().strip(), context.Title())
         self.seriesinfo = dict(

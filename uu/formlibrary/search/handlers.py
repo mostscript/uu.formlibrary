@@ -33,9 +33,10 @@ def handle_multiform_modify(context, event):
     if event and len(getattr(event, 'descriptions', [])):
         if 'items' not in getattr(event.descriptions[0], 'attributes', ()):
             return
+    # repoze.catalog indexes for boolean query of records, we want to reset
+    # in both cases of empty forms and forms with data:
+    index_records(context)
     if len(context):
-        # repoze.catalog indexes for boolean query of records:
-        index_records(context)
         # check for computed fields, if any, and computed, if necessary:
         records = context.values()
         schema = records[0].schema
@@ -43,7 +44,7 @@ def handle_multiform_modify(context, event):
             complete_computed_values(context, schema)
     # reload the data point cache for all points/measures for this form:
     DataPointCache().reload(IUUID(context))
-            
+
 
 def handle_multiform_savedata(context):
     """Hook called from update() of multiform entry view/form"""

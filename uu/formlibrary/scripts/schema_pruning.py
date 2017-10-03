@@ -1,4 +1,5 @@
 from datetime import datetime
+import gc
 
 import transaction
 from zope.component.hooks import setSite
@@ -78,7 +79,8 @@ def cleanup_stored_schemas(site):
     content = map(get, search(site, TYPEQUERY))
     for context in content:
         assert IDefinitionBase.providedBy(context)
-        assert context.signature is not None
+        if context.signature is None:
+            context.signature = saver.add(context.entry_schema)
         # consider the current schema (signature) used now by definition
         # or field group in question:
         actively_used.add(context.signature)
@@ -110,6 +112,8 @@ def main(app):
     for site in app.objectValues('Plone Site'):
         setSite(site)
         if product_installed(site, PKGNAME):
+            app._p_jar.cacheMinimize()
+            gc.collect()
             cleanup_stored_schemas(site)
 
 

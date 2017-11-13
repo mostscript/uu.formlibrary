@@ -1,0 +1,11 @@
+<configure
+  xmlns="http://namespaces.zope.org/zope"
+  xmlns:browser="http://namespaces.zope.org/browser"
+  xmlns:zcml="http://namespaces.zope.org/zcml"
+  i18n_domain="uu.formlibrary">
+
+  <!-- better data converter for floats than what ships with z3c.form,
+       as original is broken for more than 3-digits past decimal mark -->
+  <adapter factory=".browser.converter.BetterFloatDataConverter" />
+
+</configure>

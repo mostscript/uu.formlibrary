@@ -16,13 +16,19 @@ class BetterFloatDataConverter(FloatDataConverter):
         return self.formatter.symbols.get('decimal')
 
     def toWidgetValue(self, value):
+        if value is None:
+            return u''
         v = float(value)
         # does value exceed number of digits zope.i18n formatter handles
         # by default?
         return unicode(v).replace(u'.', self.mark())
 
     def toFieldValue(self, value):
+        if value is None:
+            return None
         v = value.strip().replace(self.mark(), u'.')
+        if not len(v):
+            return None
         try:
             v = float(v.replace(self.mark(), '.'))
             return v

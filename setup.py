@@ -49,6 +49,7 @@ setup(
         'uu.dynamicschema',
         'uu.retrieval',
         'collective.computedfield',
+        'z3c.jbot',
         # -*- Extra requirements: -*-
     ],
     extras_require = {

@@ -1127,9 +1127,12 @@ class MultiForm(Item, RecordContainer):
         parts = v[:10].split('-')
         if not v or len(parts) != 3:
             return None
-        year = int(parts[0])
-        month = int(parts[1])
-        day = int(parts[2])
+        try:
+            year = int(parts[0])
+            month = int(parts[1])
+            day = int(parts[2])
+        except (IndexError, ValueError, TypeError):
+            return None
         return date(year, month, day)
 
     def _populate_record(self, entry, data):

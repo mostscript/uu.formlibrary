@@ -2,6 +2,7 @@ from datetime import date, datetime
 import math
 import re
 
+from plone.uuid.interfaces import IUUID
 import xlwt
 from zope.component.hooks import getSite
 from zope.interface import implements
@@ -69,7 +70,7 @@ def xstyle(spec, **kwargs):
 
 DEFAULT_COLORS = {
     #   name          rgb tuple             # html/hex Excel 2010 theme name
-    #------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     33: ('dark_blue', (31, 73, 125)),       # #1f497d, "Text 2"
     34: ('blue_accent', (79, 129, 189)),    # #4f81bd, "Accent 1"
     35: ('blue_bg', (197, 217, 241)),       # #C5D9F1, "Text 2 lighter 80%"
@@ -93,7 +94,7 @@ FREQ_INFO = {
 
 # ColorPalette can be used both globally, and with context
 class ColorPalette(object):
-    
+
     def __init__(self, context=None, colors=DEFAULT_COLORS):
         self.context = context  # IFormWorkbook
         self.colors = colors
@@ -107,7 +108,9 @@ class ColorPalette(object):
                 # assign RGB to color local to workbook context:
                 self.context.book.set_colour_RGB(key, *rgb)
 
+
 ColorPalette().apply()   # apply DEFAULT_COLORS for use in global styles
+
 
 # GLOBAL MAP OF STYLES USED (to reduce number of unique formats):
 STYLES = {
@@ -335,6 +338,12 @@ class BaseFormSheet(object):
         status = tool.getStatusOf(chain, self.context)['review_state']
         return wdefn.states[status].title
 
+    def redirect_url(self):
+        """Redirect URL to get to form by UUID"""
+        form_uid = IUUID(self.context)
+        site_url = getSite().absolute_url()
+        return '/'.join((site_url, '@@redirect-to-uuid/%s' % form_uid))
+
     def write_metadata(self):
         sheet = self.worksheet
         # Title cell content, style @ A1:D1 merged
@@ -350,8 +359,16 @@ class BaseFormSheet(object):
                 STYLES.get('description')
                 )
         # URL as hyperlink at A3:D3
-        url = self.context.absolute_url()
-        url_formula = 'HYPERLINK("%s";"%s")' % (url, 'Source: %s' % url)
+        url = uid_url = self.context.absolute_url()
+        # URL > 111 chars => formatted formula > 255 CHARS => exception, so:
+        if len(url) > 111:
+            uid_url = self.redirect_url()
+            format_cost = 24  # characters for formula and display format
+            remaining = 255 - len(uid_url) - format_cost
+            halfurl = int(remaining/2.0)
+            # display url, ellipsis in middle of string:
+            url = '...'.join((url[0:halfurl], url[-1 * halfurl:]))
+        url_formula = 'HYPERLINK("%s";"%s")' % (uid_url, 'Source: %s' % url)
         style = STYLES.get('sourcelink')
         sheet.write_merge(2, 2, 0, rightside, xlwt.Formula(url_formula), style)
         # Modified at merged A5:B5
@@ -564,4 +581,3 @@ class FieldSetGrouping(object):
                     vidx += 1
                 if not value:
                     self.cursor += 1  # empty field, proceed to next row
-

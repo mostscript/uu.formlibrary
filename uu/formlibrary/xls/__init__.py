@@ -249,7 +249,7 @@ class FormWorkbook(object):
             self.stream = stream
         self.sheets = []
         self.names = []   # track this to avoid dupe names
-        self.book = xlwt.Workbook()
+        self.book = xlwt.Workbook(encoding='utf-8')
         self.set_defaults()
 
     def set_defaults(self):

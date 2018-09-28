@@ -3,6 +3,7 @@ import math
 import re
 
 from plone.uuid.interfaces import IUUID
+from plone.namedfile.interfaces import INamedFileField
 import xlwt
 from zope.component.hooks import getSite
 from zope.interface import implements
@@ -248,7 +249,7 @@ class FormWorkbook(object):
             self.stream = stream
         self.sheets = []
         self.names = []   # track this to avoid dupe names
-        self.book = xlwt.Workbook()
+        self.book = xlwt.Workbook(encoding='utf-8')
         self.set_defaults()
 
     def set_defaults(self):
@@ -365,7 +366,7 @@ class BaseFormSheet(object):
             uid_url = self.redirect_url()
             format_cost = 24  # characters for formula and display format
             remaining = 255 - len(uid_url) - format_cost
-            halfurl = int(remaining/2.0)
+            halfurl = int(remaining / 2.0)
             # display url, ellipsis in middle of string:
             url = '...'.join((url[0:halfurl], url[-1 * halfurl:]))
         url_formula = 'HYPERLINK("%s";"%s")' % (uid_url, 'Source: %s' % url)
@@ -567,6 +568,8 @@ class FieldSetGrouping(object):
                 # collection field with more than one answer:
                 if not self.is_multiple(field, value):
                     value = [value]
+                if INamedFileField.providedBy(field):
+                    value = [v.filename.encode('utf-8') for v in value]
                 vidx = 0
                 for element in value:
                     if isinstance(element, basestring) and len(element) > 30:

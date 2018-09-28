@@ -1,6 +1,7 @@
 <configure
   xmlns="http://namespaces.zope.org/zope"
   xmlns:browser="http://namespaces.zope.org/browser"
+  xmlns:z3c="http://namespaces.zope.org/z3c"
   xmlns:zcml="http://namespaces.zope.org/zcml"
   i18n_domain="uu.formlibrary">
 
@@ -49,6 +50,13 @@
     for="uu.formlibrary.interfaces.ISimpleForm"
     class=".definition.FormDisplayView"
     template="form_view.pt"
+    permission="zope2.View"
+    />
+
+  <browser:page
+    name="file_field_download"
+    for="uu.formlibrary.interfaces.ISimpleForm"
+    class=".file_field.FormFileDownloadView"
     permission="zope2.View"
     />
 
@@ -255,5 +263,12 @@
   <adapter factory=".widget_overrides.ExpirationDateFieldWidget" />
 
   <adapter factory=".widget.UIDRelatedItemsConverter" />
+
+  <z3c:widgetTemplate
+    mode="display"
+    widget="plone.formwidget.namedfile.interfaces.INamedFileWidget"
+    layer="uu.formlibrary.interfaces.IFormLibraryProductLayer"
+    template="plone.formwidget.namedfile.file_display.pt"
+    />
 
 </configure>

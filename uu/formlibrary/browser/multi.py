@@ -35,6 +35,22 @@ def converter_cache_key(method, self, name, value):
     return (self.definition.signature, name, value)
 
 
+def unicode_unwrap(value):
+    """
+    Unwrap unwanted excess unicode escaping in a basestring value by repeated
+    decoding with 'unicode-escape' codec, until it fails to decode.
+    """
+    if type(value) is str:
+        value = value.decode('utf-8')
+    try:
+        value = value.decode('unicode-escape')
+        if any(map(lambda c: ord(c) > 127, value)):
+            return unicode_unwrap(value)
+    except UnicodeEncodeError:
+        pass
+    return value
+
+
 class MetadataForm(ComposedForm):
     template = ViewPageTemplateFile('metadata_form.pt')
 
@@ -53,9 +69,7 @@ class RowForm(AutoExtensibleForm, form.EditForm):
 
     def __init__(self, record, schema, request):
         self._rowform_rec = record
-        #self._rowform_schema = schema
         self.schema = schema
-        #self.fields = field.Fields(schema)
         self.prefix = '%s~' % record.record_uid  # (js should split on '~')
         super(RowForm, self).__init__(record, request)
 
@@ -107,8 +121,10 @@ class MultiFormEntry(BaseFormView):
             self._init_baseform()
         msg = ''
         if 'payload' in self.request.form:
+            # strip out double-escaping of unicode (ugly):
             json = self.request.form.get('payload').strip()
             if json:
+                json = unicode_unwrap(json)
                 oldkeys = self.context.keys()
                 # save the data payload to records, also notifies
                 # ObjectModifiedEvent, if data is modified, which

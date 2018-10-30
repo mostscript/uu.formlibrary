@@ -39,15 +39,20 @@ def unicode_unwrap(value):
     """
     Unwrap unwanted excess unicode escaping in a basestring value by repeated
     decoding with 'unicode-escape' codec, until it fails to decode.
+
+    To avoid accidentally decoding escaped double-quotes, those are treated
+    with subsitution before and after execution of the codec do exempt them.
     """
     if type(value) is str:
         value = value.decode('utf-8')
+    value = value.replace('\\"', '\x1a')
     try:
         value = value.decode('unicode-escape')
         if any(map(lambda c: ord(c) > 127, value)):
             return unicode_unwrap(value)
     except UnicodeEncodeError:
         pass
+    value = value.replace('\x1a', '\\"')
     return value
 
 
@@ -391,4 +396,3 @@ class MultiFormSaveSubmit(MultiFormSave):
         self.request.form['save_submit'] = True
         kwargs['saveonly'] = True
         super(MultiFormSaveSubmit, self).update(*args, **kwargs)
-

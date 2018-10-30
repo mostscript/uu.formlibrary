@@ -46,6 +46,7 @@ def unicode_unwrap(value):
     if type(value) is str:
         value = value.decode('utf-8')
     value = value.replace('\\"', '\x1a')
+    value = value.replace('\\n', '\x1b')
     try:
         value = value.decode('unicode-escape')
         if any(map(lambda c: ord(c) > 127, value)):
@@ -53,6 +54,7 @@ def unicode_unwrap(value):
     except UnicodeEncodeError:
         pass
     value = value.replace('\x1a', '\\"')
+    value = value.replace('\x1b', '\\n')
     return value
 
 
